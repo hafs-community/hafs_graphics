@@ -51,7 +51,7 @@ export NCTSK=${NCTSK:-16}
 export NCNODE=${NCNODE:-16}
 export OMP_NUM_THREADS=${OMP_NUM_THREADS:-1}
 
-source ${USHgraph}/hafs_runcmd.sh.inc
+source ${USHgraph}/graph_runcmd.sh.inc
 
 mkdir -p ${WORKgraph}
 cd ${WORKgraph}
