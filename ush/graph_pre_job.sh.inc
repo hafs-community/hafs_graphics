@@ -3,26 +3,26 @@
 # set to a location that does not exist or is in memory.  The $TMPDIR
 # variable is not always passed through to batch jobs.  This
 # workaround sets it to some other specified location from the
-# $HAFS_FORCE_ALT_TMPDIR or $HAFS_FORCE_TMPDIR variables.  We use
-# $HAFS_FORCE_TMPDIR as the default for all jobs, and allow per-job
-# overrides via $HAFS_FORCE_ALT_TMPDIR.  Such overrides are needed
+# $GRAPH_FORCE_ALT_TMPDIR or $GRAPH_FORCE_TMPDIR variables.  We use
+# $GRAPH_FORCE_TMPDIR as the default for all jobs, and allow per-job
+# overrides via $GRAPH_FORCE_ALT_TMPDIR.  Such overrides are needed
 # only for jobs that are scrubbing the parent of the regular tmpdir,
 # or that run after that directory is removed.
 
-if [[ "Q${HAFS_FORCE_ALT_TMPDIR:-}" != "Q" ]] ; then
-    if [[ ! -d "$HAFS_FORCE_ALT_TMPDIR" ]] ; then
-        if ( mkdir -p "$HAFS_FORCE_ALT_TMPDIR" ) ; then
+if [[ "Q${GRAPH_FORCE_ALT_TMPDIR:-}" != "Q" ]] ; then
+    if [[ ! -d "$GRAPH_FORCE_ALT_TMPDIR" ]] ; then
+        if ( mkdir -p "$GRAPH_FORCE_ALT_TMPDIR" ) ; then
             :  # trick to avoid triggering a set -e during a race condition
         fi
     fi
-    export TMPDIR="$HAFS_FORCE_ALT_TMPDIR"
-elif [[ "Q${HAFS_FORCE_TMPDIR:-}" != "Q" ]] ; then
-    if [[ ! -d "$HAFS_FORCE_TMPDIR" ]] ; then
-        if ( mkdir -p "$HAFS_FORCE_TMPDIR" ) ; then
+    export TMPDIR="$GRAPH_FORCE_ALT_TMPDIR"
+elif [[ "Q${GRAPH_FORCE_TMPDIR:-}" != "Q" ]] ; then
+    if [[ ! -d "$GRAPH_FORCE_TMPDIR" ]] ; then
+        if ( mkdir -p "$GRAPH_FORCE_TMPDIR" ) ; then
             :  # trick to avoid triggering a set -e during a race condition
         fi
     fi
-    export TMPDIR="$HAFS_FORCE_TMPDIR"
+    export TMPDIR="$GRAPH_FORCE_TMPDIR"
 fi
 
 # Create a test function for sh vs. bash detection.  The name is
@@ -66,7 +66,7 @@ elif [[ -d /work/noaa ]] ; then
     # We are on MSU Orion
     if ( ! eval module help > /dev/null 2>&1 ) ; then
         echo load the module command 1>&2
-        source /apps/lmod/init/$__ms_shell
+        source /apps/lmod/lmod/init/$__ms_shell
     fi
     target=orion
     module purge
@@ -165,21 +165,19 @@ unset __ms_function_name
 
 export WHERE_AM_I=${target}
 
-moduleuse=$HOMEhafs/modulefiles
+moduleuse=$HOMEgraph/modulefiles
 if [[ "$moduleuse" != no ]] ; then
-  module use $moduleuse 
-  module load modulefile.hafs.run.$WHERE_AM_I
+  module use $moduleuse
+  module load modulefile.graphics.run.$WHERE_AM_I
 fi
 set +u
 if [[ "Q${utilexec:-}" != Q ]] ; then
   export PATH=$utilexec:$PATH
 fi
-if [[ "Q${EXEChafs:-}" != Q ]] ; then
-  export PATH=$EXEChafs:$PATH
-elif [[ "Q${HOMEhafs:-}" != Q ]] ; then
-  export PATH=$HOMEhafs/exec:$PATH
-fi
-if [[ "$target" == "wcoss_dell_p3" ]]; then
-  export PYTHONPATH=$PYTHONPATH:$HOMEhafs/ush
+if [[ "Q${EXECgraph:-}" != Q ]] ; then
+  export PATH=$EXECgraph:$PATH
+elif [[ "Q${HOMEgraph:-}" != Q ]] ; then
+  export PATH=$HOMEgraph/exec:$PATH
+  export PYTHONPATH=$PYTHONPATH:$HOMEgraph/ush
 fi
 set -u

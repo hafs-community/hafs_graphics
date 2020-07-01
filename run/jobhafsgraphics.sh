@@ -24,15 +24,18 @@ date
 STORM=${STORM:-NATL}
 STORMID=${STORMID:-00L}
 YMDH=${YMDH:-2019082900}
-HOMEgraph=/mnt/lfs4/HFIP/hwrfv3/Bin.Liu/hafs_emc_graphics
-COMhafs=/mnt/lfs4/HFIP/hwrfv3/Bin.Liu/hafstmp/hafs_couplehycom_202006_new/com/${YMDH}/${STORMID}
+HOMEgraph=/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics
+#WORKgraph=/your/graph/work/dir # if not specified, a default location relative to COMhafs will be used
+#COMgraph=/your/graph/com/dir   # if not specified, a default location relative to COMhafs will be used
+COMhafs=/your/hafs/com/dir
 
-export HOMEgraph=${HOMEgraph:-/mnt/lfs4/HFIP/hwrfv3/Bin.Liu/hafs_emc_graphics}
-export COMhafs=${COMhafs:-/mnt/lfs4/HFIP/hwrfv3/Bin.Liu/hafstmp/HAFS/com/${YMDH}/${STORMID}}
-export WORKgraph=${WORKgraph:-${COMhafs}/../../../${YMDH}/${STORMID}/emc_graphics}
-export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
+export HOMEgraph=${HOMEgraph:-/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics}
 export USHgraph=${USHgraph:-${HOMEgraph}/ush}
 export DRIVERDOMAIN=${USHgraph}/driverDomain.sh
+
+export COMhafs=${COMhafs:-/hafs/com/${YMDH}/${STORMID}}
+export WORKgraph=${WORKgraph:-${COMhafs}/../../../${YMDH}/${STORMID}/emc_graphics}
+export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 
 stormModel=${stormModel:-HAFS}
 is6Hr=${is6Hr:-False}
@@ -40,18 +43,8 @@ figTimeLevels=$(seq 0 42)
 #is6Hr=${is6Hr:-True}
 #figTimeLevels=$(seq 0 20)
 
-source ${USHgraph}/hafs_pre_job.sh.inc
+source ${USHgraph}/graph_pre_job.sh.inc
 export machine=${WHERE_AM_I:-wcoss_cray} # platforms: wcoss_cray, wcoss_dell_p3, hera, orion, jet
-#export RUN_ENVIR=${RUN_ENVIR:-prod}
-export RUN_ENVIR=${envir:-prod}
-if [ "$RUN_ENVIR" = prod ]; then
-  module load ncl
-  module list
-fi
-
-#####################################
-# Set up job node/core/run environment variables
-#####################################
 
 export TOTAL_TASKS=${TOTAL_TASKS:-${SLURM_NTASKS:-480}}
 export NCTSK=${NCTSK:-16}
@@ -59,13 +52,6 @@ export NCNODE=${NCNODE:-16}
 export OMP_NUM_THREADS=${OMP_NUM_THREADS:-1}
 
 source ${USHgraph}/hafs_runcmd.sh.inc
-
-APRUNS=${APRUNS:-"aprun -b -j1 -n1 -N1 -d1 -cc depth"}
-APRUNO=${APRUNO:-"aprun -b -j1 -n1 -N1 -d${PURE_OMP_THREADS} -cc depth"}
-APRUNO=${APRUNO:-"time"}
-APRUNC=${APRUNC:-"aprun -b -j1 -n${TOTAL_TASKS} -N${NCTSK} -d${OMP_NUM_THREADS} -cc depth"}
-APRUNF=${APRUNF:-"aprun -b -j1 -n${TOTAL_TASKS} -N${NCTSK} -d${OMP_NUM_THREADS} -cc depth cfp"}
-BACKGROUND=${BACKGROUND:-""}
 
 mkdir -p ${WORKgraph}
 cd ${WORKgraph}
@@ -126,7 +112,7 @@ nscripts=${#figScriptAll[*]}
 for((i=0;i<${nscripts};i++));
 do
 
-echo  ${figScriptAll[$i]} ${figNameAll[$i]} ${standardLayerAll[$i]}
+echo ${figScriptAll[$i]} ${figNameAll[$i]} ${standardLayerAll[$i]}
 
 for figTimeLevel in ${figTimeLevels};
 do
@@ -180,7 +166,7 @@ nscripts=${#figScriptAll[*]}
 for((i=0;i<${nscripts};i++));
 do
 
-echo  ${figScriptAll[$i]} ${figNameAll[$i]} ${standardLayerAll[$i]}
+echo ${figScriptAll[$i]} ${figNameAll[$i]} ${standardLayerAll[$i]}
 
 for figTimeLevel in ${figTimeLevels};
 do

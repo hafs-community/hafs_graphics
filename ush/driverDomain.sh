@@ -15,7 +15,7 @@ stormid=${3:-00L}
 
 STORMID=`echo ${stormid} | tr '[a-z]' '[A-Z]' `
 stormid=`echo ${stormid} | tr '[A-Z]' '[a-z]' `
-STORMNAME=`echo ${stormname} | tr '[a-z]' '[A-Z]' ` 
+STORMNAME=`echo ${stormname} | tr '[a-z]' '[A-Z]' `
 stormname=`echo ${stormname} | tr '[A-Z]' '[a-z]' `
 STORMMODEL=`echo ${stormModel} | tr '[a-z]' '[A-Z]' `
 
@@ -27,10 +27,10 @@ standardLayer=${8:-850}
 startTimeLevel=${9:-0}
 endTimeLevel=${10:-42}
 
-COMhafs=${COMhafs:-/mnt/lfs4/HFIP/hwrfv3/Bin.Liu/hafstmp/hafs_couplehycom_202006_ave/com/${startDate}/${STORMID}}
-HOMEgraph=${HOMEgraph:-/mnt/lfs4/HFIP/hwrfv3/Bin.Liu/hafs_emc_graphics}
-WORKgraph=${WORKgraph:-${COMhafs}/../../../${startDate}/${STORMID}/graphics/emc_graphics}
-COMgraph=${COMgraph:-${COMhafs}/graphics/emc_graphics}
+COMhafs=${COMhafs:-/hafs/com/${startDate}/${STORMID}}
+HOMEgraph=${HOMEgraph:-/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics}
+WORKgraph=${WORKgraph:-${COMhafs}/../../../${startDate}/${STORMID}/emc_graphics}
+COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 
 stormDir=${COMhafs}
 atcfFile=${stormDir}/${stormname}${stormid}.${startDate}.trak.hafs.atcfunix.all
@@ -63,7 +63,7 @@ array=$( sh getStormNames.sh ${atcfFile} ${startDate} )
 for stormnameid in ${array[@]}
 do
 
-STORMNAMEID=`echo ${stormnameid} | tr '[a-z]' '[A-Z]' ` 
+STORMNAMEID=`echo ${stormnameid} | tr '[a-z]' '[A-Z]' `
 letter=`echo ${stormnameid: -1} |  tr '[A-Z]' '[a-z]' `
 YYYY=$(echo "$startDate" | cut -c1-4)
 
