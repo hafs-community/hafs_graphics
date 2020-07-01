@@ -44,12 +44,12 @@ cd ${work_dir}
 cp -up ${HOMEgraph}/ush/getStormIDs.sh ${work_dir}/
 cp -up ${HOMEgraph}/ush/getStormNames.sh ${work_dir}/
 
-cp -up ${HOMEgraph}/ush/ncl/readTracks.ncl ${work_dir}
-cp -up ${HOMEgraph}/ush/ncl/colorPlans.ncl ${work_dir}
-cp -up ${HOMEgraph}/ush/ncl/validTime.ncl ${work_dir}
+cp -up ${HOMEgraph}/ush/ncl/field2d/readTracks.ncl ${work_dir}
+cp -up ${HOMEgraph}/ush/ncl/field2d/colorPlans.ncl ${work_dir}
+cp -up ${HOMEgraph}/ush/ncl/field2d/validTime.ncl ${work_dir}
 cp -up ${atcfFile} ${work_dir}
 
-cp -up ${HOMEgraph}/ush/ncl/${figScript} ${work_dir}
+cp -up ${HOMEgraph}/ush/ncl/field2d/${figScript} ${work_dir}
 
 date
 unbuffer ncl 'stormModel="'${stormModel}'"' 'startDate="'${startDate}'"' is6Hr=${is6Hr} standardLayer=${standardLayer} startTimeLevel=${startTimeLevel} endTimeLevel=${endTimeLevel} 'atcfFile="'${atcfFile}'"' 'stormDir="'${stormDir}'"' ${figScript}
