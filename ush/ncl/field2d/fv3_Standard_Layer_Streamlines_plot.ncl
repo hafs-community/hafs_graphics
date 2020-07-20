@@ -377,10 +377,10 @@ do ifil = startTimeLevel, endTimeLevel
             res1@gsnRightString = "Init: " + tostring(startDate) + "Z, F" + hour  + ", Valid: " + valid + "Z"
             grb_file_new=addfile(name0, "r")
 
-            res1@mpMinLatF = track_yp(i,ifil) -9
-            res1@mpMaxLatF = track_yp(i,ifil) +9
-            res1@mpMinLonF = track_xp(i,ifil) -9
-            res1@mpMaxLonF = track_xp(i,ifil) +9
+            res1@mpMinLatF = track_yp(i,ifil) -3.5
+            res1@mpMaxLatF = track_yp(i,ifil) +3.5
+            res1@mpMinLonF = track_xp(i,ifil) -3.5
+            res1@mpMaxLonF = track_xp(i,ifil) +3.5
             res1@gsnLeftString = stormModel + " " + stormNames(i)
 
             u = grb_file_new->UGRD_P0_L100_GLL0(layerId, :, :)*1.94384   ;UGRD_P0_L100_GLL0
