@@ -408,10 +408,10 @@ do ifil = startTimeLevel, endTimeLevel
          hrind = NhlNewMarker(wks, "p", 37, 0.0, 0.0, 1.0, 1.0, 0.0)
          name0 = domain1_dir  +  hour + ".grb2"
 
-         res1@mpMinLatF = track_yp(i,ifil) -9
-         res1@mpMaxLatF = track_yp(i,ifil) +9
-         res1@mpMinLonF = track_xp(i,ifil) -9
-         res1@mpMaxLonF = track_xp(i,ifil) +9
+         res1@mpMinLatF = track_yp(i,ifil) -3.5
+         res1@mpMaxLatF = track_yp(i,ifil) +3.5
+         res1@mpMinLonF = track_xp(i,ifil) -3.5
+         res1@mpMaxLonF = track_xp(i,ifil) +3.5
 
          res1@gsnLeftString = stormModel + " " + stormNames(i)
          valid = validtime(startDate, tointeger(hour), format)
