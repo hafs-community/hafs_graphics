@@ -319,10 +319,10 @@ end do
                res1@gsnLeftString = stormModel + " " + stormNames(i)
                res1@gsnRightString = "Init: " + tostring(startDate) + "Z, F" + hour  + ", Valid: " + valid + "Z"
 
-               res1@mpMinLatF = track_yp(i,ifil) -9
-               res1@mpMaxLatF = track_yp(i,ifil) +9
-               res1@mpMinLonF = track_xp(i,ifil) -9
-               res1@mpMaxLonF = track_xp(i,ifil) +9
+               res1@mpMinLatF = track_yp(i,ifil) -3.5
+               res1@mpMaxLatF = track_yp(i,ifil) +3.5
+               res1@mpMinLonF = track_xp(i,ifil) -3.5
+               res1@mpMaxLonF = track_xp(i,ifil) +3.5
 
                grb_file_new=addfile(name0, "r")
 
