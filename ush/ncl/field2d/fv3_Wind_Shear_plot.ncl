@@ -1,8 +1,15 @@
 ;----------------------------------------------------------------------
-;ncl replace=0 'graphicDir="/your/figure/dir"' 'stormModel="HAFA"' startDate=2019071506 startTimeLevel=0 endTimeLevel=11 'atcfFile="/hafs/com/2019071506/00L/natl00l.2019071506.trak.hafs.atcfunix.all"' 'stormDir="/hafs/com/2019071506/00L"' fv3_Wind_Shear_plot.ncl
+;ncl replace=True 'graphicDir="/your/figure/dir"' 'stormModel="HAFA"' startDate=2019071506 startTimeLevel=0 endTimeLevel=11 'atcfFile="/hafs/com/2019071506/00L/natl00l.2019071506.trak.hafs.atcfunix.all"' 'stormDir="/hafs/com/2019071506/00L"' fv3_Wind_Shear_plot.ncl
+
+; Orion example: ncl isStormDomain=False replace=False is6Hr=True 'graphicDir="/work/noaa/hwrf/save/kwu/HAFS2020Figures"' 'stormModel="HAFS"' startDate=2020070412 startTimeLevel=0 endTimeLevel=11 'atcfFile="/work/noaa/hwrf/save/kwu/HAFSGraphics/EMC_HAFSJ_2020rt/natl00l.2020070412/natl00l.2020070412.trak.hafs.atcfunix.all"' 'stormDir="/work/noaa/hwrf/save/kwu/HAFSGraphics/EMC_HAFSJ_2020rt/natl00l.2020070412/"' fv3_Wind_Shear_plot_test.ncl
+
+; isStormDomain: plot for storm domain or whole domain
+; is6Hur: make plots for every 6 forecast hour or 3 forefast hour
+; replace: replace if an image is already there
 
 ;************************************************
-; image for every 6 Hour
+; plot every 3 or 6 Hour
+
 if (.not. isvar("is6Hr")) then
   is6Hr=True
 end if
@@ -22,8 +29,12 @@ loadscript("colorPlans.ncl")
 begin
 print("===Wind_Shear_plot===")
 ;---------------- init ---------------------------
+if (.not. isvar("isStormDomain")) then
+   isStormDomain=False
+end if
+
 if (.not. isvar("replace")) then
-   replace=0  ; replace if the image is already there
+   replace=True  ; replace if the image is already there
 end if
 
 if (.not. isvar("graphicDir")) then
@@ -66,9 +77,9 @@ end if
 
 
 if isstring(startDate) then
-    sDate=tointeger(startDate)
-    delete(startDate)
-    startDate=sDate
+   sDate=tointeger(startDate)
+   delete(startDate)
+   startDate=sDate
 end if
 
 modelName = str_upper(stormModel)
@@ -165,6 +176,27 @@ end do
    res1@vpYF = 0.85
    res1@cnInfoLabelOn = False
 
+   if isStormDomain then
+      res1@mpGridLatSpacingF = 1.0
+      res1@mpGridLonSpacingF = 1.0
+      res1@tmXBTickSpacingF = 1.0
+      res1@tmYLTickSpacingF = 1.0
+      res1@gsnMinorLatSpacing = 1.0
+      res1@gsnMinorLonSpacing = 1.0
+      res1@pmLabelBarOrthogonalPosF = -0.0105
+      res1@pmLabelBarHeightF  = 0.705
+   else
+      res1@mpGridLatSpacingF = 5.0
+      res1@mpGridLonSpacingF = 5.0
+      res1@tmXBTickSpacingF = 10.0
+      res1@tmYLTickSpacingF = 10.0
+      res1@gsnMinorLatSpacing = 5.0
+      res1@gsnMinorLonSpacing = 5.0
+      res1@pmLabelBarOrthogonalPosF = -0.0078 ; move laber bar further away
+      res1@pmLabelBarHeightF  = 0.71*(maxLat-minLat)/(maxLon-minLon) ;0.515 for HAFC
+   end if
+
+
    res1@mpDataBaseVersion      = "MediumRes"    ; better map outlines
    res1@mpDataSetName          = "Earth..2"
    res1@mpOutlineBoundarySets  = "GeophysicalAndUSStates"
@@ -173,17 +205,11 @@ end do
    res1@mpFillOn = False
 
    res1@mpGridAndLimbOn = True
-   res1@mpGridLatSpacingF = 10.0
-   res1@mpGridLonSpacingF = 10.0
    res1@mpGridLineColor = "gray40"
    res1@mpGridLineDashPattern = 2 
 
-   res1@tmXBTickSpacingF = 10.0
-   res1@tmYLTickSpacingF = 10.0
    res1@tmXBMinorOn = True
    res1@tmYLMinorOn = True
-   res1@gsnMinorLatSpacing = 5.0
-   res1@gsnMinorLonSpacing = 5.0
 
    res1@tmXBMinorPerMajor = 2
    res1@tmYLMinorPerMajor = 2
@@ -220,9 +246,9 @@ end do
 ;;;------------- vres-----------;;;
    vres = True
    vres@vcRefMagnitudeF           = 10.0             ; define vector ref mag
-   vres@vcRefLengthF              = 0.015 ;0.018          ; define length of vec ref
+   vres@vcRefLengthF              = 0.016 ;0.018          ; define length of vec ref
    vres@vcRefAnnoOn   = False         ; change ref vector color
-   vres@vcMinDistanceF          = 0.024  ;17 ;0.0225 ;0.01 ;0.015
+   vres@vcMinDistanceF          = 0.018  ;17 ;0.0225 ;0.01 ;0.015
    
    ;vres@vcLineArrowColor        = "white"  ;  "white"  ;"blue"   ;"deeppink1"           ; change vector color
    vres@vcWindBarbColor = "darkorchid" ; "royalblue" ;"cyan2" ; "gray20" ; "royalblue1"
@@ -252,10 +278,14 @@ end do
    vres2@vcWindBarbLineThicknessF   = 1.8
     
 ;;;-------------pres------------;;;
-
    pres                  = True               ; polyline resources
-   pres@gsLineThicknessF = 3.75                ; line thickness
    pres@gsLineColor      = "black"
+   if isStormDomain then
+      pres@gsLineThicknessF = 6.0                ; line thickness
+   else
+     pres@gsLineThicknessF = 3.75
+   end if
+
    mres                = True         ; marker resources for best track
    ;mres@gsMarkerIndex  = 16           ; marker style (filled circle)
    mres@gsMarkerSizeF  = 6.0          ; marker size
@@ -268,12 +298,12 @@ end do
 
    format = "%Y%N%D%H"    ; "%Y (%HH)", "%d %c
 
-if startTimeLevel .lt. 0 then
-  startTimeLevel = 0
-end if
-if endTimeLevel .gt. maxLen-1 then
-  endTimeLevel=maxLen-1
-end if
+   if startTimeLevel .lt. 0 then
+     startTimeLevel = 0
+   end if
+   if endTimeLevel .gt. maxLen-1 then
+     endTimeLevel=maxLen-1
+   end if
 
 do ifil = startTimeLevel, endTimeLevel
    ;do ifil = 0,maxLen-1
@@ -284,91 +314,162 @@ do ifil = startTimeLevel, endTimeLevel
       hour = sprinti("%0.3i",ifil*3)
    end if
 
-   print(ifil)
+   if (.not. isStormDomain) then
+      figName = graphicDir + "/" + stormName + stormID + "." + tostring(startDate) + "." +  modelName + ".wind.shear.f" + hour
+      if replace .or. ( .not. (fileexists( figName + "." + figType )) ) then
+         print(ifil)
 
-   figName = stormName + stormID + "." + tostring(startDate) + "." +  modelName + ".wind.shear.f" + hour
+         wks = gsn_open_wks(figType,  figName)
+         figName = figName +  "." + figType
 
-   if ( replace .eq. 1 ) .or. ( .not. (fileexists( graphicDir + "/" +  stormName + stormID + "." + tostring(startDate) + "/" + figName + "." + figType )) ) then
+         hrind = NhlNewMarker(wks, "p", 37, 0.0, 0.0, 1.0, 1.0, 0.0)
+         name0 = domain1_dir  +  hour + ".grb2"
 
-   wks = gsn_open_wks(figType,  figName)
-   figName = figName +  "." + figType
+         valid = validtime(startDate, tointeger(hour), format)
+         res1@gsnRightString = "Init: " + tostring(startDate) + "Z, F" + hour  + ", Valid: " + valid + "Z"
 
+         grb_file_new=addfile(name0, "r")
+         u850 = grb_file_new->UGRD_P0_L100_GLL0(38,:,:)*1.94384
+         v850 = grb_file_new->VGRD_P0_L100_GLL0(38,:,:)*1.94384
+         u200 = grb_file_new->UGRD_P0_L100_GLL0(12,:,:)*1.94384
+         v200 = grb_file_new->VGRD_P0_L100_GLL0(12,:,:)*1.94384
 
-   hrind = NhlNewMarker(wks, "p", 37, 0.0, 0.0, 1.0, 1.0, 0.0)
-   name0 = domain1_dir  +  hour + ".grb2"
+         mslp = grb_file_new->PRMSL_P0_L101_GLL0/100
+         shear_u =  u200-u850
+         shear_v =  v200-v850
+         shear = sqrt(shear_u^2 + shear_v^2)
 
-   valid = validtime(startDate, tointeger(hour), format)
-   res1@gsnRightString = "Init: " + tostring(startDate) + "Z, F" + hour  + ", Valid: " + valid + "Z"
+         ;vres@vcWindBarbColor = "cyan2"
+         plotV1 = gsn_csm_vector(wks, u200, v200, vres)
 
-   grb_file_new=addfile(name0, "r")
+         plot = gsn_csm_contour_map(wks, shear, res1)
+         plotV2 = gsn_csm_vector_scalar(wks, u850, v850, shear,vres2)
 
-   u850 = grb_file_new->UGRD_P0_L100_GLL0(38,:,:)*1.94384
-   v850 = grb_file_new->VGRD_P0_L100_GLL0(38,:,:)*1.94384
-   u200 = grb_file_new->UGRD_P0_L100_GLL0(12,:,:)*1.94384
-   v200 = grb_file_new->VGRD_P0_L100_GLL0(12,:,:)*1.94384
+         overlay(plot,plotV2)
+         overlay(plot,plotV1)
 
-   mslp = grb_file_new->PRMSL_P0_L101_GLL0/100
-   shear_u =  u200-u850
-   shear_v =  v200-v850
-   shear = sqrt(shear_u^2 + shear_v^2)
+         do i = 0, stormCount-1
+            mres@gsMarkerSizeF = 5.0
+            mres@gsMarkerIndex = 16
+            mres@gsMarkerThicknessF = 1.0
 
+            pres@gsLineColor = "black"
+            mres@gsMarkerColor = "Black"
+            line1(i) = gsn_add_polyline(wks,plot,track_xp(i,:),track_yp(i,:),pres)      ; draw the traj
+            markers1(i) = gsn_add_polymarker(wks,plot,track_xp(i,:),track_yp(i,:),mres)
 
-   ;vres@vcWindBarbColor = "cyan2"
-   plotV1 = gsn_csm_vector(wks, u200, v200, vres)
+            mres@gsMarkerSizeF = 11.0          ; marker size
+            mres@gsMarkerIndex = hrind
+            mres@gsMarkerColor = "black"
+            mres@gsMarkerThicknessF = 5.0
 
-   plot = gsn_csm_contour_map(wks, shear, res1)
-   plotV2 = gsn_csm_vector_scalar(wks, u850, v850, shear,vres2)
+            markers2(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
 
-   overlay(plot,plotV2)
-   overlay(plot,plotV1)
+            mres@gsMarkerSizeF = 10.0          ; marker size
+            mres@gsMarkerColor = "red"
+            mres@gsMarkerThicknessF = 2.0
+            markers3(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
+            txres@txFontColor = "black"
+            texts(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,0)+0.68, track_yp(i,0)-0.68, txres)
+            txres@txFontColor = "gray97"
+            texts_w1(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,0)+0.82, track_yp(i,0)-0.82, txres)
+            texts_w2(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,0)+0.54, track_yp(i,0)-0.54, txres)
+            texts_w3(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,0)+0.82, track_yp(i,0)-0.54, txres)
+            texts_w4(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,0)+0.54, track_yp(i,0)-0.82, txres)
+         end do
 
-    do i = 0, stormCount-1
-      mres@gsMarkerSizeF = 5.0
-      mres@gsMarkerIndex = 16
-     mres@gsMarkerThicknessF = 1.0
+         draw(plot)
+         frame(wks)
+         system("convert -crop 985x630+18+194 " + figName + " " + figName) 
 
-      ;mres@gsMarkerColor = "gray97"
-      ;pres@gsLineColor = "gray97"
-      ;line2(i) = gsn_add_polyline(wks,plot, track_xp(i,:)+0.1, track_yp(i,:)-0.1,pres)      ; draw the traj
-      ;markers1_2(i) = gsn_add_polymarker(wks,plot,track_xp(i,:)+0.1,track_yp(i,:)-0.1,mres)
+       end if
+   else
+       do i = 0, stormCount-1
+          figName = graphicDir + "/" + stormNames(i) + "." + tostring(startDate) + "." + modelName + ".wind.shear.f" + hour
+          if .not. ismissing(track_xp(i,ifil)) .and. ( replace .or. ( .not. (fileexists( figName + "." + figType )) ) ) then
+             print(ifil)
+             wks = gsn_open_wks(figType,  figName)
+             figName = figName +  "." + figType
 
-      ;line3(i) = gsn_add_polyline(wks,plot, track_xp(i,:)-0.1, track_yp(i,:)+0.1,pres)      ; draw the traj
-      ;markers1_3(i) = gsn_add_polymarker(wks,plot,track_xp(i,:)-0.1,track_yp(i,:)+0.1,mres)
+             hrind = NhlNewMarker(wks, "p", 37, 0.0, 0.0, 1.0, 1.0, 0.0)
+	     name0 = domain1_dir  +  hour + ".grb2"
 
-      pres@gsLineColor = "black"
-      mres@gsMarkerColor = "Black"
-      line1(i) = gsn_add_polyline(wks,plot,track_xp(i,:),track_yp(i,:),pres)      ; draw the traj
-      markers1(i) = gsn_add_polymarker(wks,plot,track_xp(i,:),track_yp(i,:),mres)
+             valid = validtime(startDate, tointeger(hour), format)
+             res1@gsnLeftString = stormModel + " " + stormNames(i)
+             res1@gsnRightString = "Init: " + tostring(startDate) + "Z, F" + hour  + ", Valid: " + valid + "Z"
 
-      mres@gsMarkerSizeF = 11.0          ; marker size
-      mres@gsMarkerIndex = hrind
-      mres@gsMarkerColor = "black"
-      mres@gsMarkerThicknessF = 5.0
+             res1@mpMinLatF = track_yp(i,ifil) - 3.5
+             res1@mpMaxLatF = track_yp(i,ifil) + 3.5
+             res1@mpMinLonF = track_xp(i,ifil) - 3.5
+             res1@mpMaxLonF = track_xp(i,ifil) + 3.5
 
-      markers2(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
+             grb_file_new=addfile(name0, "r")
 
-      mres@gsMarkerSizeF = 10.0          ; marker size
-      mres@gsMarkerColor = "red"
-      mres@gsMarkerThicknessF = 2.0
-      markers3(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
-      txres@txFontColor = "black"
-      texts(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,0)+0.68, track_yp(i,0)-0.68, txres)
-      txres@txFontColor = "gray97"
-      texts_w1(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,0)+0.82, track_yp(i,0)-0.82, txres)
-      texts_w2(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,0)+0.54, track_yp(i,0)-0.54, txres)
-      texts_w3(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,0)+0.82, track_yp(i,0)-0.54, txres)
-      texts_w4(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,0)+0.54, track_yp(i,0)-0.82, txres)
+             u850 = grb_file_new->UGRD_P0_L100_GLL0(38,:,:)*1.94384
+             v850 = grb_file_new->VGRD_P0_L100_GLL0(38,:,:)*1.94384
+             u200 = grb_file_new->UGRD_P0_L100_GLL0(12,:,:)*1.94384
+             v200 = grb_file_new->VGRD_P0_L100_GLL0(12,:,:)*1.94384
 
-   end do
+             mslp = grb_file_new->PRMSL_P0_L101_GLL0/100
+             shear_u =  u200-u850
+             shear_v =  v200-v850
+             shear = sqrt(shear_u^2 + shear_v^2)
 
-   draw(plot)
-   frame(wks)
+             ;vres@vcWindBarbColor = "cyan2"
+             plotV1 = gsn_csm_vector(wks, u200, v200, vres)
 
-   system("convert -crop 985x630+18+194 " + figName + " " + figName) 
+             plot = gsn_csm_contour_map(wks, shear, res1)
+             plotV2 = gsn_csm_vector_scalar(wks, u850, v850, shear,vres2)
+
+             overlay(plot,plotV2)
+             overlay(plot,plotV1)
+
+             mres@gsMarkerSizeF = 10.0
+             mres@gsMarkerIndex = 16
+             mres@gsMarkerThicknessF = 1.0
+             mres@gsMarkerColor = "white"
+             pres@gsLineColor = "white"
+             ;line2(i) = gsn_add_polyline(wks,plot, track_xp(i,:)+0.08, track_yp(i,:)-0.08,pres)      ; draw the traj
+             ;markers1_2(i) = gsn_add_polymarker(wks,plot,track_xp(i,:)+0.08,track_yp(i,:)-0.08,mres)
+
+             mres@gsMarkerColor = "Black"
+             pres@gsLineColor = "black"
+             line1(i) = gsn_add_polyline(wks,plot,track_xp(i,:),track_yp(i,:),pres)      ; draw the traj
+             markers1(i) = gsn_add_polymarker(wks,plot,track_xp(i,:),track_yp(i,:),mres)
+
+             mres@gsMarkerSizeF = 18.0          ; marker size
+             mres@gsMarkerIndex = hrind
+             mres@gsMarkerColor = "black"
+             mres@gsMarkerThicknessF = 10.0
+
+             markers2(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
+             mres@gsMarkerSizeF = 18.0          ; marker size
+             mres@gsMarkerColor = "red"
+
+             mres@gsMarkerSizeF = 18.0          ; marker size
+             mres@gsMarkerIndex = hrind
+             mres@gsMarkerColor = "black"
+             mres@gsMarkerThicknessF = 10.0
+
+             markers2(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
+             mres@gsMarkerSizeF = 18.0          ; marker size
+             mres@gsMarkerColor = "red"
+             mres@gsMarkerThicknessF = 4.0
+             markers3(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
+
+             draw(plot)
+             frame(wks)
+
+             system("convert -crop 985x985+18+18 " + figName + " " + figName)
+         end if
+      end do
    end if
+
 end do
 
 print("end")
 
 end
 
+
+       
