@@ -50,7 +50,13 @@ do
 
     yyyy=$(echo "$yyyymmddhh" | cut -c1-4)
 
-    bdeck_dir="/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/btk"
+    if [ -d /mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/btk ]; then
+        bdeck_dir="/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/btk"
+    elif [ -d /scratch1/NCEPDEV/hwrf/noscrub/input/abdeck/btk ]; then
+        bdeck_dir="/scratch1/NCEPDEV/hwrf/noscrub/input/abdeck/btk"
+    elif [ -d /work/noaa/hwrf/noscrub/input/abdeck/btk ]; then
+        bdeck_dir="/work/noaa/hwrf/noscrub/input/abdeck/btk"
+    fi
     bdeckfile=$bdeck_dir/b${basin_letter}${number}${yyyy}.dat   #$bdeck_dir/b${basin_letter}${number}${yyyy}.dat
     STORM=$( awk -F', ' '$3 ~ /'${yyyymmddhh}'/ {print $0;}' < $bdeckfile | cut -d',' -f28-28 | xargs  | awk '{print $1}' )
  

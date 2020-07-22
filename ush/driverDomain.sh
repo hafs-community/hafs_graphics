@@ -1,8 +1,8 @@
 #!/bin/sh
 
 if [ $# -lt 10 ]; then
-  echo "sample usage: ./driverDomain.sh stormModel stormName stormID startDate is6Hr figScript figName standardLayer startTimeLevel endTimeLevel"
-  echo "./driverDomain.sh HAFS NATL 00L 2019082900 False fv3_Reflectivity_plot.ncl reflectivity 850 0 0"
+  echo "sample usage: ./driverDomain.sh stormModel stormName stormID startDate isStormDomain is6Hr figScript figName standardLayer startTimeLevel endTimeLevel"
+  echo "./driverDomain.sh HAFS NATL 00L 2019082900 False False fv3_Reflectivity_plot.ncl reflectivity 850 0 0"
 fi
 
 set -xe
@@ -20,12 +20,13 @@ stormname=`echo ${stormname} | tr '[A-Z]' '[a-z]' `
 STORMMODEL=`echo ${stormModel} | tr '[a-z]' '[A-Z]' `
 
 startDate=${4:-2019082900}
-is6Hr=${5:-False}
-figScript=${6:-"fv3_Reflectivity_plot_forStorm.ncl"}
-figName=${7:-"storm.reflectivity"}
-standardLayer=${8:-850}
-startTimeLevel=${9:-0}
-endTimeLevel=${10:-42}
+isStormDomain=${5:-False}
+is6Hr=${6:-False}
+figScript=${7:-"fv3_Reflectivity_plot_forStorm.ncl"}
+figName=${8:-"storm.reflectivity"}
+standardLayer=${9:-850}
+startTimeLevel=${10:-0}
+endTimeLevel=${11:-42}
 
 COMhafs=${COMhafs:-/hafs/com/${startDate}/${STORMID}}
 HOMEgraph=${HOMEgraph:-/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics}
@@ -52,7 +53,7 @@ cp -up ${atcfFile} ${work_dir}
 cp -up ${HOMEgraph}/ush/ncl/field2d/${figScript} ${work_dir}
 
 date
-unbuffer ncl 'stormModel="'${stormModel}'"' 'startDate="'${startDate}'"' is6Hr=${is6Hr} standardLayer=${standardLayer} startTimeLevel=${startTimeLevel} endTimeLevel=${endTimeLevel} 'atcfFile="'${atcfFile}'"' 'stormDir="'${stormDir}'"' ${figScript}
+unbuffer ncl 'stormModel="'${stormModel}'"' 'startDate="'${startDate}'"' isStormDomain=${isStormDomain} is6Hr=${is6Hr} standardLayer=${standardLayer} startTimeLevel=${startTimeLevel} endTimeLevel=${endTimeLevel} 'atcfFile="'${atcfFile}'"' 'stormDir="'${stormDir}'"' ${figScript}
 date
 
 figNamePre=$(echo "$figName" | cut -c1-5)

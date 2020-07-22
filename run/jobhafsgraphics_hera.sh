@@ -1,16 +1,13 @@
 #!/bin/sh
 #BATCH --job-name=jobhafsgrap
-#SBATCH --account=hwrfv3
+#SBATCH --account=hurricane
 #SBATCH --qos=batch
 ##SBATCH --qos=debug
-#SBATCH --nodes=30
-##SBATCH --tasks-per-node=24
-#SBATCH --tasks-per-node=16
+#SBATCH --nodes=12
+#SBATCH --tasks-per-node=40
 #SBATCH --cpus-per-task=1
 #SBATCH -t 03:00:00
 ##SBATCH -t 00:30:00
-##SBATCH --partition=xjet
-#SBATCH --partition=sjet
 #SBATCH -o jobhafsgraph.log.%j
 #SBATCH -e jobhafsgraph.log.%j
 ##SBATCH --mem=8000
@@ -24,7 +21,7 @@ date
 STORM=${STORM:-NATL}
 STORMID=${STORMID:-00L}
 YMDH=${YMDH:-2019082900}
-HOMEgraph=/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics
+HOMEgraph=/scratch1/NCEPDEV/hwrf/save/${USER}/hafs_graphics
 #WORKgraph=/your/graph/work/dir # if not specified, a default location relative to COMhafs will be used
 #COMgraph=/your/graph/com/dir   # if not specified, a default location relative to COMhafs will be used
 COMhafs=/your/hafs/com/dir
@@ -109,6 +106,8 @@ standardLayerAll=( \
 
 nscripts=${#figScriptAll[*]}
 
+isStormDomain=False
+
 for((i=0;i<${nscripts};i++));
 do
 
@@ -116,7 +115,7 @@ echo ${figScriptAll[$i]} ${figNameAll[$i]} ${standardLayerAll[$i]}
 
 for figTimeLevel in ${figTimeLevels};
 do
-  echo "${APRUNS} ${DRIVERDOMAIN} $stormModel $STORM $STORMID $YMDH $is6Hr ${figScriptAll[$i]} ${figNameAll[$i]} ${standardLayerAll[$i]} $figTimeLevel $figTimeLevel > ${WORKgraph}/$STORM$STORMID.$YMDH.${figNameAll[$i]}.$figTimeLevel.log 2>&1 ${BACKGROUND}" >> $cmdfile
+  echo "${APRUNS} ${DRIVERDOMAIN} $stormModel $STORM $STORMID $YMDH $isStormDomain $is6Hr ${figScriptAll[$i]} ${figNameAll[$i]} ${standardLayerAll[$i]} $figTimeLevel $figTimeLevel > ${WORKgraph}/$STORM$STORMID.$YMDH.${figNameAll[$i]}.$figTimeLevel.log 2>&1 ${BACKGROUND}" >> $cmdfile
 done
 
 done
@@ -126,15 +125,15 @@ done
 #==============================================================================
 
 figScriptAll=( \
-  "fv3_Mslp_10m_Wind_plot_forStorm.ncl" \
-  "fv3_Surface_Temp_Mslp_Wind_plot_forStorm.ncl" \
-  "fv3_Reflectivity_plot_forStorm.ncl" \
-  "fv3_Standard_Layer_Vort_Ght_Wind_plot_forStorm.ncl" \
-  "fv3_Standard_Layer_Streamlines_plot_forStorm.ncl" \
-  "fv3_Standard_Layer_RH_Ght_Wind_plot_forStorm.ncl" \
-  "fv3_Standard_Layer_Vort_Ght_Wind_plot_forStorm.ncl" \
-  "fv3_Standard_Layer_Vort_Ght_Wind_plot_forStorm.ncl" \
-  "fv3_Standard_Layer_TempAno_forStorm.ncl" \
+  "fv3_Mslp_10m_Wind_plot.ncl" \
+  "fv3_Surface_Temp_Mslp_Wind_plot.ncl" \
+  "fv3_Reflectivity_plot.ncl" \
+  "fv3_Standard_Layer_Vort_Ght_Wind_plot.ncl" \
+  "fv3_Standard_Layer_Streamlines_plot.ncl" \
+  "fv3_Standard_Layer_RH_Ght_Wind_plot.ncl" \
+  "fv3_Standard_Layer_Vort_Ght_Wind_plot.ncl" \
+  "fv3_Standard_Layer_Vort_Ght_Wind_plot.ncl" \
+  "fv3_Standard_Layer_TempAno_plot.ncl" \
   )
 
 figNameAll=( \
@@ -163,6 +162,8 @@ standardLayerAll=( \
 
 nscripts=${#figScriptAll[*]}
 
+isStormDomain=True
+
 for((i=0;i<${nscripts};i++));
 do
 
@@ -170,7 +171,7 @@ echo ${figScriptAll[$i]} ${figNameAll[$i]} ${standardLayerAll[$i]}
 
 for figTimeLevel in ${figTimeLevels};
 do
-  echo "${APRUNS} ${DRIVERDOMAIN} $stormModel $STORM $STORMID $YMDH $is6Hr ${figScriptAll[$i]} ${figNameAll[$i]} ${standardLayerAll[$i]} $figTimeLevel $figTimeLevel > ${WORKgraph}/$STORM$STORMID.$YMDH.${figNameAll[$i]}.$figTimeLevel.log 2>&1 ${BACKGROUND}" >> $cmdfile
+  echo "${APRUNS} ${DRIVERDOMAIN} $stormModel $STORM $STORMID $YMDH $isStormDomain $is6Hr ${figScriptAll[$i]} ${figNameAll[$i]} ${standardLayerAll[$i]} $figTimeLevel $figTimeLevel > ${WORKgraph}/$STORM$STORMID.$YMDH.${figNameAll[$i]}.$figTimeLevel.log 2>&1 ${BACKGROUND}" >> $cmdfile
 done
 
 done
