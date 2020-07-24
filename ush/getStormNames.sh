@@ -59,9 +59,16 @@ do
     fi
     bdeckfile=$bdeck_dir/b${basin_letter}${number}${yyyy}.dat   #$bdeck_dir/b${basin_letter}${number}${yyyy}.dat
     STORM=$( awk -F', ' '$3 ~ /'${yyyymmddhh}'/ {print $0;}' < $bdeckfile | cut -d',' -f28-28 | xargs  | awk '{print $1}' )
- 
+
+    if [ "Q$STORM" = "Q" ] && [[ $number -ge 90 ]]; then
+      STORM=INVEST
+    fi
+    if [ "Q$STORM" = "Q" ]; then
+      STORM=UNNAMED
+    fi
     stormid=$number$letter
     STORMID=`echo ${stormid} | tr '[a-z]' '[A-Z]' `
+
 
     STORMNAME=$STORM$STORMID
     #array[$count]=$STORMNAME
