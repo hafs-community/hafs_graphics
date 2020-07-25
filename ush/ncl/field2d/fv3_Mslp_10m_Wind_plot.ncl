@@ -143,7 +143,7 @@ maxLon  =  max(lon)        ;-50   ; max(lon)  ; -55
    res1@gsnSpreadColors      = True               ; use full color map
    res1@cnFillColors = getColorMap("windSpeed")
    res1@cnFillMode = "RasterFill"
-   ;res1@cnRasterSmoothingOn = True
+   res1@cnRasterSmoothingOn = True
    res1@gsnMaximize           = True         ; enlarge plo
 
    res1@cnConstFEnableFill = True
@@ -326,16 +326,13 @@ do ifil = startTimeLevel, endTimeLevel
          u = grb_file_new->UGRD_P0_L103_GLL0*1.94384   ;UGRD_P0_L100_GLL0
          v = grb_file_new->VGRD_P0_L103_GLL0*1.94384   ;VGRD_P0_L100_GLL0
          speed = sqrt(u*u + v*v)
-
          mslp = grb_file_new->MSLET_P0_L101_GLL0/100 ;; grb_file_new->PRMSL_P0_L101_GLL0/100  ;PRES_P0_L100_GLL0   ;sqrt(um^2 + vm^2)*1.944
          vres@vcWindBarbColor   = "blue" ; "royalblue1"
          plotV = gsn_csm_vector(wks,u, v, vres)
          plot2 = gsn_csm_contour_map(wks, speed, res1)
          plot = gsn_csm_contour(wks, mslp ,res2)
-
          overlay(plot2,plot)
          overlay(plot2,plotV)
-
          do i = 0, stormCount-1
             mres@gsMarkerSizeF = 5.0
             mres@gsMarkerIndex = 16
@@ -364,9 +361,11 @@ do ifil = startTimeLevel, endTimeLevel
             texts_w4(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,0)+0.54, track_yp(i,0)-0.82, txres)
 
          end do
+
          draw(plot2)
          frame(wks)
-         system("convert -crop 985x630+18+194 " + figName + " " + figName)
+         ;system("convert -crop 985x630+18+194 " + figName + " " + figName)
+         system("convert -trim " + figName + " " + figName)
        end if
    else 
    ;-------- draw storm structure plots for individual storms
@@ -422,7 +421,8 @@ do ifil = startTimeLevel, endTimeLevel
           markers3(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
           draw(plot2)
           frame(wks)
-          system("convert -crop 985x985+18+18 " + figName + " " + figName)
+          ;system("convert -crop 985x985+18+18 " + figName + " " + figName)
+          system("convert -trim " + figName + " " + figName)
         end if
      end do
    end if ; isStormDomain

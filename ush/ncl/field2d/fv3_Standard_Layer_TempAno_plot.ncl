@@ -180,6 +180,7 @@ end do
    res1@cnFillOpacityF = 0.8
    res1@cnSpanFillPalette = True
    res1@cnFillMode = "RasterFill"
+   res1@cnRasterSmoothingOn = True
    res1@gsnMaximize           = True         ; enlarge plo
 
    res1@cnConstFEnableFill = True
@@ -441,7 +442,8 @@ end do
            end do
            draw(plot)
            frame(wks)
-           system("convert -crop 985x630+18+194 " + figName + " " + figName)
+           ;system("convert -crop 985x630+18+194 " + figName + " " + figName)
+           system("convert -trim " + figName + " " + figName)
         end if
     else 
         do i = 0, stormCount-1
@@ -505,7 +507,8 @@ end do
              draw(plot)
              frame(wks)
 
-             system("convert -crop 985x985+18+18 " + figName + " " + figName)
+             ;system("convert -crop 985x985+18+18 " + figName + " " + figName)
+             system("convert -trim " + figName + " " + figName)
           end if
       end do   
   end if

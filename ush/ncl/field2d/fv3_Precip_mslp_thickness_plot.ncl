@@ -150,6 +150,7 @@ maxLon  =  max(lon)        ;-50   ; max(lon)  ; -55
    res1@gsnSpreadColors      = True               ; use full color map
    res1@cnFillColors =  getColorMap("precipitation")
    res1@cnFillMode = "RasterFill"
+   res1@cnRasterSmoothingOn = True
    res1@gsnMaximize           = True         ; enlarge plo
 
    res1@cnConstFEnableFill = True
@@ -440,7 +441,8 @@ maxLon  =  max(lon)        ;-50   ; max(lon)  ; -55
          end do
          draw(plot)
          frame(wks)
-         system("convert -crop 985x630+18+194 " + figName + " " + figName)
+         ;system("convert -crop 985x630+18+194 " + figName + " " + figName)
+         system("convert -trim " + figName + " " + figName)
       end if
    else
        do i = 0, stormCount-1
@@ -536,7 +538,8 @@ maxLon  =  max(lon)        ;-50   ; max(lon)  ; -55
 
              draw(plot)
              frame(wks)
-             system("convert -crop 985x985+18+18 " + figName + " " + figName)
+             ;system("convert -crop 985x985+18+18 " + figName + " " + figName)
+             system("convert -trim " + figName + " " + figName)
          end if
       end do
    end if

@@ -152,6 +152,7 @@ end do
    res1@cnFillPalette = getColorMap("windShear")
    res1@cnSpanFillPalette = True
    res1@cnFillMode = "RasterFill"
+   res1@cnRasterSmoothingOn = True
    res1@gsnMaximize           = True         ; enlarge plo
 
    res1@cnConstFEnableFill = True

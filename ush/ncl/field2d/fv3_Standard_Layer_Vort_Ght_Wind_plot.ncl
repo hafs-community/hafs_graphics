@@ -160,6 +160,7 @@ maxLon  =  max(lon)        ;-50   ; max(lon)  ; -55
    ;cmap(0,:)= (/0.0,0,0,0/)
    res1@cnFillPalette = getColorMap("vorticity")
    res1@cnFillMode = "RasterFill"
+   res1@cnRasterSmoothingOn = True
    res1@cnSpanFillPalette = True
    res1@cnFillOpacityF = 0.75
 
@@ -433,7 +434,8 @@ maxLon  =  max(lon)        ;-50   ; max(lon)  ; -55
            end do
            draw(plot)
            frame(wks)
-           system("convert -crop 985x630+18+194 " + figName + " " + figName)
+           ;system("convert -crop 985x630+18+194 " + figName + " " + figName)
+           system("convert -trim " + figName + " " + figName)
         end if
      else
        ; --------- for storm domain ---------------
@@ -508,7 +510,8 @@ maxLon  =  max(lon)        ;-50   ; max(lon)  ; -55
              draw(plot)
              frame(wks)
 
-             system("convert -crop 985x985+18+18 " + figName + " " + figName)
+             ;system("convert -crop 985x985+18+18 " + figName + " " + figName)
+             system("convert -trim " + figName + " " + figName)
 
          end if
       end do

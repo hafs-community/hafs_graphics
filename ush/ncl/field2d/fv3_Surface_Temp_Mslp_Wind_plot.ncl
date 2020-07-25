@@ -148,6 +148,7 @@ maxLon  =  max(lon)        ;-50   ; max(lon)  ; -55
    res1@cnFillOpacityF = 0.8
    res1@cnSpanFillPalette = True
    res1@cnFillMode = "RasterFill"
+   res1@cnRasterSmoothingOn = True
    res1@gsnMaximize           = True         ; enlarge plo
 
    res1@cnConstFEnableFill = True
@@ -384,7 +385,8 @@ do ifil = startTimeLevel, endTimeLevel
           end do
           draw(plot)
           frame(wks)
-          system("convert -crop 985x630+18+194 " + figName + " " + figName)
+          ;system("convert -crop 985x630+18+194 " + figName + " " + figName)
+          system("convert -trim " + figName + " " + figName)
        end if
    else 
    ; --------- for storm domain ---------------
@@ -445,7 +447,8 @@ do ifil = startTimeLevel, endTimeLevel
 
             draw(plot)
             frame(wks)
-            system("convert -crop 985x985+18+18 " + figName + " " + figName)
+            ;system("convert -crop 985x985+18+18 " + figName + " " + figName)
+            system("convert -trim " + figName + " " + figName)
 
          end if
       end do
