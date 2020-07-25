@@ -286,8 +286,8 @@ end do
    end if
    end if
 
-   res2@cnSmoothingOn = True
-   res2@cnSmoothingDistanceF = 0.002
+   ;res2@cnSmoothingOn = True
+   ;res2@cnSmoothingDistanceF = 0.002
 
    ;res2@cnFillOn             = False               ; turn on color for contours
    res2@cnLinesOn            = True              ; turn off contour lines

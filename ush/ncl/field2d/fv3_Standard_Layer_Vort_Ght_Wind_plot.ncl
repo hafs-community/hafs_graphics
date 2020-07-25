@@ -269,8 +269,8 @@ maxLon  =  max(lon)        ;-50   ; max(lon)  ; -55
    end if
    end if
 
-   res2@cnSmoothingOn = True
-   res2@cnSmoothingDistanceF = 0.008   
+   ;res2@cnSmoothingOn = True
+   ;res2@cnSmoothingDistanceF = 0.008   
    ;wks = gsn_open_wks("x11","color")
    ;cmap = (/(/1.00, 1.00, 1.00, 0.1/)/)
    ;gsn_define_colormap(wks,cmap)

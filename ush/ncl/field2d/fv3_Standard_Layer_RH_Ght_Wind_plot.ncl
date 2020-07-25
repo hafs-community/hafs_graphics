@@ -257,8 +257,8 @@ maxLon  =  max(lon)        ;-50   ; max(lon)  ; -55
    res2 = True
    res2@cnLevelSelectionMode = "ExplicitLevels" ;"ManualLevels"  ;"ExplicitLevels"
    res2@cnLevels            =  ispan(200,500,2) ;(/5, 7.5, 10, 12.5, 15, 17.5, 20, 25, 30, 40, 45, 50/)
-   res2@cnSmoothingOn = True
-   res2@cnSmoothingDistanceF = 0.008
+   ;res2@cnSmoothingOn = True
+   ;res2@cnSmoothingDistanceF = 0.008
 
    ;res2@cnFillOn             = False               ; turn on color for contours
    res2@cnLinesOn            = True              ; turn off contour lines

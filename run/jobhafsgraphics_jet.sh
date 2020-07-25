@@ -1,5 +1,5 @@
 #!/bin/sh
-#BATCH --job-name=jobhafsgrap
+#BATCH --job-name=jobhafsgraph
 #SBATCH --account=hwrfv3
 #SBATCH --qos=batch
 ##SBATCH --qos=debug
@@ -7,7 +7,7 @@
 ##SBATCH --tasks-per-node=24
 #SBATCH --tasks-per-node=16
 #SBATCH --cpus-per-task=1
-#SBATCH -t 03:00:00
+#SBATCH -t 01:00:00
 ##SBATCH -t 00:30:00
 ##SBATCH --partition=xjet
 #SBATCH --partition=sjet
@@ -21,9 +21,10 @@ set -x
 
 date
 
+YMDH=${1:-${YMDH:-2019082900}}
 STORM=${STORM:-NATL}
 STORMID=${STORMID:-00L}
-YMDH=${YMDH:-2019082900}
+
 HOMEgraph=/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics
 #WORKgraph=/your/graph/work/dir # if not specified, a default location relative to COMhafs will be used
 #COMgraph=/your/graph/com/dir   # if not specified, a default location relative to COMhafs will be used

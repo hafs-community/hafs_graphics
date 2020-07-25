@@ -1,12 +1,12 @@
 #!/bin/sh
-#BATCH --job-name=jobhafsgrap
+#BATCH --job-name=jobhafsgraph
 #SBATCH --account=hurricane
 #SBATCH --qos=batch
 ##SBATCH --qos=debug
 #SBATCH --nodes=12
 #SBATCH --tasks-per-node=40
 #SBATCH --cpus-per-task=1
-#SBATCH -t 03:00:00
+#SBATCH -t 01:00:00
 ##SBATCH -t 00:30:00
 #SBATCH -o jobhafsgraph.log.%j
 #SBATCH -e jobhafsgraph.log.%j
@@ -18,9 +18,10 @@ set -x
 
 date
 
+YMDH=${1:-${YMDH:-2019082900}}
 STORM=${STORM:-NATL}
 STORMID=${STORMID:-00L}
-YMDH=${YMDH:-2019082900}
+
 HOMEgraph=/scratch1/NCEPDEV/hwrf/save/${USER}/hafs_graphics
 #WORKgraph=/your/graph/work/dir # if not specified, a default location relative to COMhafs will be used
 #COMgraph=/your/graph/com/dir   # if not specified, a default location relative to COMhafs will be used

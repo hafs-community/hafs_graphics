@@ -5,10 +5,10 @@
 #
 set -xe
 
-stormModel=${1:-HAFS}
-stormname=${2:-NATL}
-stormid=${3:-00L}
-ymdh=${4:-2019082900}
+ymdh=${1:-2019082900}
+stormModel=${2:-HAFS}
+stormname=${3:-NATL}
+stormid=${4:-00L}
 
 STORMID=`echo ${stormid} | tr '[a-z]' '[A-Z]' `
 stormid=`echo ${stormid} | tr '[A-Z]' '[a-z]' `
@@ -19,13 +19,13 @@ stormname=`echo ${stormname} | tr '[A-Z]' '[a-z]' `
 COMhafs=${COMhafs:-/hafs/com/${ymdh}/${STORMID}}
 atcfFile=${5:-${COMhafs}/${stormname}${stormid}.${ymdh}.trak.hafs.atcfunix.all}
 
-HOMEgraph=${HOMEgraph:-/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics}
-USHgraph=${USHgraph:-${HOMEgraph}/ush}
-WORKgraph=${WORKgraph:-${COMhafs}/../../../${ymdh}/${STORMID}/emc_graphics}
-COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
+export HOMEgraph=${HOMEgraph:-/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics}
+export USHgraph=${USHgraph:-${HOMEgraph}/ush}
+export WORKgraph=${WORKgraph:-${COMhafs}/../../../${ymdh}/${STORMID}/emc_graphics}
+export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 
-ADECKgraph=${ADECKgraph:-/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/aid}
-BDECKgraph=${BDECKgraph:-/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/btk}
+export ADECKgraph=${ADECKgraph:-/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/aid}
+export BDECKgraph=${BDECKgraph:-/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/btk}
 
 modelLabels='(/"BEST","'$stormModel'","HWRF","HMON","AVNO","OFCL"/)'
 modelColors='(/"black","cyan2","purple","green2","blue","red"/)'
@@ -37,7 +37,6 @@ export machine=${WHERE_AM_I:-wcoss_cray} # platforms: wcoss_cray, wcoss_dell_p3,
 work_dir="${WORKgraph}"
 archbase="${COMgraph}/figures"
 
-rm -rf ${work_dir}
 mkdir -p ${work_dir}
 cd ${work_dir}
 

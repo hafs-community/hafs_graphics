@@ -143,7 +143,7 @@ maxLon  =  max(lon)        ;-50   ; max(lon)  ; -55
    res1@gsnSpreadColors      = True               ; use full color map
    res1@cnFillColors = getColorMap("windSpeed")
    res1@cnFillMode = "RasterFill"
-   res1@cnRasterSmoothingOn = True
+   ;res1@cnRasterSmoothingOn = True
    res1@gsnMaximize           = True         ; enlarge plo
 
    res1@cnConstFEnableFill = True
@@ -227,8 +227,8 @@ maxLon  =  max(lon)        ;-50   ; max(lon)  ; -55
    res2 = True
    res2@cnLevelSelectionMode = "ExplicitLevels" ;"ManualLevels"  ;"ExplicitLevels"
    res2@cnLevels            =  ispan(880,1040,2) ;(/5, 7.5, 10, 12.5, 15, 17.5, 20, 25, 30, 40, 45, 50/)
-   res2@cnSmoothingOn = True
-   res2@cnSmoothingDistanceF = 0.007
+   ;res2@cnSmoothingOn = True
+   ;res2@cnSmoothingDistanceF = 0.007
 
    res2@cnFillOn             = False               ; turn on color for contours
    res2@cnLinesOn            = True              ; turn off contour lines
