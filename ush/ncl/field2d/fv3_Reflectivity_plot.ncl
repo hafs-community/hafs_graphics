@@ -1,9 +1,10 @@
 ;----------------------------------------------------------------------
-; Orion example: ncl isStormDomain=False replace=True is6Hr=True 'graphicDir="/work/noaa/hwrf/save/kwu/HAFS2020Figures"' 'stormModel="HAFS"' startDate=2020070412 startTimeLevel=0 endTimeLevel=11 'atcfFile="/work/noaa/hwrf/save/kwu/HAFSGraphics/EMC_HAFSJ_2020rt/natl00l.2020070412/natl00l.2020070412.trak.hafs.atcfunix.all"' 'stormDir="/work/noaa/hwrf/save/kwu/HAFSGraphics/EMC_HAFSJ_2020rt/natl00l.2020070412/"' fv3_Reflectivity_plot_test.ncl
+;example: ncl isStormDomain=False replace=True is6Hr=True trackOn=True 'graphicDir="/your/figure/dir"' 'stormModel="HAFS"' 'stormModel="HAFA"' startDate=2019071506 startTimeLevel=0 endTimeLevel=11 'atcfFile="/hafs/com/2019071506/00L/natl00l.2019071506.trak.hafs.atcfunix.all"' 'stormDir="/hafs/com/2019071506/00L"' fv3_Reflectivity_plot.ncl
 
 ; isStormDomain: plot for storm domain or whole domain
 ; is6Hur: make plots for every 6 forecast hour or 3 forefast hour
 ; replace: replace if an image is already there
+; track: draw or not draw tracks
 
 ;************************************************
 ; plot every 3 or 6 Hour
@@ -17,7 +18,6 @@ else
   maxLen = 43  ; number of forecasts. 43 for 126 hrs, 59 for 174 hr
 end if
 
-
 ;-------------------------------------------------------------------
 loadscript("readTracks.ncl")
 loadscript("validTime.ncl")
@@ -26,6 +26,10 @@ loadscript("colorPlans.ncl")
 begin
 print("===Reflectivity_plot===")
 ;---------------- init ---------------------------
+if (.not. isvar("trackOn")) then
+   trackOn=True
+end if
+
 if (.not. isvar("isStormDomain")) then
    isStormDomain=False
 end if
@@ -101,28 +105,30 @@ maxLon  =  max(lon)        ;-50   ; max(lon)  ; -55
 
 ;----------------------------get tracks -----------------------------------
 if stormCount .gt. 0 then
-   track_xp=new((/stormCount, maxLen/), float, default_fillvalue("float"))
-   track_yp=new((/stormCount, maxLen/), float, default_fillvalue("float"))
-   track_w=new((/stormCount, maxLen/), float, default_fillvalue("float"))
-   line1 = new(stormCount, graphic)
-   line2 = new(stormCount, graphic)
-   markers1 = new(stormCount, graphic)
-   markers1_2 = new(stormCount, graphic)
-   markers2 = new(stormCount, graphic)
-   markers3 = new(stormCount, graphic)
-   texts = new(stormCount, graphic)
-   texts_w1 = new(stormCount, graphic)
-   texts_w2 = new(stormCount, graphic)
-   texts_w3 = new(stormCount, graphic)
-   texts_w4 = new(stormCount, graphic)
+    track_xp=new((/stormCount, maxLen/), float, default_fillvalue("float"))
+    track_yp=new((/stormCount, maxLen/), float, default_fillvalue("float"))
+    track_w=new((/stormCount, maxLen/), float, default_fillvalue("float"))
+    line1 = new(stormCount, graphic)
+    markers1 = new(stormCount, graphic)
+    line2 = new(stormCount, graphic)
+    markers1_2 = new(stormCount, graphic)
+    line3 = new(stormCount, graphic)
+    markers1_3 = new(stormCount, graphic)
+    markers2 = new(stormCount, graphic)
+    markers3 = new(stormCount, graphic)
+    texts = new(stormCount, graphic)
+    texts_w1 = new(stormCount, graphic)
+    texts_w2 = new(stormCount, graphic)
+    texts_w3 = new(stormCount, graphic)
+    texts_w4 = new(stormCount, graphic)
 end if
 
 do i = 0, stormCount-1
-if ( is6Hr ) then
-  track_data = getATCFTrack_6Hr_2(atcfFile,stormIDs(i))
-else
-  track_data = getATCFTrack_2(atcfFile,stormIDs(i))
-end if
+  if ( is6Hr ) then
+    track_data = getATCFTrack_6Hr_2(atcfFile,stormIDs(i))
+  else
+    track_data = getATCFTrack_2(atcfFile,stormIDs(i))
+  end if
   track_xp(i,:)=track_data(0,:)
   track_yp(i,:)=track_data(1,:)
   track_w(i,:)=track_data(2,:)
@@ -259,8 +265,8 @@ end do
       end if
 
       if (.not. isStormDomain) then
-         figName = "./" + stormName + stormID + "." + tostring(startDate) + "." +  modelName + ".reflectivity.f" + hour
-         if replace .or. ( .not. (fileexists( graphicDir + figName + "." + figType )) ) then
+         figName = graphicDir + "/" + stormName + stormID + "." + tostring(startDate) + "." +  modelName + ".reflectivity.f" + hour
+         if replace .or. ( .not. (fileexists( figName + "." + figType )) ) then
             print(ifil)
             wks = gsn_open_wks(figType,  figName)
             figName = figName +  "." + figType
@@ -271,36 +277,42 @@ end do
             grb_file_new=addfile(name0, "r")
             Ref=grb_file_new->REFC_P0_L200_GLL0
             plot = gsn_csm_contour_map(wks, Ref, res1)
-            do i = 0, stormCount-1
-               mres@gsMarkerSizeF = 5.0
-               mres@gsMarkerIndex = 16
-               mres@gsMarkerThicknessF = 1.0
+            if trackOn then  
+		 do i = 0, stormCount-1
+                     mres@gsMarkerSizeF = 5.0
+                     mres@gsMarkerIndex = 16
+                     mres@gsMarkerThicknessF = 1.0
 
-               mres@gsMarkerColor = "Black"
-               pres@gsLineColor = "black"
-               line1(i) = gsn_add_polyline(wks,plot,track_xp(i,:),track_yp(i,:),pres)      ; draw the traj
-               markers1(i) = gsn_add_polymarker(wks,plot,track_xp(i,:),track_yp(i,:),mres)
+                     mres@gsMarkerColor = "gray98"
+                     pres@gsLineColor = "gray98"
+                     line2(i) = gsn_add_polyline(wks,plot, track_xp(i,:)+0.14, track_yp(i,:)-0.14,pres)            ; draw the traj
+                     markers1_2(i) = gsn_add_polymarker(wks,plot,track_xp(i,:)+0.14,track_yp(i,:)-0.14,mres)
+                     line3(i) = gsn_add_polyline(wks,plot, track_xp(i,:)-0.14, track_yp(i,:)+0.14,pres)            ; draw the traj
+                     markers1_3(i) = gsn_add_polymarker(wks,plot,track_xp(i,:)-0.14,track_yp(i,:)+0.14,mres)
 
-               mres@gsMarkerSizeF = 11.0          ; marker size
-               mres@gsMarkerIndex = hrind
-               mres@gsMarkerColor = "black"
-               mres@gsMarkerThicknessF = 5.0
+                     mres@gsMarkerColor = "Black"
+                     pres@gsLineColor = "black"
+                     line1(i) = gsn_add_polyline(wks,plot,track_xp(i,:),track_yp(i,:),pres)      ; draw the traj
+                     markers1(i) = gsn_add_polymarker(wks,plot,track_xp(i,:),track_yp(i,:),mres)
+                     mres@gsMarkerSizeF = 11.0          ; marker size
+                     mres@gsMarkerIndex = hrind
+                     mres@gsMarkerColor = "black"
+                     mres@gsMarkerThicknessF = 5.0
 
-               markers2(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
-               mres@gsMarkerSizeF = 10.0          ; marker size
-               mres@gsMarkerColor = "red"
-               mres@gsMarkerThicknessF = 2.0
-               markers3(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
-
-               txres@txFontColor = "black"
-               texts(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,0)+0.68, track_yp(i,0)-0.68, txres)
-               txres@txFontColor = "white"
-               texts_w1(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,0)+0.82, track_yp(i,0)-0.82, txres)
-               texts_w2(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,0)+0.54, track_yp(i,0)-0.54, txres)
-               texts_w3(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,0)+0.82, track_yp(i,0)-0.54, txres)
-               texts_w4(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,0)+0.54, track_yp(i,0)-0.82, txres)
-            end do
- 
+                     markers2(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
+                     mres@gsMarkerSizeF = 10.0          ; marker size
+                     mres@gsMarkerColor = "red"
+                     mres@gsMarkerThicknessF = 2.0
+                     markers3(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
+                     txres@txFontColor = "black"
+                     texts(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,ifil)+0.68, track_yp(i,ifil)-0.68, txres)
+                     txres@txFontColor = "gray98"
+                     texts_w1(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,ifil)+0.82, track_yp(i,ifil)-0.82, txres)
+                     texts_w2(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,ifil)+0.54, track_yp(i,ifil)-0.54, txres)
+                     texts_w3(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,ifil)+0.82, track_yp(i,ifil)-0.54, txres)
+                     texts_w4(i) = gsn_add_text(wks,plot,stormNames(i), track_xp(i,ifil)+0.54, track_yp(i,ifil)-0.82, txres)
+                 end do
+            end if
             draw(plot)
             frame(wks)
             ;system("convert -crop 985x630+18+194 " + figName + " " + figName)
@@ -308,8 +320,8 @@ end do
          end if
       else
          do i = 0, stormCount-1
-            figName = "./" + stormNames(i) + "." + tostring(startDate) + "." +  modelName +  ".storm.reflectivity.f" + hour
-            if .not. ismissing(track_xp(i,ifil)) .and. ( replace .or. ( .not. (fileexists( graphicDir + figName + "." + figType )) ) ) then
+            figName = graphicDir + "/" + stormNames(i) + "." + tostring(startDate) + "." +  modelName +  ".storm.reflectivity.f" + hour
+            if .not. ismissing(track_xp(i,ifil)) .and. ( replace .or. ( .not. (fileexists( figName + "." + figType )) ) ) then
                print(ifil)
                wks = gsn_open_wks(figType,  figName)
                figName = figName +  "." + figType
@@ -330,45 +342,43 @@ end do
 
                Ref=grb_file_new->REFC_P0_L200_GLL0
                plot = gsn_csm_contour_map(wks, Ref, res1)
+               if trackOn then
+		       mres@gsMarkerSizeF = 10.0
+		       mres@gsMarkerIndex = 16
+		       mres@gsMarkerThicknessF = 1.0
+		       mres@gsMarkerColor = "white"
+		       pres@gsLineColor = "white"
 
-               mres@gsMarkerSizeF = 10.0
-               mres@gsMarkerIndex = 16
-               mres@gsMarkerThicknessF = 1.0
-               mres@gsMarkerColor = "white"
-               pres@gsLineColor = "white"
-               ;line2(i) = gsn_add_polyline(wks,plot, track_xp(i,:)+0.08, track_yp(i,:)-0.08,pres)      ; draw the traj
-               ;markers1_2(i) = gsn_add_polymarker(wks,plot,track_xp(i,:)+0.08,track_yp(i,:)-0.08,mres)
+		       mres@gsMarkerColor = "Black"
+		       pres@gsLineColor = "black"
+		       line1(i) = gsn_add_polyline(wks,plot,track_xp(i,:),track_yp(i,:),pres)      ; draw the traj
+		       markers1(i) = gsn_add_polymarker(wks,plot,track_xp(i,:),track_yp(i,:),mres)
 
-               mres@gsMarkerColor = "Black"
-               pres@gsLineColor = "black"
-               line1(i) = gsn_add_polyline(wks,plot,track_xp(i,:),track_yp(i,:),pres)      ; draw the traj
-               markers1(i) = gsn_add_polymarker(wks,plot,track_xp(i,:),track_yp(i,:),mres)
+		       mres@gsMarkerSizeF = 18.0          ; marker size
+		       mres@gsMarkerIndex = hrind
+		       mres@gsMarkerColor = "black"
+		       mres@gsMarkerThicknessF = 10.0
 
-               mres@gsMarkerSizeF = 18.0          ; marker size
-               mres@gsMarkerIndex = hrind
-               mres@gsMarkerColor = "black"
-               mres@gsMarkerThicknessF = 10.0
+		       markers2(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
+		       mres@gsMarkerSizeF = 18.0          ; marker size
+		       mres@gsMarkerColor = "red"
+	   
+		       mres@gsMarkerSizeF = 18.0          ; marker size
+		       mres@gsMarkerIndex = hrind
+		       mres@gsMarkerColor = "black"
+		       mres@gsMarkerThicknessF = 10.0
 
-               markers2(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
-               mres@gsMarkerSizeF = 18.0          ; marker size
-               mres@gsMarkerColor = "red"
-   
-               mres@gsMarkerSizeF = 18.0          ; marker size
-               mres@gsMarkerIndex = hrind
-               mres@gsMarkerColor = "black"
-               mres@gsMarkerThicknessF = 10.0
-
-               markers2(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
-               mres@gsMarkerSizeF = 18.0          ; marker size
-               mres@gsMarkerColor = "red"
-               mres@gsMarkerThicknessF = 4.0
-               markers3(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
-
+		       markers2(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
+		       mres@gsMarkerSizeF = 18.0          ; marker size
+		       mres@gsMarkerColor = "red"
+		       mres@gsMarkerThicknessF = 4.0
+		       markers3(i) = gsn_add_polymarker(wks,plot,track_xp(i,ifil),track_yp(i,ifil),mres)
+               end if
                draw(plot)
                frame(wks)
 
-              ;system("convert -crop 985x985+18+18 " + figName + " " + figName)
-              system("convert -trim " + figName + " " + figName)
+               ;system("convert -crop 985x985+18+18 " + figName + " " + figName)
+               system("convert -trim " + figName + " " + figName)
            end if
        end do
    end if
