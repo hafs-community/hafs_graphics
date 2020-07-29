@@ -359,10 +359,10 @@ maxLon  =  max(lon)        ;-50   ; max(lon)  ; -55
       end if
 
       if (.not. isStormDomain) then
-         figName =  graphicDir + "/" + stormName + stormID + "." + tostring(startDate) + "." +  modelName + "." + tostring(standardLayer) + "mb.vort.hgt.wind.f" + hour
-         if replace .or. ( .not. (fileexists( figName + "." + figType )) ) then
+         figName = stormName + stormID + "." + tostring(startDate) + "." +  modelName + "." + tostring(standardLayer) + "mb.vort.hgt.wind.f" + hour
+         if replace .or. ( .not. (fileexists( graphicDir + "/" + figName + "." + figType )) ) then
             print(ifil)
-            wks = gsn_open_wks(figType,  figName)
+            wks = gsn_open_wks(figType, figName)
             figName = figName +  "." + figType
             hrind = NhlNewMarker(wks, "p", 37, 0.0, 0.0, 1.0, 1.0, 0.0)
 
@@ -440,10 +440,10 @@ maxLon  =  max(lon)        ;-50   ; max(lon)  ; -55
      else
        ; --------- for storm domain ---------------
        do i = 0, stormCount-1
-          figName =  graphicDir + "/" +stormNames(i) + "." + tostring(startDate) + "." +  modelName + ".storm." + tostring(standardLayer) + "mb.vort.hgt.wind.f" + hour
-          if .not. ismissing(track_xp(i,ifil)) .and. ( replace .or. ( .not. (fileexists( figName + "." + figType ) ) ) ) then
+          figName = stormNames(i) + "." + tostring(startDate) + "." +  modelName + ".storm." + tostring(standardLayer) + "mb.vort.hgt.wind.f" + hour
+          if .not. ismissing(track_xp(i,ifil)) .and. ( replace .or. ( .not. (fileexists( graphicDir + "/" + figName + "." + figType ) ) ) ) then
              print(ifil)
-             wks = gsn_open_wks(figType,  figName)
+             wks = gsn_open_wks(figType, figName)
              figName = figName +  "." + figType
              hrind = NhlNewMarker(wks, "p", 37, 0.0, 0.0, 1.0, 1.0, 0.0)
              name0 = domain1_dir  +  hour + ".grb2"

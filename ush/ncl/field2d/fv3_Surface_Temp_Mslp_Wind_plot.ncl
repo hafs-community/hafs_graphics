@@ -323,10 +323,10 @@ do ifil = startTimeLevel, endTimeLevel
    end if
    if (.not. isStormDomain) then
 
-      figName = graphicDir + "/" + stormName + stormID + "." + tostring(startDate) + "." +  modelName + ".surface.temp.mslp.wind.f" + hour
-      if ( replace .eq. 1 ) .or. ( .not. (fileexists( figName + "." + figType )) ) then
+      figName = stormName + stormID + "." + tostring(startDate) + "." +  modelName + ".surface.temp.mslp.wind.f" + hour
+      if ( replace .eq. 1 ) .or. ( .not. (fileexists( graphicDir + "/" + figName + "." + figType )) ) then
          print(ifil)
-         wks = gsn_open_wks(figType,  figName)
+         wks = gsn_open_wks(figType, figName)
          figName = figName +  "." + figType
 
          hrind = NhlNewMarker(wks, "p", 37, 0.0, 0.0, 1.0, 1.0, 0.0)
@@ -393,10 +393,10 @@ do ifil = startTimeLevel, endTimeLevel
    else 
    ; --------- for storm domain ---------------
       do i = 0, stormCount-1
-         figName = graphicDir + "/" + stormNames(i) + "." + tostring(startDate) + "." +  modelName + ".storm.surface.temp.mslp.wind.f" + hour
-         if .not. ismissing(track_xp(i,ifil)) .and. ( ( replace .eq. 1 ) .or. ( .not. (fileexists( figName + "." + figType )) ) ) then
+         figName = stormNames(i) + "." + tostring(startDate) + "." +  modelName + ".storm.surface.temp.mslp.wind.f" + hour
+         if .not. ismissing(track_xp(i,ifil)) .and. ( ( replace .eq. 1 ) .or. ( .not. (fileexists( graphicDir + "/" + figName + "." + figType )) ) ) then
             print(ifil) 
-            wks = gsn_open_wks(figType,  figName)
+            wks = gsn_open_wks(figType, figName)
             figName = figName +  "." + figType
 
             hrind = NhlNewMarker(wks, "p", 37, 0.0, 0.0, 1.0, 1.0, 0.0)
