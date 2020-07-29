@@ -40,6 +40,7 @@ export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 
 stormModel=${stormModel:-HAFS}
 is6Hr=${is6Hr:-False}
+trackOn=${trackOn:-True}
 figTimeLevels=$(seq 0 42)
 #is6Hr=${is6Hr:-True}
 #figTimeLevels=$(seq 0 20)
@@ -119,7 +120,7 @@ echo ${figScriptAll[$i]} ${figNameAll[$i]} ${standardLayerAll[$i]}
 
 for figTimeLevel in ${figTimeLevels};
 do
-  echo "${APRUNS} ${DRIVERDOMAIN} $stormModel $STORM $STORMID $YMDH $isStormDomain $is6Hr ${figScriptAll[$i]} ${figNameAll[$i]} ${standardLayerAll[$i]} $figTimeLevel $figTimeLevel > ${WORKgraph}/$STORM$STORMID.$YMDH.${figNameAll[$i]}.$figTimeLevel.log 2>&1 ${BACKGROUND}" >> $cmdfile
+  echo "${APRUNS} ${DRIVERDOMAIN} $stormModel $STORM $STORMID $YMDH $isStormDomain $is6Hr $trackOn ${figScriptAll[$i]} ${figNameAll[$i]} ${standardLayerAll[$i]} $figTimeLevel $figTimeLevel > ${WORKgraph}/$STORM$STORMID.$YMDH.${figNameAll[$i]}.$figTimeLevel.log 2>&1 ${BACKGROUND}" >> $cmdfile
 done
 
 done
@@ -175,7 +176,7 @@ echo ${figScriptAll[$i]} ${figNameAll[$i]} ${standardLayerAll[$i]}
 
 for figTimeLevel in ${figTimeLevels};
 do
-  echo "${APRUNS} ${DRIVERDOMAIN} $stormModel $STORM $STORMID $YMDH $isStormDomain $is6Hr ${figScriptAll[$i]} ${figNameAll[$i]} ${standardLayerAll[$i]} $figTimeLevel $figTimeLevel > ${WORKgraph}/$STORM$STORMID.$YMDH.${figNameAll[$i]}.$figTimeLevel.log 2>&1 ${BACKGROUND}" >> $cmdfile
+  echo "${APRUNS} ${DRIVERDOMAIN} $stormModel $STORM $STORMID $YMDH $isStormDomain $is6Hr $trackOn ${figScriptAll[$i]} ${figNameAll[$i]} ${standardLayerAll[$i]} $figTimeLevel $figTimeLevel > ${WORKgraph}/$STORM$STORMID.$YMDH.${figNameAll[$i]}.$figTimeLevel.log 2>&1 ${BACKGROUND}" >> $cmdfile
 done
 
 done
