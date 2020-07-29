@@ -39,8 +39,10 @@ export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 
 stormModel=${stormModel:-HAFS}
 is6Hr=${is6Hr:-False}
+
 trackOn=${trackOn:-True}
 figTimeLevels=$(seq 0 42)
+
 #is6Hr=${is6Hr:-True}
 #figTimeLevels=$(seq 0 20)
 
