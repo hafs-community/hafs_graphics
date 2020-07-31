@@ -403,6 +403,7 @@ do ifil = startTimeLevel, endTimeLevel
             plot = gsn_csm_contour_map(wks, sp, res1)
             overlay(plot,plotV)
 
+            if trackOn then 
             mres@gsMarkerSizeF = 10.0
             mres@gsMarkerIndex = 16
             mres@gsMarkerColor = "Black"
@@ -421,6 +422,7 @@ do ifil = startTimeLevel, endTimeLevel
             mres@gsMarkerThicknessF = 4.0
             markers3(i) = gsn_add_polymarker(wks,plotV,track_xp(i,ifil),track_yp(i,ifil),mres)
 
+            end if
             draw(plot)
             frame(wks)
             ;system("convert -crop 985x985+18+18 " + figName + " " + figName)
