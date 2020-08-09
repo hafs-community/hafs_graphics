@@ -69,6 +69,11 @@ STORMNAMEID=`echo ${stormnameid} | tr '[a-z]' '[A-Z]' `
 letter=`echo ${stormnameid: -1} |  tr '[A-Z]' '[a-z]' `
 YYYY=$(echo "$startDate" | cut -c1-4)
 
+# Do not deliver the storm figures if the storm is not in the focused basin
+if [ ${STORMNAMEID: -1} != ${STORMID: -1} ]; then
+  continue
+fi
+
 if [ ${letter} = 'l' ]; then
    archive_dir="${COMgraph}/figures/RT${YYYY}_NATL/${STORMNAMEID}/${STORMNAMEID}.${startDate}"
 elif [ ${letter} = 'e' ]; then
