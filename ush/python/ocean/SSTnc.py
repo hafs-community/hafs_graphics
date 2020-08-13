@@ -87,7 +87,7 @@ for k in range(var.shape[0]):
    fig=plt.figure(figsize=(15,5))
    plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%3d"%(fhr)+'  (IC='+cycle+'): \n SST & Change [$^o$C]',fontsize=15)
    plt.subplot(121)
-   var[k].plot.contourf(levels=np.arange(18,32,1),cmap='RdBu_r')
+   var[k].plot.contourf(levels=np.arange(18,32,0.5),cmap='RdBu_r')
    plt.plot(cx,cy,color='gray')
    if trackon[0].lower()=='y':
       for m,G in enumerate(gatcf):

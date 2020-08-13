@@ -81,8 +81,8 @@ figScriptAll=( \
   "storm_WvelZ40m.py" \
   "storm_WvelZ70m.py" \
   "storm_WvelZ100m.py" \
+  "storm_HeatFlux.py" \
   )
-# "storm_HeatFlux.py" \
 
 nscripts=${#figScriptAll[*]}
 

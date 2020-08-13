@@ -59,6 +59,7 @@ if not os.path.isdir(graphdir):
 print("code:   storm_TempZ100m.py")
 
 cx,cy=coast180()
+cx=cx+360.
 
 if tcid[-1].lower()=='l':
    nprefix='natl00l.'+cycle+'.hafs_hycom_hat10'
@@ -116,11 +117,10 @@ dummy=np.ones(lns.shape)
 
 adt,aln,alt,pmn,vmx=readTrack6hrly(atcf)
 if tcid[-1].lower()=='l' or tcid[-1].lower()=='e':
-    aln=[-1*a for a in aln]
+    aln=[-1*a + 360. for a in aln]
 
 for k in range(len(aln)):
    dR=find_dist(lns,lts,aln[k],alt[k])
-   R=find_dist(lns,lts,aln[k],alt[k])
    dumb=dummy.copy()
    dumb[dR>Rkm]=np.nan
 
