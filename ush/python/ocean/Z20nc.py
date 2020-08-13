@@ -67,7 +67,7 @@ if tcid[-1].lower()=='e':
 
 #nan1d=np.nan*np.empty([22,1])
 if trackon[0].lower()=='y':
-   gatcf = glob.glob(COMOUT+'*.atcfunix')
+   gatcf = glob.glob(COMOUT+'/*.atcfunix')
 
 if tcid[-1].lower() == 'l' or tcid[-1].lower() == 'e' or tcid[-1].lower() == 'c':
     cx=cx+360
