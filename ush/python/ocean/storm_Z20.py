@@ -3,7 +3,7 @@
  storm_Z20.py
  -------------
     read a HYCOM 3z .nc file,
-    extract OHC and plot in time series.
+    extract Z20 and plot in time series.
 
 
  ******************************************************
@@ -23,7 +23,8 @@ usage: python storm_Z20.py model EXPT 00L cycle
 """
 
 from utils4HWRF import readTrack6hrly
-from utils import coast180, find_dist
+from utils import coast180
+from geo4HYCOM import haversine
 
 import os
 import sys
@@ -52,19 +53,22 @@ if not os.path.isdir(graphdir):
       p=Path(graphdir)
       p.mkdir(parents=True)
 
-print("code:   storm_OHC.py")
+print("code:   storm_Z20.py")
 
 cx,cy=coast180()
 if tcid[-1].lower() == 'l' or tcid[-1].lower() == 'e' or tcid[-1].lower() == 'c':
     cx=cx+360
 
 if tcid[-1].lower()=='l':
-   aprefix=storm.lower()+tcid.lower()+'.'+cycle
-   nprefix='natl00l.'+cycle+'.hafs_hycom_hat10'
+   nprefix=model.lower()+tcid.lower()+'.'+cycle+'.hafs_hycom_hat10'
 if tcid[-1].lower()=='e':
-   aprefix=storm.lower()+tcid.lower()+'.'+cycle
-   nprefix='epac00l.'+cycle+'.hafs_hycom_hep10'
+   nprefix=model.lower()+tcid.lower()+'.'+cycle+'.hafs_hycom_hep20'
+if tcid[-1].lower()=='w':
+   nprefix=model.lower()+tcid.lower()+'.'+cycle+'.hafs_hycom_hwp30'
+if tcid[-1].lower()=='c':
+   nprefix=model.lower()+tcid.lower()+'.'+cycle+'.hafs_hycom_hcp70'
 
+aprefix=storm.lower()+tcid.lower()+'.'+cycle
 atcf = COMOUT+'/'+aprefix+'.trak.'+model.lower()+'.atcfunix'
 
 #------------------------------------------------------------------------------------
@@ -89,7 +93,7 @@ if tcid[-1].lower()=='l' or tcid[-1].lower()=='e':
 
 for k in range(len(aln)):
 
-   dR=find_dist(lns,lts,aln[k],alt[k])
+   dR=haversine(lns,lts,aln[k],alt[k])/1000.
    dumb=dummy.copy()
    dumb[dR>Rkm]=np.nan
 
@@ -102,19 +106,19 @@ for k in range(len(aln)):
    if trackon[0].lower()=='y':
         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
         plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
-   plt.axis([aln[k]-5.5,aln[k]+4.5,alt[k]-5.5,alt[k]+4.5])
    mnmx="(min,max)="+"(%6.1f"%np.nanmax(var[k]*dumb)+","+"%6.1f)"%np.nanmin(var[k]*dumb)
-   plt.text(aln[k]-5.25,alt[k]-5.35,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
-   
+   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
+
    plt.subplot(122)
    (dvar[k]*dumb).plot.contourf(levels=np.arange(-120,130,10),vmin=-30,vmax=30,cmap='bwr')
    plt.plot(cx,cy,color='gray')
    if trackon[0].lower()=='y':
         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
         plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
-   plt.axis([aln[k]-5.5,aln[k]+4.5,alt[k]-5.5,alt[k]+4.5])
    mnmx="(min,max)="+"(%6.1f"%np.nanmax(dvar[k]*dumb)+","+"%6.1f)"%np.nanmin(dvar[k]*dumb)
-   plt.text(aln[k]-5.25,alt[k]-5.35,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
 
    pngFile=os.path.join(graphdir,aprefix.upper()+'.'+model.upper()+'.storm.Z20.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight')
