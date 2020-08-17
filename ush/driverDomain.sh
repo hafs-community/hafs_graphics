@@ -54,7 +54,8 @@ cp -up ${atcfFile} ${work_dir}
 cp -up ${HOMEgraph}/ush/ncl/field2d/${figScript} ${work_dir}
 
 date
-unbuffer ncl 'stormModel="'${stormModel}'"' 'startDate="'${startDate}'"' isStormDomain=${isStormDomain} is6Hr=${is6Hr} trackOn=${trackOn} standardLayer=${standardLayer} startTimeLevel=${startTimeLevel} endTimeLevel=${endTimeLevel} 'atcfFile="'${atcfFile}'"' 'stormDir="'${stormDir}'"' ${figScript}
+#unbuffer ncl 'stormModel="'${stormModel}'"' 'startDate="'${startDate}'"' isStormDomain=${isStormDomain} is6Hr=${is6Hr} trackOn=${trackOn} standardLayer=${standardLayer} startTimeLevel=${startTimeLevel} endTimeLevel=${endTimeLevel} 'atcfFile="'${atcfFile}'"' 'stormDir="'${stormDir}'"' ${figScript}
+ncl 'stormModel="'${stormModel}'"' 'startDate="'${startDate}'"' isStormDomain=${isStormDomain} is6Hr=${is6Hr} trackOn=${trackOn} standardLayer=${standardLayer} startTimeLevel=${startTimeLevel} endTimeLevel=${endTimeLevel} 'atcfFile="'${atcfFile}'"' 'stormDir="'${stormDir}'"' ${figScript}
 date
 
 figNamePre=$(echo "$figName" | cut -c1-5)
