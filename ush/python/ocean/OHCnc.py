@@ -24,7 +24,7 @@
 """
 
 from utils4HWRF import readTrack6hrly
-from utils import coast180, find_dist
+from utils import coast180
 
 import os
 import sys
@@ -38,7 +38,7 @@ import numpy as np
   
 from pathlib import Path
 
-#plt.switch_backend('agg')
+plt.switch_backend('agg')
 
 #================================================================
 model =sys.argv[1]

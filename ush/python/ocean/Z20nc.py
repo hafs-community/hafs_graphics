@@ -24,7 +24,7 @@
 """
 
 from utils4HWRF import readTrack6hrly
-from utils import coast180, find_dist
+from utils import coast180
 
 import os
 import sys

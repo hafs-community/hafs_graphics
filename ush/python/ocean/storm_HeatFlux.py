@@ -25,7 +25,8 @@
 """
 
 from utils4HWRF import readTrack, readTrack6hrly
-from utils import coast180, find_dist
+from utils import coast180
+from geo4HYCOM import haversine
 
 import os, shutil
 import sys
@@ -43,6 +44,31 @@ import socket
 
 plt.switch_backend('agg')
 
+def ZoomIndex(var,aln,alt):
+   """ find indices of the lower-left corner and the upper-right corner 
+       of an area encompassing the predicted storm track.
+
+       var: an xarray with longitude and latitude coordinate names
+       aln,alt: a set of predicted TC locations (longitude,latitude).
+   """
+
+   # find an index for the lower-left corner
+   abslat=np.abs(var.latitude-min(alt)-8)
+   abslon=np.abs(var.longitude-min(aln)-8)
+   c=np.maximum(abslon,abslat)
+   ([xll],[yll])=np.where(c==np.min(c))
+
+   # find an index for the upper-right corner
+   abslon=np.abs(var.longitude-max(aln)+8)
+   abslat=np.abs(var.latitude-max(alt)+8)
+   c=np.maximum(abslon,abslat)
+   ([xur],[yur])=np.where(c==np.min(c))
+
+   xindx=np.arange(xll,xur,1)
+   yindx=np.arange(yll,yur,1)
+   
+   return (xindx,yindx)
+    
 #================================================================
 model =sys.argv[1]
 storm = sys.argv[2]
@@ -59,12 +85,17 @@ if not os.path.isdir(graphdir):
 print("code:   storm_TempZ100m.py")
 
 cx,cy=coast180()
-cx=cx+360.
+if tcid[-1].lower() == 'l' or tcid[-1].lower() == 'e' or tcid[-1].lower() == 'c':
+    cx=cx+360
 
 if tcid[-1].lower()=='l':
-   nprefix='natl00l.'+cycle+'.hafs_hycom_hat10'
+   nprefix=model.lower()+tcid.lower()+'.'+cycle+'.hafs_hycom_hat10'
 if tcid[-1].lower()=='e':
-   nprefix='epac00l.'+cycle+'.hafs_hycom_hep10'
+   nprefix=model.lower()+tcid.lower()+'.'+cycle+'.hafs_hycom_hep20'
+if tcid[-1].lower()=='w':
+   nprefix=model.lower()+tcid.lower()+'.'+cycle+'.hafs_hycom_hwp30'
+if tcid[-1].lower()=='c':
+   nprefix=model.lower()+tcid.lower()+'.'+cycle+'.hafs_hycom_hcp70'
 
 aprefix=storm.lower()+tcid.lower()+'.'+cycle
 atcf = COMOUT+'/'+aprefix+'.trak.'+model.lower()+'.atcfunix'
@@ -84,6 +115,11 @@ if os.path.isdir(nctmp):
 p=Path(nctmp)
 p.mkdir(parents=True)
 
+# track
+adt,aln,alt,pmn,vmx=readTrack6hrly(atcf)
+if tcid[-1].lower()=='l' or tcid[-1].lower()=='e':
+    aln=[-1*a + 360. for a in aln]
+
 #afiles = sorted(glob.glob(os.path.join(COMOUT,nprefix+'phyf*.nc')))
 afiles = sorted(glob.glob(os.path.join(COMOUT,'*'+model.lower()+'prs.synoptic*.grb2')))
 afiles=afiles[::2]   # subset to 6 hourly intervals
@@ -102,25 +138,22 @@ for k,A in enumerate(afiles):
 nfiles=sorted(glob.glob(os.path.join(nctmp,'heatflx_*.nc')))
 del afiles
 
-if tcid[-1].lower()=='l':
-   xindx=np.arange(563,3661,2)
-   yindx=np.arange(648,1980,2)
-
 xnc=xr.open_mfdataset(nfiles)
+xii,yii=ZoomIndex(xnc.isel(time=[0]),aln,alt)
+xindx=xii[::2]
+yindx=yii[::2]
+
 var1=xnc['LHTFL_surface'].isel(longitude=xindx,latitude=yindx)
 var2=xnc['SHTFL_surface'].isel(longitude=xindx,latitude=yindx)
 
 del nfiles
+del xnc
 
 lns,lts=np.meshgrid(var1['longitude'],var1['latitude'])
 dummy=np.ones(lns.shape)
 
-adt,aln,alt,pmn,vmx=readTrack6hrly(atcf)
-if tcid[-1].lower()=='l' or tcid[-1].lower()=='e':
-    aln=[-1*a + 360. for a in aln]
-
 for k in range(len(aln)):
-   dR=find_dist(lns,lts,aln[k],alt[k])
+   dR=haversine(lns,lts,aln[k],alt[k])/1000.0
    dumb=dummy.copy()
    dumb[dR>Rkm]=np.nan
 
@@ -135,9 +168,9 @@ for k in range(len(aln)):
    if trackon[0].lower()=='y':
         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
         plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
-   plt.axis([aln[k]-5.5,aln[k]+4.5,alt[k]-5.5,alt[k]+4.5])
    mnmx="(min,max)="+"(%6.1f"%np.nanmax(var1[k]*dumb)+","+"%6.1f)"%np.nanmin(var1[k]*dumb)
-   plt.text(aln[k]-5.25,alt[k]-4.25,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
 
    plt.subplot(122)
    dvar=(var1[k]-var1[0])*dumb
@@ -146,9 +179,9 @@ for k in range(len(aln)):
    if trackon[0].lower()=='y':
         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
         plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
-   plt.axis([aln[k]-5.5,aln[k]+4.5,alt[k]-5.5,alt[k]+4.5])
    mnmx="(min,max)="+"(%6.1f"%np.nanmax(dvar)+","+"%6.1f)"%np.nanmin(dvar)
-   plt.text(aln[k]-5.25,alt[k]-4.25,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
 
    pngFile=os.path.join(graphdir,aprefix.upper()+'.'+model.upper()+'.storm.LHTFlux.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight')
@@ -163,9 +196,10 @@ for k in range(len(aln)):
    if trackon[0].lower()=='y':
         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
         plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
-   plt.axis([aln[k]-5.5,aln[k]+4.5,alt[k]-5.5,alt[k]+4.5])
    mnmx="(min,max)="+"(%6.1f"%np.nanmax(var2[k]*dumb)+","+"%6.1f)"%np.nanmin(var2[k]*dumb)
-   plt.text(aln[k]-5.25,alt[k]-4.25,mnmx,fontsize=14,color='r',fontweight='bold')
+   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='r',fontweight='bold')
+   plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
+
    plt.subplot(122)
    dvar=(var2[k]-var2[0])*dumb
    dvar.plot.contourf(levels=np.arange(-200,225,25),cmap='bwr')
@@ -173,9 +207,9 @@ for k in range(len(aln)):
    if trackon[0].lower()=='y':
         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
         plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
-   plt.axis([aln[k]-5.5,aln[k]+4.5,alt[k]-5.5,alt[k]+4.5])
    mnmx="(min,max)="+"(%6.1f"%np.nanmax(dvar)+","+"%6.1f)"%np.nanmin(dvar)
-   plt.text(aln[k]-5.25,alt[k]-5.4,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
 
    pngFile=os.path.join(graphdir,aprefix.upper()+'.'+model.upper()+'.storm.SHTFlux.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight')
@@ -191,10 +225,10 @@ for k in range(len(aln)):
    if trackon[0].lower()=='y':
         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
         plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
-
-   plt.axis([aln[k]-5.5,aln[k]+4.5,alt[k]-5.5,alt[k]+4.5])
    mnmx="(min,max)="+"(%6.1f"%np.nanmax(var0*dumb)+","+"%6.1f)"%np.nanmin(var0*dumb)
-   plt.text(aln[k]-5.25,alt[k]-5.4,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
+
    plt.subplot(122)
    dvar=(var0-var1[0]-var2[0])*dumb
    dvar.plot.contourf(levels=np.arange(-100,1150,50),cmap='bwr')
@@ -202,11 +236,11 @@ for k in range(len(aln)):
    if trackon[0].lower()=='y':
         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
         plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
-   plt.axis([aln[k]-5.5,aln[k]+4.5,alt[k]-5.5,alt[k]+4.5])
    mnmx="(min,max)="+"(%6.1f"%np.nanmax(dvar)+","+"%6.1f)"%np.nanmin(dvar)
-   plt.text(aln[k]-5.25,alt[k]-5.4,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
 
-   pngFile=os.path.join(graphdir,aprefix.upper()+'.'+model.upper()+'.storm.TurbFlux.f'+"%03d"%(fhr)+'.png')
+   pngFile=os.path.join(graphdir,aprefix.upper()+'.'+model.upper()+'.storm.totalHeatFlux.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight')
 
    plt.close('all')
