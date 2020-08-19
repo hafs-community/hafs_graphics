@@ -63,22 +63,24 @@ if (.not. isvar("figType")) then
    figType="png" ; x11, png, ps, pdf, ncgm, etc.
 end if
 
-if (.not. isvar("stormID")) .or. (.not. isvar("stormName")) then  ;;  if no stormID is given, draw all the storms from the track file
-   sids=systemfunc("sh getStormIDs.sh "+atcfFile )
-   names=systemfunc("sh getStormNames.sh "+atcfFile + " " + tostring(startDate))
-   if strlen(sids) .gt. 0 then
-      stormIDs=str_split(sids," ")
-      stormNames=str_split(names," ")
-      stormCount=dimsizes(stormIDs)
-   else
-      stormCount=0
-   end if
-   stormID="00l"
+if (.not. isvar("stormName")) then
    stormName="natl"
+end if
+
+if (.not. isvar("stormID")) then
+   stormID="00l"
+end if
+
+sids=systemfunc("sh getStormIDs.sh "+atcfFile )
+names=systemfunc("sh getStormNames.sh "+atcfFile + " " + tostring(startDate))
+if strlen(sids) .gt. 0 then
+   stormIDs=str_split(sids," ")
+   stormNames=str_split(names," ")
+   stormCount=dimsizes(stormIDs)
 else
-   stormCount=1
    stormIDs=(/stormID/)
    stormNames=(/stormName/)
+   stormCount=0
 end if
 
 if isstring(startDate) then
