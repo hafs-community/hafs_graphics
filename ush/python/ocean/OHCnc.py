@@ -104,7 +104,7 @@ for k in range(ohc.shape[0]):
          if k < len(aln):
             plt.plot(aln[k],alt[k],'ok',markersize=6,alpha=0.4,markerfacecolor='None')
    #plt.axis([262,320,5,45])
-   plt.axis([var.Longitude[0],var.Longitude[-1],var.Latitude[0],var.Latitude[-1]])
+   plt.axis([ohc.Longitude[0],ohc.Longitude[-1],ohc.Latitude[0],ohc.Latitude[-1]])
    ax121.set_aspect('equal')
    ax122=plt.subplot(122)
    dohc[k].plot.contourf(levels=np.arange(-30,30,5),vmin=-30,vmax=30,cmap='bwr')
@@ -118,7 +118,7 @@ for k in range(ohc.shape[0]):
          if k < len(aln):
             plt.plot(aln[k],alt[k],'ok',markersize=6,alpha=0.4,markerfacecolor='None')
    #plt.axis([262,320,5,45])
-   plt.axis([var.Longitude[0],var.Longitude[-1],var.Latitude[0],var.Latitude[-1]])
+   plt.axis([ohc.Longitude[0],ohc.Longitude[-1],ohc.Latitude[0],ohc.Latitude[-1]])
    ax122.set_aspect('equal')
 
    pngFile=os.path.join(graphdir,aprefix.upper()+'.'+model.upper()+'.OHC.f'+"%03d"%(fhr)+'.png')
