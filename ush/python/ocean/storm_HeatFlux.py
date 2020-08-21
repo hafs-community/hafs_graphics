@@ -82,7 +82,7 @@ if not os.path.isdir(graphdir):
       p=Path(graphdir)
       p.mkdir(parents=True)
 
-print("code:   storm_TempZ100m.py")
+print("code:   storm_HeatFlux.py")
 
 cx,cy=coast180()
 if tcid[-1].lower() == 'l' or tcid[-1].lower() == 'e' or tcid[-1].lower() == 'c':
@@ -98,7 +98,7 @@ if tcid[-1].lower()=='c':
    nprefix=model.lower()+tcid.lower()+'.'+cycle+'.hafs_hycom_hcp70'
 
 aprefix=storm.lower()+tcid.lower()+'.'+cycle
-atcf = COMOUT+'/'+aprefix+'.trak.'+model.lower()+'.atcfunix'
+atcf = aprefix+'.trak.'+model.lower()+'.atcfunix'
 
 # ------------------------------------------------------------------------------------
 # - preprocessing: subset and convert wgrib2 to netcdf

@@ -70,14 +70,15 @@ if tcid[-1].lower()=='c':
    nprefix=model.lower()+tcid.lower()+'.'+cycle+'.hafs_hycom_hcp70'
 
 aprefix=storm.lower()+tcid.lower()+'.'+cycle
-atcf = COMOUT+'/'+aprefix+'.trak.'+model.lower()+'.atcfunix'
+atcf = aprefix+'.trak.'+model.lower()+'.atcfunix'
 
 # ------------------------------------------------------------------------------------
 Rkm=500         # search radius
 #
 # - get OHC0 from *basin.yyyy_yrday_hh.nc (generated from rtofs_archv3z2nc (new hafs_ab2data codes)
 # prefix for  rtofs*.[ab] files
-afiles = sorted(glob.glob(os.path.join(COMOUT,nprefix+'*3z*.nc')))
+#afiles = sorted(glob.glob(os.path.join(COMOUT,nprefix+'*3z*.nc')))
+afiles = sorted(glob.glob(os.path.join(COMOUT,'*3z*.nc')))
 
 # - get OHC from each *.nc files
 ncfiles=xr.open_mfdataset(afiles)

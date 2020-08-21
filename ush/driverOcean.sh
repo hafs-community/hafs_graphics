@@ -38,7 +38,66 @@ rm -rf ${work_dir}
 mkdir -p ${work_dir}
 cd ${work_dir}
 
-cp -p ${USHgraph}/python/ocean/xgrb2nc.sh ./
+cp -up ${USHgraph}/getStormIDs.sh ${work_dir}/
+cp -up ${USHgraph}/getStormNames.sh ${work_dir}/
+cp -up ${USHgraph}/python/ocean/xgrb2nc.sh ${work_dir}/
+ln -sf ${USHgraph}/python/ocean/fixdata ./
+
+# Extract atcfunix track files for individual storms
+array=$( sh getStormNames.sh ${atcfFile} ${startDate} )
+for stormnmid in ${array[@]}
+do
+
+stormnmid=`echo ${stormnmid} | tr '[A-Z]' '[a-z]' `
+STORMNMID=`echo ${stormnmid} | tr '[a-z]' '[A-Z]' `
+STORMNM=${STORMNMID:0:-3}
+stormnm=${STORMNM,,}
+STID=${STORMNMID: -3}
+stid=${STID,,}
+STORMNUM=${STID:0:2}
+BASIN1C=${STID: -1}
+basin1c=${BASIN1C,,}
+yyyy=`echo ${startDate} | cut -c1-4`
+
+# Do not extract if the storm is not in the focused basin
+if [ ${BASIN1C} != ${STORMID: -1} ]; then
+  continue
+fi
+
+if [ ${basin1c} = 'l' ]; then
+  basin2c='al'
+  BASIN2C='AL'
+  BASIN='NATL'
+elif [ ${basin1c} = 'e' ]; then
+  basin2c='ep'
+  BASIN2C='EP'
+  BASIN='EPAC'
+elif [ ${basin1c} = 'c' ]; then
+  basin2c='cp'
+  BASIN2C='CP'
+  BASIN='CPAC'
+elif [ ${basin1c} = 'w' ]; then
+  basin2c='wp'
+  BASIN2C='WP'
+  BASIN='WPAC'
+elif [ ${basin1c} = 's' ] || [ ${basin1c} = 'p'  ]; then
+  basin2c='sh'
+  BASIN2C='SH'
+  BASIN='SH'
+elif [ ${basin1c} = 'a' ] || [ ${basin1c} = 'b'  ]; then
+  basin2c='io'
+  BASIN2C='IO'
+  BASIN='NIO'
+else
+  echo "WRONG BASIN DESIGNATION basin1c=${basin1c}"
+  echo 'SCRIPT WILL EXIT'
+  exit 1
+fi
+
+storm_atcfFile=${work_dir}/${stormnm}${stid}.${startDate}.trak.hafs.atcfunix
+grep "^${BASIN2C}, ${STORMNUM}," ${atcfFile} > ${storm_atcfFile}
+
+done
 
 if [ ${trackOn} = 'True' ]; then
   trackon=Yes
@@ -48,7 +107,8 @@ fi
 
 if [ "${figScript:0:5}" = "storm" ]; then # This is for the inner storm domain(s)
 
-stormatcfs=$(/bin/ls -1 ${COMhafs}/*.atcfunix)
+#stormatcfs=$(/bin/ls -1 ${COMhafs}/*.atcfunix)
+stormatcfs=$(/bin/ls -1 *.atcfunix)
 for stormatcf in ${stormatcfs}
 do
 
@@ -67,6 +127,7 @@ fi
 
 date
 python3 ${USHgraph}/python/ocean/${figScript} ${stormModel,,} ${STORMNAMETMP,,} ${STORMIDTMP,,} ${startDate} ${trackon} ${COMhafs} ${work_dir}
+#python3 ${USHgraph}/python/ocean/${figScript} ${stormModel,,} ${STORMNAME,,} ${STORMID,,} ${startDate} ${trackon} ${COMhafs} ${work_dir}
 date
 
 if [ ${letter} = 'l' ]; then

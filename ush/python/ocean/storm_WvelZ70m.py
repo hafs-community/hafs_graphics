@@ -69,7 +69,7 @@ if tcid[-1].lower()=='c':
    nprefix=model.lower()+tcid.lower()+'.'+cycle+'.hafs_hycom_hcp70'
 
 aprefix=storm.lower()+tcid.lower()+'.'+cycle
-atcf = COMOUT+'/'+aprefix+'.trak.'+model.lower()+'.atcfunix'
+atcf = aprefix+'.trak.'+model.lower()+'.atcfunix'
 
 
 #------------------------------------------------------------------------------------
@@ -78,7 +78,8 @@ atcf = COMOUT+'/'+aprefix+'.trak.'+model.lower()+'.atcfunix'
 Rkm=500    # search radius [km]
 
 # prefix for  rtofs*.[ab] files
-afiles = sorted(glob.glob(os.path.join(COMOUT,nprefix+'*3z*.nc')))
+#afiles = sorted(glob.glob(os.path.join(COMOUT,nprefix+'*3z*.nc')))
+afiles = sorted(glob.glob(os.path.join(COMOUT,'*3z*.nc')))
 
 ncfiles=xr.open_mfdataset(afiles)
 var=ncfiles['w_velocity'].isel(Z=12)

@@ -89,7 +89,7 @@ def _mkdir_recursive(self, path):
         os.makedirs(path)
 
 def coast180():
-   inf=open('/lfs4/HFIP/hwrfv3/Hyun.Sook.Kim/PyHAFS/fixdata/coastlines_180x180.dat','r')
+   inf=open('./fixdata/coastlines_180x180.dat','r')
    c1 = []
    c2 = []
    hsk=np.genfromtxt(inf)
