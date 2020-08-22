@@ -107,7 +107,7 @@ for k in range(len(aln)):
    
    fhr=k*6
    fig=plt.figure(figsize=(14,5))
-   plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%3d"%(fhr)+'  (IC='+cycle+'): 40-m Wvel & Change [m/day]',fontsize=15)
+   plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%3d"%(fhr)+'  (IC='+cycle+'): 70-m Wvel & Change [m/day]',fontsize=15)
    plt.subplot(121)
    (var[k]*dumb).plot.contourf(levels=np.arange(-60,65,5),cmap='RdBu_r')
    plt.plot(cx,cy,color='gray')
