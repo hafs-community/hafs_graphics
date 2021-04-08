@@ -1,7 +1,7 @@
 #!/bin/sh
 #
-#  echo "Usage:     sh $0 HAFS NATL 00L 2019082900"
-#  echo "Usage:     sh $0 HAFS Dorian 05L 2019082900"
+#  echo "Usage:     sh $0 2019082900 HAFS NATL 00L COMhafs"
+#  echo "Usage:     sh $0 2019082900 HAFS Dorian 05L COMhafs"
 #
 set -xe
 
@@ -10,29 +10,44 @@ stormModel=${2:-HAFS}
 stormname=${3:-NATL}
 stormid=${4:-00L}
 
+COMhafs=${5:-${COMhafs:-/hafs/com/dir}}
+HOMEgraph=${HOMEgraph:-$(pwd)/..}
+
+modelLabels='(/"BEST","'$stormModel'","HWRF","HMON","AVNO","OFCL"/)'
+modelColors='(/"black","cyan2","purple","green2","blue","red"/)'
+modelMarkers='(/17,18,18,18,18,18/)'
+
 STORMID=`echo ${stormid} | tr '[a-z]' '[A-Z]' `
 stormid=`echo ${stormid} | tr '[A-Z]' '[a-z]' `
 STORMNAME=`echo ${stormname} | tr '[a-z]' '[A-Z]' `
 stormname=`echo ${stormname} | tr '[A-Z]' '[a-z]' `
 
-#COMhafs=/mnt/lfs4/HFIP/hwrfv3/${USER}/hafstmp/hafsv0p1acpl_202007/com/${ymdh}/${STORMID}
-COMhafs=${COMhafs:-/hafs/com/${ymdh}/${STORMID}}
-atcfFile=${5:-${COMhafs}/${stormname}${stormid}.${ymdh}.trak.hafs.atcfunix.all}
+atcfFile=${6:-${COMhafs}/${stormname}${stormid}.${ymdh}.trak.hafs.atcfunix.all}
 
 export HOMEgraph=${HOMEgraph:-/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics}
 export USHgraph=${USHgraph:-${HOMEgraph}/ush}
 export WORKgraph=${WORKgraph:-${COMhafs}/../../../${ymdh}/${STORMID}/emc_graphics}
 export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 
-export ADECKgraph=${ADECKgraph:-/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/aid}
-export BDECKgraph=${BDECKgraph:-/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/btk}
-
-modelLabels='(/"BEST","'$stormModel'","HWRF","HMON","AVNO","OFCL"/)'
-modelColors='(/"black","cyan2","purple","green2","blue","red"/)'
-modelMarkers='(/17,18,18,18,18,18/)'
-
 source ${USHgraph}/graph_pre_job.sh.inc
 export machine=${WHERE_AM_I:-wcoss_cray} # platforms: wcoss_cray, wcoss_dell_p3, hera, orion, jet
+
+if [ ${machine} = jet ]; then
+  export ADECKgraph=${ADECKgraph:-/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/aid}
+  export BDECKgraph=${BDECKgraph:-/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/btk}
+elif [ ${machine} = hera ]; then
+  export ADECKgraph=${ADECKgraph:-/scratch1/NCEPDEV/hwrf/noscrub/input/abdeck/aid}
+  export BDECKgraph=${BDECKgraph:-/scratch1/NCEPDEV/hwrf/noscrub/input/abdeck/btk}
+elif [ ${machine} = orion ]; then
+  export ADECKgraph=${ADECKgraph:-/work/noaa/hwrf/noscrub/input/abdeck/aid}
+  export BDECKgraph=${BDECKgraph:-/work/noaa/hwrf/noscrub/input/abdeck/btk}
+elif [ ${machine} = wcoss_cray ] || [ ${machine} = wcoss_dell_p3 ]; then
+  export ADECKgraph=${ADECKgraph:-/gpfs/hps3/emc/hwrf/noscrub/emc.hurpara/trak/abdeck/aid}
+  export BDECKgraph=${BDECKgraph:-/gpfs/hps3/emc/hwrf/noscrub/emc.hurpara/trak/abdeck/btk}
+else
+  export ADECKgraph=${ADECKgraph:-/your/abdeck/aid}
+  export BDECKgraph=${BDECKgraph:-/your/abdeck/btk}
+fi
 
 work_dir="${WORKgraph}"
 archbase="${COMgraph}/figures"
