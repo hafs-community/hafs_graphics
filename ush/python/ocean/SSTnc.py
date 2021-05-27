@@ -98,7 +98,7 @@ for k in range(var.shape[0]):
       for m,G in enumerate(gatcf):
          adt,aln,alt,pmn,vmx=readTrack6hrly(G)
          if tcid[-1].lower()=='l' or tcid[-1].lower()=='e':
-            aln=-1*aln+360
+            aln=aln+360
          plt.plot(aln,alt,'-ok',markersize=2,alpha=0.4)
          if k < len(aln):
             plt.plot(aln[k],alt[k],'ok',markersize=6,alpha=0.4,markerfacecolor='None')
@@ -112,7 +112,7 @@ for k in range(var.shape[0]):
       for m,G in enumerate(gatcf):
          adt,aln,alt,pmn,vmx=readTrack6hrly(G)
          if tcid[-1].lower()=='l' or tcid[-1].lower()=='e':
-            aln=-1*aln+360
+            aln=aln+360
          plt.plot(aln,alt,'-ok',markersize=2,alpha=0.4)
          if k < len(aln):
             plt.plot(aln[k],alt[k],'ok',markersize=6,alpha=0.4,markerfacecolor='None')

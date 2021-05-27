@@ -97,7 +97,7 @@ dummy=np.ones(lns.shape)
 
 adt,aln,alt,pmn,vmx=readTrack6hrly(atcf)
 if tcid[-1].lower()=='l' or tcid[-1].lower()=='e':
-    aln=[-1*a+360 for a in aln]
+    aln=[a+360 for a in aln]
 
 for k in range(len(aln)):
 

@@ -152,23 +152,32 @@ def Rwinds6hr(bt,fhr,units=True):
 
 def readTrack(bt):
     '''
-    --- read best track or atcf file ---
+    --- read atcf file ---
     '''
     with open(bt,'r') as infile:
         atmp=[]
         for n in infile.readlines():
                 atmp.append(n[:59])
 
-    atxt=np.unique(atmp)
+    atxt=atmp
 
-    d0 =[ datetime.strptime(s.split(', ')[2],'%Y%m%d%H') for s in atxt ]
-    dt = [ timedelta(int(s.split(', ')[5])) for s in atxt ]
+    d0 = [datetime.strptime(s.split(', ')[2],'%Y%m%d%H') for s in atxt]
+    dt = [timedelta(int(s.split(', ')[5])) for s in atxt]
 
-    dts =[ d0[n] + dt[n]/24 for n in range(0,len(dt)) ]
-    lns = [ float(s.split(', ')[7][:-1])/10. for s in atxt ]
-    lts = [ float(s.split(', ')[6][:-1])/10. for s in atxt ]
-    pmin = [ float(s.split(', ')[9]) for s in atxt ]
-    vmax = [ float(s.split(', ')[8]) for s in atxt ]
+    dts = np.array([d0[n] + dt[n]/24 for n in range(0,len(dt))])
+    lns = np.array([float(s.split(', ')[7][:-1])/10. if s.split(', ')[7][-1]=='E' else \
+                   -float(s.split(', ')[7][:-1])/10. for s in atxt])
+    lts = np.array([float(s.split(', ')[6][:-1])/10. if s.split(', ')[6][-1]=='N' else \
+                   -float(s.split(', ')[6][:-1])/10. for s in atxt])
+    pmin = np.array([float(s.split(', ')[9]) for s in atxt])
+    vmax = np.array([float(s.split(', ')[8]) for s in atxt])
+
+    dt, ind = np.unique(dt,return_index=True)
+    dts = dts[ind]
+    lns = lns[ind]
+    lts = lts[ind]
+    pmin = pmin[ind]
+    vmax = vmax[ind]
 
     return (dts, lns, lts, pmin, vmax)
 
@@ -180,24 +189,26 @@ def readTrack6hrly(bt):
         atmp=[]
         for n in infile.readlines():
                 atmp.append(n[:59])
-    atxt=np.unique(atmp)
 
-    idx=[]
-    knt=0
-    for s in atxt:
-       if int(s.split(', ')[5])%6 == 0:
-          idx.append(knt)
-       knt += 1
-    atxt=atxt[idx]
+    atxt=atmp
 
-    d0 =[ datetime.strptime(s.split(', ')[2],'%Y%m%d%H') for s in atxt ]
-    dt = [ timedelta(int(s.split(', ')[5])) for s in atxt ]
+    d0 = [datetime.strptime(s.split(', ')[2],'%Y%m%d%H') for s in atxt]
+    dt = [timedelta(int(s.split(', ')[5])) for s in atxt]
 
-    dts = np.array([ d0[n] + dt[n]/24 for n in range(0,len(dt)) ])
-    lns = np.array([ float(s.split(', ')[7][:-1])/10. for s in atxt ])
-    lts = np.array([ float(s.split(', ')[6][:-1])/10. for s in atxt ])
-    pmin = np.array([ float(s.split(', ')[9]) for s in atxt ])
-    vmax = np.array([ float(s.split(', ')[8]) for s in atxt ])
+    dts = np.array([ d0[n] + dt[n]/24 for n in range(0,len(dt))])
+    lns = np.array([float(s.split(', ')[7][:-1])/10. if s.split(', ')[7][-1]=='E' else \
+                   -float(s.split(', ')[7][:-1])/10. for s in atxt])
+    lts = np.array([float(s.split(', ')[6][:-1])/10. if s.split(', ')[6][-1]=='N' else \
+                   -float(s.split(', ')[6][:-1])/10. for s in atxt])
+    pmin = np.array([ float(s.split(', ')[9]) for s in atxt])
+    vmax = np.array([ float(s.split(', ')[8]) for s in atxt])
+
+    dt, ind = np.unique(dt,return_index=True)
+    dts = dts[ind[::2]]
+    lns = lns[ind[::2]]
+    lts = lts[ind[::2]]
+    pmin = pmin[ind[::2]]
+    vmax = vmax[ind[::2]]
 
     return (dts, lns, lts, pmin, vmax)
 
@@ -209,24 +220,22 @@ def readBT6hrly(bt):
         atmp=[]
         for n in infile.readlines():
                 atmp.append(n[:59])
-    atxt=np.unique(atmp)
 
-    idx=[]
-    knt=0
-    for s in atxt:
-       if int(s.split(', ')[5])%6 == 0:
-          idx.append(knt)
-       knt += 1
-    atxt=atxt[idx]
-     
-    d0 =[ datetime.strptime(s.split(', ')[2],'%Y%m%d%H') for s in atxt ]
-    dt = [ timedelta(int(s.split(', ')[5])) for s in atxt ]
+    atxt=atmp
 
-    dts = np.array([ d0[n] + dt[n]/24 for n in range(0,len(dt)) ])
-    lns = np.array([ float(s.split(', ')[7][:-1])/10. for s in atxt ])
-    lts = np.array([ float(s.split(', ')[6][:-1])/10. for s in atxt ])
-    pmin = np.array([ float(s.split(', ')[9]) for s in atxt ])
-    vmax = np.array([ float(s.split(', ')[8]) for s in atxt ])
+    dts = np.array([datetime.strptime(s.split(', ')[2],'%Y%m%d%H') for s in atxt])
+    lns = np.array([float(s.split(', ')[7][:-1])/10. if s.split(', ')[7][-1]=='E' else \
+                   -float(s.split(', ')[7][:-1])/10. for s in atxt])
+    lts = np.array([float(s.split(', ')[6][:-1])/10. if s.split(', ')[6][-1]=='N' else \
+                   -float(s.split(', ')[6][:-1])/10. for s in atxt])
+    pmin = np.array([float(s.split(', ')[9]) for s in atxt])
+    vmax = np.array([float(s.split(', ')[8]) for s in atxt])
+
+    dts, ind = np.unique(dts,return_index=True)
+    lns = lns[ind]
+    lts = lts[ind]
+    pmin = pmin[ind]
+    vmax = vmax[ind]
 
     return (dts, lns, lts, pmin, vmax)
 

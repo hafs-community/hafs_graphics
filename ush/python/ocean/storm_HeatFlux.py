@@ -51,7 +51,25 @@ def ZoomIndex(var,aln,alt):
        var: an xarray with longitude and latitude coordinate names
        aln,alt: a set of predicted TC locations (longitude,latitude).
    """
+   aln = np.asarray(aln)
+   alt = np.asarray(alt)
+   minlon = np.min(aln) - 8
+   maxlon = np.max(aln) + 8
+   minlat = np.min(alt) - 8
+   maxlat = np.max(alt) + 8
 
+   lat = np.asarray(var.latitude)
+   lon = np.asarray(var.longitude)
+
+   # find an index for the lower-left corner
+   xll = np.interp(minlon,lon,np.arange(len(lon))).astype(int)
+   yll = np.interp(minlat,lat,np.arange(len(lat))).astype(int)
+
+   # find an index for the upper-right corner
+   xur = np.interp(maxlon,lon,np.arange(len(lon))).astype(int)
+   yur = np.interp(maxlat,lat,np.arange(len(lat))).astype(int)
+
+   '''
    # find an index for the lower-left corner
    abslat=np.abs(var.latitude-min(alt)-8)
    abslon=np.abs(var.longitude-min(aln)-8)
@@ -63,6 +81,7 @@ def ZoomIndex(var,aln,alt):
    abslat=np.abs(var.latitude-max(alt)+8)
    c=np.maximum(abslon,abslat)
    ([xur],[yur])=np.where(c==np.min(c))
+   '''
 
    xindx=np.arange(xll,xur,1)
    yindx=np.arange(yll,yur,1)
@@ -85,8 +104,8 @@ if not os.path.isdir(graphdir):
 print("code:   storm_HeatFlux.py")
 
 cx,cy=coast180()
-if tcid[-1].lower() == 'l' or tcid[-1].lower() == 'e' or tcid[-1].lower() == 'c':
-    cx=cx+360
+#if tcid[-1].lower() == 'l' or tcid[-1].lower() == 'e' or tcid[-1].lower() == 'c':
+#    cx=cx+360
 
 if tcid[-1].lower()=='l':
    nprefix=model.lower()+tcid.lower()+'.'+cycle+'.hafs_hycom_hat10'
@@ -117,8 +136,8 @@ p.mkdir(parents=True)
 
 # track
 adt,aln,alt,pmn,vmx=readTrack6hrly(atcf)
-if tcid[-1].lower()=='l' or tcid[-1].lower()=='e':
-    aln=[-1*a + 360. for a in aln]
+#if tcid[-1].lower()=='l' or tcid[-1].lower()=='e':
+#    aln=[-1*a + 360. for a in aln]
 
 #afiles = sorted(glob.glob(os.path.join(COMOUT,nprefix+'phyf*.nc')))
 afiles = sorted(glob.glob(os.path.join(COMOUT,'*'+model.lower()+'prs.synoptic*.grb2')))
