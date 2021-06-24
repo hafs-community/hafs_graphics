@@ -414,6 +414,7 @@ do ifil = startTimeLevel, endTimeLevel
 
             ;speed = sqrt(u*u + v*v)
 
+            res1@gsnLeftString = stormModel + " " + stormNames(i)
             res1@mpMinLatF = track_yp(i,ifil) -3.5
             res1@mpMaxLatF = track_yp(i,ifil) +3.5
             res1@mpMinLonF = track_xp(i,ifil) -3.5
