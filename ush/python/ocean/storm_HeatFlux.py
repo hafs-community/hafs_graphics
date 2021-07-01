@@ -42,7 +42,7 @@ from pathlib import Path
 
 import socket
 
-plt.switch_backend('agg')
+
 
 def ZoomIndex(var,aln,alt):
    """ find indices of the lower-left corner and the upper-right corner 
@@ -83,13 +83,13 @@ def ZoomIndex(var,aln,alt):
    ([xur],[yur])=np.where(c==np.min(c))
    '''
 
-   xindx=np.arange(xll,xur,1)
-   yindx=np.arange(yll,yur,1)
+   xindx = np.arange(xll,xur,1)
+   yindx = np.arange(yll,yur,1)
    
    return (xindx,yindx)
     
 #================================================================
-model =sys.argv[1]
+model = sys.argv[1]
 storm = sys.argv[2]
 tcid = sys.argv[3]
 cycle = sys.argv[4]
@@ -98,166 +98,229 @@ COMOUT = sys.argv[6]
 
 graphdir = sys.argv[7]
 if not os.path.isdir(graphdir):
-      p=Path(graphdir)
+      p = Path(graphdir)
       p.mkdir(parents=True)
 
 print("code:   storm_HeatFlux.py")
 
 cx,cy=coast180()
-#if tcid[-1].lower() == 'l' or tcid[-1].lower() == 'e' or tcid[-1].lower() == 'c':
-#    cx=cx+360
-
-if tcid[-1].lower()=='l':
-   nprefix=model.lower()+tcid.lower()+'.'+cycle+'.hafs_hycom_hat10'
-if tcid[-1].lower()=='e':
-   nprefix=model.lower()+tcid.lower()+'.'+cycle+'.hafs_hycom_hep20'
-if tcid[-1].lower()=='w':
-   nprefix=model.lower()+tcid.lower()+'.'+cycle+'.hafs_hycom_hwp30'
-if tcid[-1].lower()=='c':
-   nprefix=model.lower()+tcid.lower()+'.'+cycle+'.hafs_hycom_hcp70'
 
 aprefix=storm.lower()+tcid.lower()+'.'+cycle
-atcf = aprefix+'.trak.'+model.lower()+'.atcfunix'
+if tcid[-1].lower()=='l':
+   nprefix = aprefix + '.hafs_hycom_hat10'
+if tcid[-1].lower()=='e':
+   nprefix = aprefix + '.hafs_hycom_hep20'
+if tcid[-1].lower()=='w':
+   nprefix = aprefix + '.hafs_hycom_hwp30'
+if tcid[-1].lower()=='c':
+   nprefix = aprefic + '.hafs_hycom_hcp70'
+
+#atcf = aprefix+'.trak.'+model.lower()+'.atcfunix'
+atcf = glob.glob(COMOUT+'/*.atcfunix.*')[0]
 
 # ------------------------------------------------------------------------------------
 # - preprocessing: subset and convert wgrib2 to netcdf
 
 #
-Rkm=500 	# search radius
+Rkm = 500 	# search radius
 
-scrubbase='./tmp/'
+scrubbase = './tmp/'
 
-part=nprefix.partition('.'+model.lower()+'_')[0]
-nctmp=os.path.join(scrubbase,part)
+part = nprefix.partition('.'+model.lower()+'_')[0]
+nctmp = os.path.join(scrubbase,part)
 if os.path.isdir(nctmp):
    shutil.rmtree(nctmp)
-p=Path(nctmp)
+p = Path(nctmp)
 p.mkdir(parents=True)
 
 # track
 adt,aln,alt,pmn,vmx=readTrack6hrly(atcf)
-#if tcid[-1].lower()=='l' or tcid[-1].lower()=='e':
-#    aln=[-1*a + 360. for a in aln]
 
 #afiles = sorted(glob.glob(os.path.join(COMOUT,nprefix+'phyf*.nc')))
 afiles = sorted(glob.glob(os.path.join(COMOUT,'*'+model.lower()+'prs.synoptic*.grb2')))
-afiles=afiles[::2]   # subset to 6 hourly intervals
-flxvar=':(LHTFL|SHTFL):surface:'
+afiles = afiles[::2]   # subset to 6 hourly intervals
+flxvar = ':(LHTFL|SHTFL):surface:'
 for k,A in enumerate(afiles):
-    fhr=int(A.partition('.0p03.')[-1][1:4])
+    fhr = int(A.partition('.0p03.')[-1][1:4])
     if fhr==0:
-      xvars=flxvar+'anl:'
+      xvars = flxvar+'anl:'
     else:
-      xvars=flxvar+"%g"%(fhr)
+      xvars = flxvar+"%g"%(fhr)
    
-    ncout=os.path.join(nctmp,'heatflx_f'+"%03g"%fhr+'.nc')
-    cmd='sh ./xgrb2nc.sh '+'"'+xvars+'"'+' '+A+' '+ncout
+    ncout = os.path.join(nctmp,'heatflx_f'+"%03g"%fhr+'.nc')
+    cmd = 'sh ./xgrb2nc.sh '+'"'+xvars+'"'+' '+A+' '+ncout
     os.system(cmd)
 
-nfiles=sorted(glob.glob(os.path.join(nctmp,'heatflx_*.nc')))
+nfiles = sorted(glob.glob(os.path.join(nctmp,'heatflx_*.nc')))
 del afiles
 
-xnc=xr.open_mfdataset(nfiles)
-xii,yii=ZoomIndex(xnc.isel(time=[0]),aln,alt)
-xindx=xii[::2]
-yindx=yii[::2]
+xnc = xr.open_mfdataset(nfiles)
+xii,yii = ZoomIndex(xnc.isel(time=[0]),aln,alt)
+xindx = xii[::2]
+yindx = yii[::2]
 
-var1=xnc['LHTFL_surface'].isel(longitude=xindx,latitude=yindx)
-var2=xnc['SHTFL_surface'].isel(longitude=xindx,latitude=yindx)
+varr1 = xnc['LHTFL_surface'].isel(longitude=xindx,latitude=yindx)
+varr2 = xnc['SHTFL_surface'].isel(longitude=xindx,latitude=yindx)
 
 del nfiles
 del xnc
 
-lns,lts=np.meshgrid(var1['longitude'],var1['latitude'])
-dummy=np.ones(lns.shape)
+lns,lts = np.meshgrid(varr1['longitude'],varr1['latitude'])
+dummy = np.ones(lns.shape)
+
+var_name1 = 'Latent Heat Flux'
+var_name2 = 'Sensible Heat Flux'
+var_name0 = 'Turbulence Heat Flux'
+units = '(W/m$^2$)'
+delta_var = 20
+delta_dvar = 20
 
 for k in range(len(aln)):
-   dR=haversine(lns,lts,aln[k],alt[k])/1000.0
-   dumb=dummy.copy()
-   dumb[dR>Rkm]=np.nan
+
+   dR = haversine(lns,lts,aln[k],alt[k])/1000.0
+   dumb = dummy.copy()
+   dumb[dR>Rkm] = np.nan
+
+   lon = np.asarray(varr1[k].longitude)
+   lat = np.asarray(varr1[k].latitude)
+   var1 = np.asarray(varr1[k])*dumb
+   dvar1 = np.asarray(varr1[k]-varr1[0])*dumb
+   var2 = np.asarray(varr2[k])*dumb
+   dvar2 = np.asarray(varr2[k]-varr2[0])*dumb
+   var0 = var1 + var2 
+   dvar0 = var0-(varr1[0]+varr2[0])*dumb
 
    fhr=k*6
    
    #--- latent heat flux 
    fig=plt.figure(figsize=(14,5))
-   plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%03d"%(fhr)+'  (IC='+cycle+'):  Latent Heat Flux & Change [W/m$^2$]',fontsize=15)
+   plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%03d"%(fhr)+'  (IC='+cycle+'): '+var_name1+ ' & Change '+units,fontsize=15)
+
    plt.subplot(121)
-   (var1[k]*dumb).plot.contourf(levels=np.arange(0,850,50),cmap='RdBu_r')
+   #(var1[k]*dumb).plot.contourf(levels=np.arange(0,850,50),cmap='RdBu_r')
+   kw = dict(levels=np.arange(np.floor(np.nanmin(var1)),np.ceil(np.nanmax(var1)),delta_var))
+   plt.contourf(lon,lat,var1,cmap='RdYlBu_r',**kw)
+   cbar = plt.colorbar()
+   cbar.set_label(units,fontsize=14)
    plt.plot(cx,cy,color='gray')
    if trackon[0].lower()=='y':
         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
         plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
-   mnmx="(min,max)="+"(%6.1f"%np.nanmax(var1[k]*dumb)+","+"%6.1f)"%np.nanmin(var1[k]*dumb)
-   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   mnmx="(min,max)="+"(%6.1f"%np.nanmin(var1)+","+"%6.1f)"%np.nanmax(var1)
+   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
    plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
+   plt.ylabel('Latitude',fontsize=14)
+   plt.xlabel('Longitude',fontsize=14)
 
    plt.subplot(122)
-   dvar=(var1[k]-var1[0])*dumb
-   dvar.plot.contourf(levels=np.arange(-500,550,50),cmap='bwr')
+   dvl = np.round(np.max([np.abs(np.nanmin(dvar1)),np.abs(np.nanmax(dvar1))]),-2)
+   if dvl == 0.0:
+       kw = dict(levels=np.arange(-500,501,50))
+   else:
+       kw = dict(levels=np.arange(-dvl,dvl+0.1,delta_dvar))
+   plt.contourf(lon,lat,dvar1,cmap='bwr',**kw)
+   cbar = plt.colorbar()
+   cbar.set_label(units,fontsize=14)
+   #dvar.plot.contourf(levels=np.arange(-500,550,50),cmap='bwr')
    plt.plot(cx,cy,color='gray')
    if trackon[0].lower()=='y':
         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
         plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
-   mnmx="(min,max)="+"(%6.1f"%np.nanmax(dvar)+","+"%6.1f)"%np.nanmin(dvar)
-   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   mnmx="(min,max)="+"(%6.1f"%np.nanmin(dvar1)+","+"%6.1f)"%np.nanmax(dvar1)
+   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
    plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
+   plt.ylabel('Latitude',fontsize=14)
+   plt.xlabel('Longitude',fontsize=14)
 
    pngFile=os.path.join(graphdir,aprefix.upper()+'.'+model.upper()+'.storm.LHTFlux.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight')
 
    plt.close('all')
+
    #--- sensible heat flux
    fig=plt.figure(figsize=(14,5))
-   plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%03d"%(fhr)+'  (IC='+cycle+'): Sensible Heat Flux & Change [W/m$^2$]',fontsize=15)
+   plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%03d"%(fhr)+'  (IC='+cycle+'): '+var_name2+ ' & Change '+units,fontsize=15)
+
    plt.subplot(121)
-   (var2[k]*dumb).plot.contourf(levels=np.arange(-50,275,25),cmap='RdBu_r')
+   #(var1[k]*dumb).plot.contourf(levels=np.arange(0,850,50),cmap='RdBu_r')
+   kw = dict(levels=np.arange(np.floor(np.nanmin(var2)),np.ceil(np.nanmax(var2)),delta_var))
+   plt.contourf(lon,lat,var2,cmap='RdYlBu_r',**kw)
+   cbar = plt.colorbar()
+   cbar.set_label(units,fontsize=14)
    plt.plot(cx,cy,color='gray')
    if trackon[0].lower()=='y':
         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
         plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
-   mnmx="(min,max)="+"(%6.1f"%np.nanmax(var2[k]*dumb)+","+"%6.1f)"%np.nanmin(var2[k]*dumb)
-   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='r',fontweight='bold')
+   mnmx="(min,max)="+"(%6.1f"%np.nanmin(var2)+","+"%6.1f)"%np.nanmax(var2)
+   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
    plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
+   plt.ylabel('Latitude',fontsize=14)
+   plt.xlabel('Longitude',fontsize=14)
 
    plt.subplot(122)
-   dvar=(var2[k]-var2[0])*dumb
-   dvar.plot.contourf(levels=np.arange(-200,225,25),cmap='bwr')
+   dvl = np.round(np.max([np.abs(np.nanmin(dvar2)),np.abs(np.nanmax(dvar2))]),-2)
+   if dvl == 0.0:
+       kw = dict(levels=np.arange(-500,501,50))
+   else:
+       kw = dict(levels=np.arange(-dvl,dvl+0.1,delta_dvar))
+   plt.contourf(lon,lat,dvar2,cmap='bwr',**kw)
+   cbar = plt.colorbar()
+   cbar.set_label(units,fontsize=14)
+   #dvar.plot.contourf(levels=np.arange(-500,550,50),cmap='bwr')
    plt.plot(cx,cy,color='gray')
    if trackon[0].lower()=='y':
         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
         plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
-   mnmx="(min,max)="+"(%6.1f"%np.nanmax(dvar)+","+"%6.1f)"%np.nanmin(dvar)
-   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   mnmx="(min,max)="+"(%6.1f"%np.nanmin(dvar2)+","+"%6.1f)"%np.nanmax(dvar2)
+   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
    plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
+   plt.ylabel('Latitude',fontsize=14)
+   plt.xlabel('Longitude',fontsize=14)
 
    pngFile=os.path.join(graphdir,aprefix.upper()+'.'+model.upper()+'.storm.SHTFlux.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight')
 
    plt.close('all')
+
    # --- total heat flux
    fig=plt.figure(figsize=(14,5))
-   plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%03d"%(fhr)+'  (IC='+cycle+'): Turbulence Heat Flux & Change [W/m$^2$]',fontsize=15)
+   plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%03d"%(fhr)+'  (IC='+cycle+'): '+var_name0+' & Change [W/m$^2$]',fontsize=15)
+
    plt.subplot(121)
-   var0=var1[k]+var2[k]
-   (var0*dumb).plot.contourf(levels=np.arange(0,1150,50),cmap='RdBu_r')
+   #(var1[k]*dumb).plot.contourf(levels=np.arange(0,850,50),cmap='RdBu_r')
+   kw = dict(levels=np.arange(np.floor(np.nanmin(var0)),np.ceil(np.nanmax(var0)),delta_var))
+   plt.contourf(lon,lat,var0,cmap='RdYlBu_r',**kw)
+   cbar = plt.colorbar()
+   cbar.set_label(units,fontsize=14)
    plt.plot(cx,cy,color='gray')
    if trackon[0].lower()=='y':
         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
         plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
-   mnmx="(min,max)="+"(%6.1f"%np.nanmax(var0*dumb)+","+"%6.1f)"%np.nanmin(var0*dumb)
-   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   mnmx="(min,max)="+"(%6.1f"%np.nanmin(var0)+","+"%6.1f)"%np.nanmax(var0)
+   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
    plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
+   plt.ylabel('Latitude',fontsize=14)
+   plt.xlabel('Longitude',fontsize=14)
 
    plt.subplot(122)
-   dvar=(var0-var1[0]-var2[0])*dumb
-   dvar.plot.contourf(levels=np.arange(-100,1150,50),cmap='bwr')
+   dvl = np.round(np.max([np.abs(np.nanmin(dvar0)),np.abs(np.nanmax(dvar0))]),-2)
+   if dvl == 0.0:
+       kw = dict(levels=np.arange(-500,501,50))
+   else:
+       kw = dict(levels=np.arange(-dvl,dvl+0.1,delta_dvar))
+   plt.contourf(lon,lat,dvar0,cmap='bwr',**kw)
+   cbar = plt.colorbar()
+   cbar.set_label(units,fontsize=14)
+   #dvar.plot.contourf(levels=np.arange(-500,550,50),cmap='bwr')
    plt.plot(cx,cy,color='gray')
    if trackon[0].lower()=='y':
         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
         plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
-   mnmx="(min,max)="+"(%6.1f"%np.nanmax(dvar)+","+"%6.1f)"%np.nanmin(dvar)
-   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold')
+   mnmx="(min,max)="+"(%6.1f"%np.nanmin(dvar0)+","+"%6.1f)"%np.nanmax(dvar0)
+   plt.text(aln[k]-4.25,alt[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
    plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
+   plt.ylabel('Latitude',fontsize=14)
+   plt.xlabel('Longitude',fontsize=14)
 
    pngFile=os.path.join(graphdir,aprefix.upper()+'.'+model.upper()+'.storm.totalHeatFlux.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight')
