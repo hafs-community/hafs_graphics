@@ -170,7 +170,7 @@ dummy = np.ones(lns.shape)
 
 var_name1 = 'Latent Heat Flux'
 var_name2 = 'Sensible Heat Flux'
-var_name0 = 'Turbulence Heat Flux'
+var_name0 = 'Enthalpy Flux'
 units = '(W/m$^2$)'
 delta_var = 20
 delta_dvar = 20
