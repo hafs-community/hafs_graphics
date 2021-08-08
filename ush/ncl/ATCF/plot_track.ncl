@@ -23,8 +23,17 @@ begin
     stormModel="HWRF"
   end if
 
+  if (.not. isvar("maxHour")) then
+    maxHour=126
+  end if
+  track_pts=maxHour/3 + 1
+
   if (.not. isvar("catInfo")) then
     catInfo=True
+  end if
+
+  if (.not. isvar("fcstHour")) then
+    fcstHour=False
   end if
 
   if (.not. isvar("figType")) then
@@ -120,34 +129,40 @@ begin
 
   trackNum=dimsizes(modelLabels)
 
-  data1=new((/trackNum,43/),float, default_fillvalue("float"))   ; clon
-  data2=new((/trackNum,43/),float, default_fillvalue("float"))   ; clat
-  data3=new((/trackNum,43/),float, default_fillvalue("float"))   ; Vmax
-  data4=new((/trackNum,43/),float, default_fillvalue("float"))   ; Pmin
+  data1=new((/trackNum,track_pts/),float, default_fillvalue("float"))   ; clon
+  data2=new((/trackNum,track_pts/),float, default_fillvalue("float"))   ; clat
+  data3=new((/trackNum,track_pts/),float, default_fillvalue("float"))   ; Vmax
+  ;;data4=new((/trackNum,track_pts/),float, default_fillvalue("float"))   ; Pmin
+  data5=new((/trackNum,track_pts/),float, default_fillvalue("float"))   ; hour
+
   data1@_FillValue=default_fillvalue("float")
   data2@_FillValue=default_fillvalue("float")
   data3@_FillValue=default_fillvalue("float")
-  data4@_FillValue=default_fillvalue("float")
+  ;;data4@_FillValue=default_fillvalue("float")
+  data5@_FillValue=default_fillvalue("float")
 
   do i=0,trackNum-1
     if ( modelLabels(i) .eq. stormModel .and. fileexists(atcfFile) ) then
       print("Reading ATCF track")
-      track_data=getATCFTrack_6Hr(atcfFile)
+      track_data=getATCFTrack_6Hr(atcfFile, maxHour)
       data1(i,:)=track_data(0,:)
       data2(i,:)=track_data(1,:)
       data3(i,:)=track_data(2,:)
+      data5(i,:)=track_data(3,:)
     else if ( modelLabels(i) .eq. "BEST" .and. fileexists(bdeckFile) ) then
       print("Reading bdeck")
-      best_data=getBDeck(bdeckFile, startDate, 126)
+      best_data=getBDeck(bdeckFile, startDate, maxHour)
       data1(i,:)=best_data(0,:)
       data2(i,:)=best_data(1,:)
       data3(i,:)=best_data(2,:)
+      data5(i,:)=best_data(3,:)
     else if ( fileexists(adeckFile) ) then
       print("Reading "+modelLabels(i)+" in adeck")
-      xyw=getADeck(adeckFile, modelLabels(i), startDate )
+      xyw=getADeck(adeckFile, modelLabels(i), startDate, maxHour)
       data1(i,:)=xyw(0,:)
       data2(i,:)=xyw(1,:)
       data3(i,:)=xyw(2,:)
+      data5(i,:)=xyw(3,:)
     end if
     end if
     end if
@@ -262,9 +277,15 @@ begin
 ; mres@gsMarkerSizeF=8.0
 ; mres@gsMarkerColor="red"
 
+  txres=True
+  txres@txFontHeightF=0.01
+; txres@txFont=22; helvetica bold
+
 ;************************************************
 ; create plot
 ;************************************************
+; range
+  latlonrange=0.60
 
   gsn_define_colormap(wks,"BlAqGrYeOrRevi200")
 
@@ -272,7 +293,7 @@ begin
   maxLatF=max(data2)
   minLonF=min(data1)
   minLatF=min(data2)
-  disLatF=(maxLatF-minLatF)*0.618
+  disLatF=(maxLatF-minLatF)*latlonrange
   meanLatF=(minLatF + maxLatF)/2.0
 
   ; special case on Longitude
@@ -286,10 +307,10 @@ begin
     if meanLonF .gt. 180 then
        meanLonF=meanLonF - 360
     end if
-    disLonF=(maxLonF-minLonF)*0.618
+    disLonF=(maxLonF-minLonF)*latlonrange
   else
     meanLonF=(minLonF + maxLonF)/2.0
-    disLonF=(maxLonF-minLonF)*0.618
+    disLonF=(maxLonF-minLonF)*latlonrange
   end if
 
   disLatF=max((/disLonF, disLatF, 10./))
@@ -321,16 +342,17 @@ begin
     res@mpGridLonSpacingF=20.0
   end if
 
-  track_pts=43
   markers=new(track_pts, graphic)
   lines=new(trackNum, graphic)
   circles= new(trackNum, graphic)
-  points=new((/trackNum,43/), graphic)
-  lineSegs=new((/trackNum,43/), graphic)
-  markercats=new((/trackNum,43/), graphic)
-  circlecats=new((/trackNum,43/), graphic)
-  circles_m=new(43,graphic)
-  circles_b=new(43,graphic)
+  points=new((/trackNum,track_pts/), graphic)
+  lineSegs=new((/trackNum,track_pts/), graphic)
+  markercats=new((/trackNum,track_pts/), graphic)
+  texts=new((/trackNum,track_pts/), graphic)
+  circlecats=new((/trackNum,track_pts/), graphic)
+  circles_m=new(track_pts,graphic)
+  circles_b=new(track_pts,graphic)
+
   plot=gsn_csm_map(wks,res)
 
   do m =0,trackNum-1
@@ -346,7 +368,7 @@ begin
       lineSegs(i,0)=gsn_add_polyline(wks, plot, data1(i,:), data2(i,:), pres)
     end if
     ; Draw track marker
-    do k=0, 42
+    do k=0, track_pts-1
     ; mres@gsMarkerColor=getCategoryColor(data3(i,k))
       mres@gsMarkerColor=modelColors(i)
       mres@gsMarkerSizeF=markerSize
@@ -399,6 +421,27 @@ begin
         end if
         markercats(i,k)=gsn_add_polymarker(wks,plot, data1(i,k), data2(i,k), mres)
       end if
+
+      if (fcstHour) then
+        ; Add forecast hours for tracks
+        txres@txFontColor=modelColors(i)
+      ; txres@txJust="BottomLeft"
+        txres@txJust="BottomCenter"
+        hr=tointeger(data5(i,k))
+        if (.not. ismissing(data3(i,k)) .and. hr%24 .eq. 0 .and. hr .ne. 0 ) then
+        ; if (hr .lt. 10) then
+        ;   dx=0.09
+        ; else if (hr .lt. 100) then
+        ;   dx=0.18
+        ; else
+        ;   dx=0.27
+        ; end if
+        ; end if
+        ; texts(i,k) = gsn_add_text(wks,plot, tostring(hr), data1(i,k)+dx*(disLatF/50.0+1.1), data2(i,k)+1.5*(disLatF/50.0+0.2), txres)
+          texts(i,k) = gsn_add_text(wks,plot, tostring(hr), data1(i,k), data2(i,k)+1.0*(disLatF/50.0), txres)
+        end if
+      end if
+
     end do
   end do
 

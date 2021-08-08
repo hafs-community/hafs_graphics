@@ -117,14 +117,16 @@ if [ -s ${atcffile} ] || [ -s ${adecktemp} ]; then
  ncl 'stormModel="'${MC_MODEL}'"' \
      'stormName="'${STORM}'"' 'stormID="'${STORMID}'"' \
      'startDate='${yyyymmddhh} \
- 	 'atcfFile="'${atcffile}'"' \
+     'atcfFile="'${atcffile}'"' \
      'adeckFile="'${adecktemp}'"' \
      'bdeckFile="'${bdeckfile}'"' \
+     'maxHour=126' \
      'catInfo=True' \
+     'fcstHour=True' \
      'modelLabels='${modelLabels} \
      'modelColors='${modelColors} \
      'modelMarkers='$modelMarkers \
-	 plot_track.ncl
+     plot_track.ncl
 
  figpre=${STORM}${STORMID}.${yyyymmddhh}
  convert -trim ${figpre}.track.png ${figpre}.track.png
@@ -136,14 +138,15 @@ if [ -s ${atcffile} ] || [ -s ${adecktemp} ]; then
  ncl 'stormModel="'${MC_MODEL}'"' \
      'stormName="'${STORM}'"' 'stormID="'${STORMID}'"' \
      'startDate='${yyyymmddhh} \
- 	 'atcfFile="'${atcffile}'"' \
+     'atcfFile="'${atcffile}'"' \
      'adeckFile="'${adecktemp}'"' \
      'bdeckFile="'${bdeckfile}'"' \
+     'maxHour=126' \
      'catInfo=True' \
      'modelLabels='${modelLabels} \
      'modelColors='${modelColors} \
      'modelMarkers='$modelMarkers \
-	 plot_intensity.ncl
+     plot_intensity.ncl
  convert -trim ${figpre}.intensity.000001.png ${figpre}.Vmax.png
  convert -trim ${figpre}.intensity.000002.png ${figpre}.Pmin.png
 

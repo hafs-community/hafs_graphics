@@ -20,6 +20,11 @@ begin
     stormModel="HWRF"
   end if
 
+  if (.not. isvar("maxHour")) then
+    maxHour=126
+  end if
+  track_pts=maxHour/3 + 1
+
   if (.not. isvar("catInfo")) then
     catInfo=True
   end if
@@ -119,9 +124,9 @@ begin
   markerSizes(:)=markerSize
   markerThicknesses(:)=markerThickness
 
-  data1=new((/trackNum,43/),float, default_fillvalue("float"))
-  data2=new((/trackNum,43/),float, default_fillvalue("float"))
-  data3=new((/trackNum,43/), integer, default_fillvalue("integer"))
+  data1=new((/trackNum,track_pts/), float, default_fillvalue("float"))
+  data2=new((/trackNum,track_pts/), float, default_fillvalue("float"))
+  data3=new((/trackNum,track_pts/), integer, default_fillvalue("integer"))
   data1@_FillValue=default_fillvalue("float")
   data2@_FillValue=default_fillvalue("float")
   data3@_FillValue=default_fillvalue("integer")
@@ -137,17 +142,17 @@ begin
     tempMarkerSizes(i)=markerSizes(m)
     tempMarkerThicknesses(i)=markerThicknesses(m)
     if ( modelLabels(m) .eq. stormModel .and. fileexists(atcfFile) ) then
-      atcfIntensity= getATCFTrack_Intensity_6Hr(atcfFile)
+      atcfIntensity= getATCFTrack_Intensity_6Hr(atcfFile, maxHour)
       data1(i,:)=atcfIntensity(0,:)
       data2(i,:)=atcfIntensity(1,:)
       data3(i,:)=toint(atcfIntensity(2,:))
     else if ( modelLabels(m) .eq. "BEST" .and. fileexists(bdeckFile) ) then
-      best_track=getBDeck_Intensity(bdeckFile, startDate)
+      best_track=getBDeck_Intensity(bdeckFile, startDate, maxHour)
       data1(i,:)=best_track(0,:)
       data2(i,:)=best_track(1,:)
       data3(i,:)=toint(best_track(2,:))
     else if ( fileexists(adeckFile) ) then
-      xyw=getADeck_Intensity(adeckFile, modelLabels(m), startDate )
+      xyw=getADeck_Intensity(adeckFile, modelLabels(m), startDate, maxHour)
       data1(i,:)=xyw(0,:)
       data2(i,:)=xyw(1,:)
       data3(i,:)=toint(xyw(2,:))
@@ -181,12 +186,12 @@ begin
   res@vpHeightF=0.382
 
   res@trXMinF=0
-  res@trXMaxF=126
+  res@trXMaxF=maxHour
 
 ; res@tmXBFormat="f"
 ; res@tmXBMode="Manual"
 ; res@tmXBTickStartF=0
-; res@tmXBTickEndF=126
+; res@tmXBTickEndF=maxHour
 ; res@tmXBTickSpacingF=12
 ; res@tmXBMinorPerMajor=3
 ; res@tmXBMinorPerMajor=1
@@ -194,7 +199,7 @@ begin
   res@tmXBMode="Explicit"
   ymdh=tostring(startDate)
   fhourunits="hours since "+str_get_cols(ymdh,0,3)+"-"+str_get_cols(ymdh,4,5)+"-"+str_get_cols(ymdh,6,7)+" "+str_get_cols(ymdh,8,9)+":00"
-  xticks=ispan(0,126,12)
+  xticks=ispan(0,maxHour,12)
   xticks@units=fhourunits
 ; cd_time=cd_calendar(xticks,-3)
 
@@ -225,7 +230,7 @@ begin
 
   res@tmXBValues      = xticks
   res@tmXBLabels      = xlabels
-  res@tmXBMinorValues=ispan(0,126,6)
+  res@tmXBMinorValues=ispan(0,maxHour,6)
 
   res@tmXTOn=False
   res@tmYROn=False
