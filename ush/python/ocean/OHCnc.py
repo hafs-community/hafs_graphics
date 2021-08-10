@@ -58,8 +58,6 @@ print("code:   OHCnc.py")
 cx,cy=coast180()
 
 cx_hycom = np.asarray([cx+360 if cx<74.16 else cx for cx in np.asarray(cx)])
-nox = np.where(np.abs(np.diff(cx_hycom)) > 100)[0]
-cx_hycom[nox] = np.nan
 cy_hycom = cy
 
 aprefix=storm.lower()+tcid.lower()+'.'+cycle
@@ -73,7 +71,7 @@ if tcid[-1].lower()=='c':
    nprefix = aprefic + '.hafs_hycom_hcp70'
 
 if trackon[0].lower()=='y':
-   gatcf = glob.glob(COMOUT+'/*.atcfunix.*')
+   gatcf = glob.glob(COMOUT+'/*.atcfunix.all')
    if gatcf:
       trackon = 'yes'
    else:
@@ -115,7 +113,7 @@ for k in range(varr.shape[0]):
    plt.contourf(lon,lat,var,cmap='RdYlBu_r',**kw)
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)
-   plt.plot(cx_hycom,cy_hycom,color='gray')
+   plt.plot(cx_hycom,cy_hycom,'.',color='gray',markersize=2)
    if trackon[0].lower()=='y':
       for m,G in enumerate(gatcf):
          adt,aln,alt,pmn,vmx=readTrack6hrly(G)
@@ -143,7 +141,7 @@ for k in range(varr.shape[0]):
    plt.contourf(lon,lat,dvar,cmap='bwr',**kw)
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)
-   plt.plot(cx_hycom,cy_hycom,color='gray')
+   plt.plot(cx_hycom,cy_hycom,'.',color='gray',markersize=2)
    if trackon[0].lower()=='y':
       for m,G in enumerate(gatcf):
          adt,aln,alt,pmn,vmx=readTrack6hrly(G)

@@ -61,8 +61,6 @@ print("code:   storm_MLD.py")
 cx,cy = coast180()
 
 cx_hycom = np.asarray([cx+360 if cx<74.16 else cx for cx in np.asarray(cx)])
-nox = np.where(np.abs(np.diff(cx_hycom)) > 100)[0]
-cx_hycom[nox] = np.nan
 cy_hycom = cy
 
 aprefix = storm.lower()+tcid.lower()+'.'+cycle
@@ -75,7 +73,7 @@ if tcid[-1].lower()=='w':
 if tcid[-1].lower()=='c':
    nprefix = aprefic + '.hafs_hycom_hcp70'
 
-atcf = glob.glob(COMOUT+'/*.atcfunix.*')[0]
+atcf = glob.glob(COMOUT+'/*.atcfunix.all')[0]
 
 #------------------------------------------------------------------------------------
 # - get MLD  *_3z_*.[nc] files
@@ -122,7 +120,7 @@ for k in range(len(aln)):
    plt.contourf(lon,lat,var,cmap='RdYlBu',**kw)
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)
-   plt.plot(cx_hycom,cy_hycom,color='gray')
+   plt.plot(cx_hycom,cy_hycom,'.',color='gray',markersize=2)
    if trackon[0].lower()=='y':
         plt.plot(aln_hycom,alt_hycom,'-ok',linewidth=3,alpha=0.6,markersize=2)
         plt.plot(aln_hycom[k],alt_hycom[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
@@ -147,7 +145,7 @@ for k in range(len(aln)):
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)
    #dvar.plot.contourf(levels=np.arange(-500,550,50),cmap='bwr')
-   plt.plot(cx_hycom,cy_hycom,color='gray')
+   plt.plot(cx_hycom,cy_hycom,'.',color='gray',markersize=2)
    if trackon[0].lower()=='y':
         plt.plot(aln_hycom,alt_hycom,'-ok',linewidth=3,alpha=0.6,markersize=2)
         plt.plot(aln_hycom[k],alt_hycom[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
