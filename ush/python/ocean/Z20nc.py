@@ -90,7 +90,6 @@ varr = ncfiles['depth of 20C isotherm']
 dvarr = varr-varr[0]
 var_name = 'Z20'
 units = '(m)'
-delta_var = 10
 
 for k in range(varr.shape[0]):
 
@@ -106,8 +105,8 @@ for k in range(varr.shape[0]):
    plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%3d"%(fhr)+'  (IC='+cycle+'): '+var_name + ' & Change '+units,fontsize=15)
 
    ax121=plt.subplot(121)
-   kw = dict(levels=np.arange(np.floor(np.nanmin(var)),np.ceil(np.nanmax(var)),delta_var))
-   #var[k].plot.contourf(levels=np.arange(18,32,0.5),cmap='RdBu_r')
+   kw = dict(levels=np.arange(0,260,10))
+   #kw = dict(levels=np.arange(np.floor(np.nanmin(var)),np.ceil(np.nanmax(var)),delta_var))
    plt.contourf(lon,lat,var,cmap='RdYlBu',**kw)
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)
@@ -130,12 +129,7 @@ for k in range(varr.shape[0]):
    plt.xlabel('Longitude',fontsize=14)
 
    ax122=plt.subplot(122)
-   dvl = np.round(np.max([np.abs(np.nanmin(dvar)),np.abs(np.nanmax(dvar))]),0)
-   if dvl == 0.0:
-       kw = dict(levels=np.arange(-4,4.1,1))
-   else:
-       kw = dict(levels=np.linspace(-dvl,dvl,dvl+1))
-   #var[k].plot.contourf(levels=np.arange(18,32,0.5),cmap='RdBu_r')
+   kw = dict(levels=np.arange(-20,21,1))
    plt.contourf(lon,lat,dvar,cmap='bwr',**kw)
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)

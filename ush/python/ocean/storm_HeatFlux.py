@@ -42,7 +42,9 @@ from pathlib import Path
 
 import socket
 
+plt.switch_backend('agg')
 
+#================================================================
 
 def ZoomIndex(var,aln,alt):
    """ find indices of the lower-left corner and the upper-right corner 
@@ -172,8 +174,6 @@ var_name1 = 'Latent Heat Flux'
 var_name2 = 'Sensible Heat Flux'
 var_name0 = 'Enthalpy Flux'
 units = '(W/m$^2$)'
-delta_var = 20
-delta_dvar = 20
 
 for k in range(len(aln)):
 
@@ -197,8 +197,7 @@ for k in range(len(aln)):
    plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%03d"%(fhr)+'  (IC='+cycle+'): '+var_name1+ ' & Change '+units,fontsize=15)
 
    plt.subplot(121)
-   #(var1[k]*dumb).plot.contourf(levels=np.arange(0,850,50),cmap='RdBu_r')
-   kw = dict(levels=np.arange(np.floor(np.nanmin(var1)),np.ceil(np.nanmax(var1)),delta_var))
+   kw = dict(levels=np.arange(0,851,50))
    plt.contourf(lon,lat,var1,cmap='RdYlBu_r',**kw)
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)
@@ -213,11 +212,7 @@ for k in range(len(aln)):
    plt.xlabel('Longitude',fontsize=14)
 
    plt.subplot(122)
-   dvl = np.round(np.max([np.abs(np.nanmin(dvar1)),np.abs(np.nanmax(dvar1))]),-2)
-   if dvl == 0.0:
-       kw = dict(levels=np.arange(-500,501,50))
-   else:
-       kw = dict(levels=np.arange(-dvl,dvl+0.1,delta_dvar))
+   kw = dict(levels=np.arange(-500,501,50))
    plt.contourf(lon,lat,dvar1,cmap='bwr',**kw)
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)
@@ -242,8 +237,7 @@ for k in range(len(aln)):
    plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%03d"%(fhr)+'  (IC='+cycle+'): '+var_name2+ ' & Change '+units,fontsize=15)
 
    plt.subplot(121)
-   #(var1[k]*dumb).plot.contourf(levels=np.arange(0,850,50),cmap='RdBu_r')
-   kw = dict(levels=np.arange(np.floor(np.nanmin(var2)),np.ceil(np.nanmax(var2)),delta_var))
+   kw = dict(levels=np.arange(-50,301,25))
    plt.contourf(lon,lat,var2,cmap='RdYlBu_r',**kw)
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)
@@ -258,15 +252,10 @@ for k in range(len(aln)):
    plt.xlabel('Longitude',fontsize=14)
 
    plt.subplot(122)
-   dvl = np.round(np.max([np.abs(np.nanmin(dvar2)),np.abs(np.nanmax(dvar2))]),-2)
-   if dvl == 0.0:
-       kw = dict(levels=np.arange(-500,501,50))
-   else:
-       kw = dict(levels=np.arange(-dvl,dvl+0.1,delta_dvar))
+   kw = dict(levels=np.arange(-200,201,20))
    plt.contourf(lon,lat,dvar2,cmap='bwr',**kw)
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)
-   #dvar.plot.contourf(levels=np.arange(-500,550,50),cmap='bwr')
    plt.plot(cx,cy,color='gray')
    if trackon[0].lower()=='y':
         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
@@ -287,8 +276,7 @@ for k in range(len(aln)):
    plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%03d"%(fhr)+'  (IC='+cycle+'): '+var_name0+' & Change [W/m$^2$]',fontsize=15)
 
    plt.subplot(121)
-   #(var1[k]*dumb).plot.contourf(levels=np.arange(0,850,50),cmap='RdBu_r')
-   kw = dict(levels=np.arange(np.floor(np.nanmin(var0)),np.ceil(np.nanmax(var0)),delta_var))
+   kw = dict(levels=np.arange(0,1201,50))
    plt.contourf(lon,lat,var0,cmap='RdYlBu_r',**kw)
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)
@@ -303,11 +291,7 @@ for k in range(len(aln)):
    plt.xlabel('Longitude',fontsize=14)
 
    plt.subplot(122)
-   dvl = np.round(np.max([np.abs(np.nanmin(dvar0)),np.abs(np.nanmax(dvar0))]),-2)
-   if dvl == 0.0:
-       kw = dict(levels=np.arange(-500,501,50))
-   else:
-       kw = dict(levels=np.arange(-dvl,dvl+0.1,delta_dvar))
+   kw = dict(levels=np.arange(-500,501,50))
    plt.contourf(lon,lat,dvar0,cmap='bwr',**kw)
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)
