@@ -162,17 +162,17 @@ begin
 end
 
 
-function getATCFTrack_6Hr( fileName )
+function getATCFTrack_6Hr( fileName, maxHour )
 ; ---- read in the data points (in 6 hour apart) for the input ATCF track file ---------
 begin
-
-     track_data=new((/3,43/), float, default_fillvalue("float"))
-;     if (isfile(fileName)) then
+     track_pts = maxHour/3 + 1
+     track_data=new((/4,track_pts/), float, default_fillvalue("float"))
+     ;  if (isfile(fileName)) then
         track = asciiread(fileName, -1,"string") ;"/scratch3/NCEPDEV/hwrf/save/Keqin.Wu/data/harvey09l.2017082412_hmon/harvey09l.2017082412.trak.hmon.atcfunix",-1,"string")
-        track_xp=new(43, float, default_fillvalue("float"))
-        track_yp=new(43, float, default_fillvalue("float"))
-        track_w=new(43, float, default_fillvalue("float"))
-        track_hrs=new(43, integer, default_fillvalue("integer"))
+        track_xp=new(track_pts, float, default_fillvalue("float"))
+        track_yp=new(track_pts, float, default_fillvalue("float"))
+        track_w=new(track_pts, float, default_fillvalue("float"))
+        track_hrs=new(track_pts, integer, default_fillvalue("integer"))
         count=0
         do line = 0,dimsizes(track)-1
           words=str_split(track(line),",")
@@ -192,11 +192,11 @@ begin
                   y=stringtofloat(words(6))/10.0
               end if
 
-              if index .lt. 43 then
-                   track_xp(index)=x
-                   track_yp(index)=y
-                   track_w(index)=stringtofloat(words(8))
-                   track_hrs(index)=hr
+              if index .lt. track_pts then
+                   track_xp(count)=x
+                   track_yp(count)=y
+                   track_w(count)=stringtofloat(words(8))
+                   track_hrs(count)=hr
               end if
 
              count=count+1
@@ -206,6 +206,7 @@ begin
         track_data(0,:)=track_xp
         track_data(1,:)=track_yp
         track_data(2,:)=track_w
+        track_data(3,:)=track_hrs
 ;    end if
     return(track_data)
 end
@@ -267,19 +268,19 @@ begin
 end
 
 
-function getADeck( fileName, type, startDate )
+function getADeck( fileName, type, startDate, maxHour)
 begin
 ; ---- take value for every 6 hr-------
-  xy=new((/3,43/),float, default_fillvalue("float"))
+  track_pts=maxHour/3 + 1
+  xy=new((/4,track_pts/), float, default_fillvalue("float"))
 
 ;  if (fileexists(fileName)) then
     data = asciiread(fileName,-1,"string")
     lineNumber = dimsizes(data)
-    xp=new(43, float, default_fillvalue("float"))
-    yp=new(43, float, default_fillvalue("float"))
-    maxw=new(43, float, default_fillvalue("float"))
-
-    ;hrs=new(43, integer, default_fillvalue("integer"))
+    xp=new(track_pts, float, default_fillvalue("float"))
+    yp=new(track_pts, float, default_fillvalue("float"))
+    maxw=new(track_pts, float, default_fillvalue("float"))
+    hrs=new(track_pts, integer, default_fillvalue("integer"))
     if strlen(type) .lt. 4 then
         type = " " + type
     end if
@@ -297,7 +298,7 @@ begin
                model=words(4)
                hr0 = stringtointeger(words(5))
                if model .eq. type then
-                   if (hr0 .ne. hr1) .and. (hr0 .le. 126) .and. (hr0%6 .eq. 0) then
+                   if (hr0 .ne. hr1) .and. (hr0 .le. maxHour) .and. (hr0%6 .eq. 0) then
                        index = hr0/3
                        if isStrSubset(words(7),"W") then
                            xp(count)=-stringtofloat(words(7))/10.0
@@ -313,7 +314,7 @@ begin
 
                        maxw(count)=stringtofloat(words(8))
 
-                       ;hrs(count)=hr0
+                       hrs(count)=hr0
                        count=count+1
                        hr1 = hr0
                    end if
@@ -323,26 +324,26 @@ begin
        delete (words)
     end do
 
-    xy(0,:)=xp(0:42:1)
-    xy(1,:)=yp(0:42:1)
-    xy(2,:)=maxw(0:42:1)
+    xy(0,:)=xp(0:track_pts-1:1)
+    xy(1,:)=yp(0:track_pts-1:1)
+    xy(2,:)=maxw(0:track_pts-1:1)
+    xy(3,:)=hrs(0:track_pts-1:1)
 
 ;  end if
   return(xy)
 end
 
-function getBDeck( fileName, startDate, length )
+function getBDeck( fileName, startDate, maxHour)
 begin
-; length: hours after startDate
+; maxhour: hours after startDate
 ; usually, give it value 126
 ; for composite plot, give it a bigger than possible number, e.g. 600
 
-pnum = length/3 + 1
-best = new((/3,pnum/), float, default_fillvalue("float"))
+pnum = maxHour/3 + 1
+best = new((/4,pnum/), float, default_fillvalue("float"))
 
 ;if (fileexists(fileName)) then
 
-	pnum = length/3 + 1
 	best_xp=new(pnum, float, default_fillvalue("float"))
 	best_yp=new(pnum, float, default_fillvalue("float"))
 	best_w=new(pnum, float, default_fillvalue("float"))
@@ -365,7 +366,7 @@ best = new((/3,pnum/), float, default_fillvalue("float"))
 	  if (dimsizes(words) .gt. 7) then
         	date = stringtointeger(words(2))
 	        hour = getTimeHour(date)
-        	if ((date .ge. startDate) .and. (date .ne. date1) .and. (hour-startHour .lt. length)) then
+        	if ((date .ge. startDate) .and. (date .ne. date1) .and. (hour-startHour .le. maxHour)) then
                 	if (date .le. startDate) then
 	                    isConnected=1
         	        end if
@@ -383,9 +384,7 @@ best = new((/3,pnum/), float, default_fillvalue("float"))
                 	    n=stringtofloat(words(6))/10.0
 	                end if
 
-
         	        maxw=stringtofloat(words(8))
-
                 	best_xp(count)=w
 	                best_yp(count)=n
         	        best_hrs(count)=doubletoint(hour-startHour)
@@ -403,7 +402,7 @@ best = new((/3,pnum/), float, default_fillvalue("float"))
 	  if (dimsizes(words) .gt. 7) then
         	date = stringtointeger(words(2))
 	        hour = getTimeHour(date)
-        	if ((date .ge. startDate) .and. (date .ne. date1) .and. (hour-startHour .lt. length)) then
+        	if ((date .ge. startDate) .and. (date .ne. date1) .and. (hour-startHour .le. maxHour)) then
                 	if (date .le. startDate) then
 	                    isConnected=1
         	        end if
@@ -426,7 +425,7 @@ best = new((/3,pnum/), float, default_fillvalue("float"))
                 	best_xp(count)=w
 	                best_yp(count)=n
         	        best_w(count)=maxw
-
+        	        best_hrs(count)=doubletoint(hour-startHour)
                 	count=count+1
 	        end if
 	  end if
@@ -436,6 +435,7 @@ best = new((/3,pnum/), float, default_fillvalue("float"))
 	  best(0,:) = best_xp
 	  best(1,:) = best_yp
 	  best(2,:) = best_w
+	  best(3,:) = best_hrs
 ;end if
    return(best)
 
@@ -778,19 +778,19 @@ end
 
 
 
-function getADeck_Intensity( fileName, type, startDate )
+function getADeck_Intensity( fileName, type, startDate, maxHour )
 ; ------- take value at every 6 hours ------------
 begin
-
-  intensity=new((/3,43/),float, default_fillvalue("float"))
+  track_pts = maxHour/3 + 1
+  intensity=new((/3, track_pts/),float, default_fillvalue("float"))
 
 ;  if (fileexists(fileName)) then
 
     data = asciiread(fileName,-1,"string")
     lineNumber = dimsizes(data)
-    maxw=new(43, float, default_fillvalue("float"))
-    minp=new(43, float, default_fillvalue("float"))
-    hrs=new(43, integer, default_fillvalue("integer"))
+    maxw=new(track_pts, float, default_fillvalue("float"))
+    minp=new(track_pts, float, default_fillvalue("float"))
+    hrs=new(track_pts, integer, default_fillvalue("integer"))
     if strlen(type) .lt. 4 then
         type = " " + type
     end if
@@ -808,7 +808,7 @@ begin
                model=words(4)
                hr0 = stringtointeger(words(5))
                if model .eq. type then
-                   if (hr0 .ne. hr1) .and. (hr0 .le. 126) .and. (hr0%6 .eq. 0) then
+                   if (hr0 .ne. hr1) .and. (hr0 .le. maxHour) .and. (hr0%6 .eq. 0) then
                        index = hr0/3
                        maxw(count)=stringtofloat(words(8))
 
@@ -825,9 +825,9 @@ begin
        end if
        delete (words)
     end do
-    intensity(0,:)=maxw(0:42:1)
-    intensity(1,:)=minp(0:42:1)
-    intensity(2,:)=hrs(0:42:1)
+    intensity(0,:)=maxw(0:track_pts-1:1)
+    intensity(1,:)=minp(0:track_pts-1:1)
+    intensity(2,:)=hrs(0:track_pts-1:1)
 
 ;    end if
 
@@ -874,18 +874,17 @@ begin
   return(intensity)
 end
 
-function getATCFTrack_Intensity_6Hr( fileName )
+function getATCFTrack_Intensity_6Hr( fileName, maxHour )
 ; ---- read in the data points (in 6 hour apart) for the input ATCF track file ---------
 begin
-
-  intensity=new((/3,43/),float, default_fillvalue("float"))
-
-;  if (isfile(fileName)) then
+  track_pts = maxHour/3 + 1
+  intensity=new((/3,track_pts/),float, default_fillvalue("float"))
+  ;if (isfile(fileName)) then
 
   track = asciiread(fileName,-1,"string")
-  p1=new(43, float, default_fillvalue("float"))
-  p2=new(43, float, default_fillvalue("float"))
-  track_hrs=new(43, integer, default_fillvalue("integer"))
+  p1=new(track_pts, float, default_fillvalue("float"))
+  p2=new(track_pts, float, default_fillvalue("float"))
+  track_hrs=new(track_pts, integer, default_fillvalue("integer"))
   count=0
   do line = 0,dimsizes(track)-1
     words=str_split(track(line),",")
@@ -894,7 +893,7 @@ begin
     hr = stringtointeger(words(5))
     if ((hr%6  .eq. 0) .and.  (count .eq. hr/6)) then
        index=hr/6
-       if index .lt. 43 then
+       if index .lt. track_pts then
           p1(index)=maxw
           p2(index)=minp
           track_hrs(index)=hr
@@ -956,18 +955,18 @@ begin
 end
 
 
-function getBDeck_Intensity( fileName, startDate)
+function getBDeck_Intensity( fileName, startDate, maxHour)
 begin
+  track_pts = maxHour/3 + 1
+  intensity=new((/3,track_pts/),float, default_fillvalue("float"))
 
-  intensity=new((/3,43/),float, default_fillvalue("float"))
-
-;  if (fileexists(fileName)) then
+  ;if (fileexists(fileName)) then
 
   best_track = asciiread(fileName,-1,"string")
   lineNumber = dimsizes(best_track)
-  bp1=new(43, float, default_fillvalue("float"))
-  bp2=new(43, float, default_fillvalue("float"))
-  best_hrs=new(43, integer, default_fillvalue("integer"))
+  bp1=new(track_pts, float, default_fillvalue("float"))
+  bp2=new(track_pts, float, default_fillvalue("float"))
+  best_hrs=new(track_pts, integer, default_fillvalue("integer"))
   isConnected=0   ;check if the track does not belong to another invest with the same ID
   date1=0
   count=0
@@ -977,7 +976,7 @@ begin
     if (dimsizes(words) .gt. 7) then
         date = stringtointeger(words(2))
         hour = getTimeHour(date)
-        if ((date .ge. startDate) .and. (date .ne. date1) .and. (hour-startHour .lt. 126)) then
+        if ((date .ge. startDate) .and. (date .ne. date1) .and. (hour-startHour .le. maxHour)) then
                 if (date .le. startDate) then
                     isConnected=1
                 end if
@@ -995,10 +994,10 @@ begin
      end if
     delete(words)
   end do
-  intensity(0,:)=bp1(0:42:1)
-  intensity(1,:)=bp2(0:42:1)
-  intensity(2,:)=best_hrs(0:42:1)
-;  end if
+  intensity(0,:)=bp1(0:track_pts-1:1)
+  intensity(1,:)=bp2(0:track_pts-1:1)
+  intensity(2,:)=best_hrs(0:track_pts-1:1)
+  ;  end if
   return(intensity)
 
 end
