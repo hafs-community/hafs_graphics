@@ -90,8 +90,6 @@ varr = ncfiles['temperature'].isel(Z=0)
 dvarr = varr-varr[0]
 var_name = 'SST'
 units = '($^oC$)'
-delta_var = 0.5
-delta_dvar = 0.1
         
 for k in range(varr.shape[0]):
    
@@ -107,8 +105,8 @@ for k in range(varr.shape[0]):
    plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%3d"%(fhr)+'  (IC='+cycle+'): '+var_name + ' & Change '+units,fontsize=15)
 
    ax121=plt.subplot(121)
-   kw = dict(levels=np.arange(np.floor(np.nanmin(var)),np.ceil(np.nanmax(var)),delta_var))
-   #var[k].plot.contourf(levels=np.arange(18,32,0.5),cmap='RdBu_r')
+   kw = dict(levels=np.arange(18,32,0.5))
+   #kw = dict(levels=np.arange(np.floor(np.nanmin(var)),np.ceil(np.nanmax(var)),delta_var))
    plt.contourf(lon,lat,var,cmap='RdYlBu_r',**kw)
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)
@@ -131,12 +129,7 @@ for k in range(varr.shape[0]):
    plt.xlabel('Longitude',fontsize=14)
 
    ax122=plt.subplot(122)
-   dvl = np.round(np.max([np.abs(np.nanmin(dvar)),np.abs(np.nanmax(dvar))]),0)
-   if dvl == 0.0:
-       kw = dict(levels=np.arange(-4,4.1,1))
-   else:
-       kw = dict(levels=np.arange(-dvl,dvl+0.1,delta_dvar))
-   #var[k].plot.contourf(levels=np.arange(18,32,0.5),cmap='RdBu_r')
+   kw = dict(levels=np.arange(-4,4.1,0.5))
    plt.contourf(lon,lat,dvar,cmap='bwr',**kw)
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)

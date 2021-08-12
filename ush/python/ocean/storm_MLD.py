@@ -93,7 +93,6 @@ varr = ncfiles['mixed_layer_thickness']
 dvarr = varr-varr[0]
 var_name = 'MLD'
 units = '(m)'
-delta_var = 5
 
 lns,lts=np.meshgrid(varr['Longitude'],varr['Latitude'])
 dummy=np.ones(lns.shape)
@@ -115,8 +114,7 @@ for k in range(len(aln)):
    plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%03d"%(fhr)+'  (IC='+cycle+'): '+var_name+ ' & Change '+units,fontsize=15)
 
    ax121 = plt.subplot(121)
-   #(var1[k]*dumb).plot.contourf(levels=np.arange(0,850,50),cmap='RdBu_r')
-   kw = dict(levels=np.arange(np.floor(np.nanmin(var)),np.ceil(np.nanmax(var)),delta_var))
+   kw = dict(levels=np.arange(0,86,5))
    plt.contourf(lon,lat,var,cmap='RdYlBu',**kw)
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)
@@ -136,11 +134,7 @@ for k in range(len(aln)):
    plt.xlabel('Longitude',fontsize=14)
 
    ax122 = plt.subplot(122)
-   dvl = np.round(np.max([np.abs(np.nanmin(dvar)),np.abs(np.nanmax(dvar))]),0)
-   if dvl == 0.0:
-       kw = dict(levels=np.arange(-30,31,5))
-   else:
-       kw = dict(levels=np.linspace(-dvl,dvl,dvl+1))
+   kw = dict(levels=np.arange(-30,31,5))
    plt.contourf(lon,lat,dvar,cmap='bwr',**kw)
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)
