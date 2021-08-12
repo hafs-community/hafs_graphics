@@ -120,7 +120,7 @@ for k in range(len(aln)):
    plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%03d"%(fhr)+'  (IC='+cycle+'): '+var_name+ ' & Change '+units,fontsize=15)
 
    ax121 = plt.subplot(121)
-   kw = dict(levels=np.arange(10,25,2))
+   kw = dict(levels=np.arange(20,33,1))
    #kw = dict(levels=np.arange(np.floor(np.nanmin(var)),np.round(np.nanmax(var),1)+delta_var,delta_var))
    plt.contourf(lon,lat,var,cmap='RdYlBu_r',**kw)
    cbar = plt.colorbar()
