@@ -166,7 +166,7 @@ for k in range(len(aln)):
    pngFile=os.path.join(graphdir,aprefix.upper()+'.'+model.upper()+'.storm.Wvel.Z70m.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight')
 
-   #plt.close("all")
+   plt.close("all")
 
 # --- successful exit
 sys.exit(0)

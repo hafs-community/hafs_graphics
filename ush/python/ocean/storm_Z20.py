@@ -133,11 +133,7 @@ for k in range(len(aln)):
    plt.xlabel('Longitude',fontsize=14)
 
    ax122 = plt.subplot(122)
-   dvl = np.round(np.max([np.abs(np.nanmin(dvar)),np.abs(np.nanmax(dvar))]),0)
-   if dvl == 0.0:
-       kw = dict(levels=np.arange(-30,31,5))
-   else:
-       kw = dict(levels=np.linspace(-dvl,dvl,dvl+1))
+   kw = dict(levels=np.arange(-20,21,1))
    plt.contourf(lon,lat,dvar,cmap='bwr',**kw)
    cbar = plt.colorbar()
    cbar.set_label(units,fontsize=14)

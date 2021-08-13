@@ -8,5 +8,5 @@ var=$1
 infile=$2
 outfile=$3
 
-wgrib2 $infile -match $var -netcdf $outfile
+${WGRIB2:-wgrib2} $infile -match $var -netcdf $outfile
 
