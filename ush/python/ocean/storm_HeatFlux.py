@@ -118,7 +118,7 @@ if tcid[-1].lower()=='c':
    nprefix = aprefic + '.hafs_hycom_hcp70'
 
 #atcf = aprefix+'.trak.'+model.lower()+'.atcfunix'
-atcf = glob.glob(COMOUT+'/*.atcfunix.all')[0]
+atcf = COMOUT+'/' + storm + tcid + '.' + cycle + '.trak.' + model + '.atcfunix'
 
 # ------------------------------------------------------------------------------------
 # - preprocessing: subset and convert wgrib2 to netcdf

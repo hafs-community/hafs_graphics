@@ -73,7 +73,7 @@ if tcid[-1].lower()=='c':
    nprefix = aprefic + '.hafs_hycom_hcp70'
 
 if trackon[0].lower()=='y':
-   gatcf = glob.glob(COMOUT+'/*.atcfunix.all')
+   gatcf = glob.glob(COMOUT+'/*.atcfunix')
    if gatcf:
       trackon='yes'
    else:

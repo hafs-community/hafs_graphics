@@ -71,7 +71,7 @@ if tcid[-1].lower()=='w':
 if tcid[-1].lower()=='c':
    nprefix = aprefic + '.hafs_hycom_hcp70'
 
-atcf = glob.glob(COMOUT+'/*.atcfunix.all')[0]
+atcf = COMOUT+'/' + storm + tcid + '.' + cycle + '.trak.' + model + '.atcfunix'
 
 #------------------------------------------------------------------------------------
 # - get Wvel  *_3z_*.[nc] files
