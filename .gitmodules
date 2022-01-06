@@ -1,0 +1,4 @@
+[submodule "ush/emc_verif"]
+	path = ush/emc_verif
+	url = https://github.com/hafs-community/EMC_verif-global.git
+    branch = feature/tc_verify
