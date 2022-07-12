@@ -1,0 +1,18 @@
+# yaml configure file for plotATCF.py
+stormModel: ${stormModel:-HWRF}
+stormName: ${stormName:-IDA}
+stormID: ${stormID:-09L}
+stormBasin: ${stormBasin:-AL}
+ymdh: '${ymdh:-2021082900}'
+forecastLength: ${forecastLength:-126}
+adeckFile: ${adeckFile:-"./adeckfile"}
+bdeckFile: ${bdeckFile:-"./bdeckfile"}
+techModels: ${techModels:-"['BEST','OFCL','HAFS','HWRF','HMON','AVNO']"}
+techLabels: ${techLabels:-"['BEST','OFCL','HAFS','HWRF','HMON','AVNO']"}
+techColors: ${techColors:-"['black','red','orange','purple','green','blue']"}
+techMarkers: ${techMarkers:-"['hr','.','.','.','.','.','.']"}
+techMarkerSizes: ${techMarkerSizes:-"[18,15,15,15,15,15,15]"}
+timeInfo: ${timeInfo:-True} # Forecast lead time in the storm track figure?
+catInfo: ${catInfo:-True} # TC category information in the storm track figure?
+catRef: ${catRef:-True} # Plot the TC category reference lines on the storm intensity figure?
+cartopyDataDir: ${cartopyDataDir:-/lfs/h2/emc/hur/noscrub/local/share/cartopy}
