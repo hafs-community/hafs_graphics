@@ -1,30 +1,3 @@
-# Workaround for misconfigured or problematic clusters.  The TMPDIR
-# variable sets the directory for temporary files.  Sometimes this is
-# set to a location that does not exist or is in memory.  The $TMPDIR
-# variable is not always passed through to batch jobs.  This
-# workaround sets it to some other specified location from the
-# $GRAPH_FORCE_ALT_TMPDIR or $GRAPH_FORCE_TMPDIR variables.  We use
-# $GRAPH_FORCE_TMPDIR as the default for all jobs, and allow per-job
-# overrides via $GRAPH_FORCE_ALT_TMPDIR.  Such overrides are needed
-# only for jobs that are scrubbing the parent of the regular tmpdir,
-# or that run after that directory is removed.
-
-if [[ "Q${GRAPH_FORCE_ALT_TMPDIR:-}" != "Q" ]] ; then
-    if [[ ! -d "$GRAPH_FORCE_ALT_TMPDIR" ]] ; then
-        if ( mkdir -p "$GRAPH_FORCE_ALT_TMPDIR" ) ; then
-            :  # trick to avoid triggering a set -e during a race condition
-        fi
-    fi
-    export TMPDIR="$GRAPH_FORCE_ALT_TMPDIR"
-elif [[ "Q${GRAPH_FORCE_TMPDIR:-}" != "Q" ]] ; then
-    if [[ ! -d "$GRAPH_FORCE_TMPDIR" ]] ; then
-        if ( mkdir -p "$GRAPH_FORCE_TMPDIR" ) ; then
-            :  # trick to avoid triggering a set -e during a race condition
-        fi
-    fi
-    export TMPDIR="$GRAPH_FORCE_TMPDIR"
-fi
-
 # Create a test function for sh vs. bash detection.  The name is
 # randomly generated to reduce the chances of name collision.
 __ms_function_name="setup__test_function__$$"
@@ -74,9 +47,7 @@ elif [[ -d /work/noaa ]] ; then
     module use /apps/contrib/modulefiles
     module use /apps/contrib/NCEPLIBS/lib/modulefiles
     module use /apps/contrib/NCEPLIBS/orion/modulefiles
-    #MOD_PATH=/apps/contrib/NCEPLIBS/orion/modulefiles
-    #ulimit -s unlimited
-    #ulimit -a
+    ulimit -s unlimited
 elif [[ -d /gpfs/hps && -e /etc/SuSE-release ]] ; then
     # We are on NOAA Luna or Surge
     if ( ! eval module help > /dev/null 2>&1 ) ; then
@@ -110,7 +81,6 @@ elif [[ -d /gpfs/hps && -e /etc/SuSE-release ]] ; then
     module use /opt/cray/ari/modulefiles
     module use /opt/modulefiles
     module load modules
-
 elif [[ -L /usrx && "$( readlink /usrx 2> /dev/null )" =~ dell ]] ; then
     # We are on NOAA Venus or Mars
     if ( ! eval module help > /dev/null 2>&1 ) ; then
@@ -118,18 +88,11 @@ elif [[ -L /usrx && "$( readlink /usrx 2> /dev/null )" =~ dell ]] ; then
         source /usrx/local/prod/lmod/lmod/init/$__ms_shell
     fi
     target=wcoss_dell_p3
-    module purge 
-    source /usrx/local/prod/lmod/lmod/init/$__ms_shell
-    module load EnvVars/1.0.2
-
-elif [[ -d /dcom && -d /hwrf ]] ; then
-    # We are on NOAA Tide or Gyre
-    if ( ! eval module help > /dev/null 2>&1 ) ; then
-        echo load the module command 1>&2
-        source /usrx/local/Modules/default/init/$__ms_shell
-    fi
-    target=wcoss
     module purge
+    source /usrx/local/prod/lmod/lmod/init/$__ms_shell
+elif [[ -d /lfs/h1 && -d /lfs/h2 ]] ; then
+    target=wcoss2
+    . $MODULESHOME/init/sh
 elif [[ -d /glade ]] ; then
     # We are on NCAR Yellowstone
     if ( ! eval module help > /dev/null 2>&1 ) ; then
@@ -139,7 +102,7 @@ elif [[ -d /glade ]] ; then
     target=yellowstone
     module purge
 elif [[ -d /lustre && -d /ncrc ]] ; then
-    # We are on GAEA. 
+    # We are on GAEA.
     if ( ! eval module help > /dev/null 2>&1 ) ; then
         # We cannot simply load the module command.  The GAEA
         # /etc/profile modifies a number of module-related variables

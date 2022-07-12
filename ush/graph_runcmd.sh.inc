@@ -1,17 +1,18 @@
 #==============================================================================
-# This script sets up job node/core, mpi/omp envionment, and run commands.
+# This script sets job node/core, mpi/omp envionment, and run commands.
 #==============================================================================
 
-# Set up job node/core,  mpi/omp environment
+# Set job node/core, mpi/omp environment
 export TOTAL_TASKS=${TOTAL_TASKS:-1}
 export NCTSK=${NCTSK:-1}
 export OMP_NUM_THREADS=${OMP_THREADS:-${OMP_NUM_THREADS:-24}}
 export PURE_OMP_THREADS=${PURE_OMP_THREADS:-${OMP_NUM_THREADS:-24}}
 export NCNODE=${NCNODE:-$(($NCTSK * $OMP_NUM_THREADS))}
-export KMP_STACKSIZE=1024m
 export KMP_AFFINITY=disabled
+export KMP_STACKSIZE=${KMP_STACKSIZE:-2048m}
+#export OMP_STACKSIZE=${OMP_STACKSIZE:-2048m}
 
-# Set up job run commands
+# Set job run commands
 # APRUNE: command to run serial jobs which can share nodes
 # APRUNS: command to run serial jobs
 # APRUNO: command to run pure openmp jobs
@@ -26,6 +27,14 @@ if [ "$machine" = wcoss_cray ]; then
   export APRUNO=${APRUNO:-"time"}
   export APRUNC=${APRUNC:-"aprun -b -j1 -n${TOTAL_TASKS} -N${NCTSK} -d${OMP_NUM_THREADS} -cc depth"}
   export APRUNF=${APRUNF:-"aprun -b -j1 -n${TOTAL_TASKS} -N${NCTSK} -d${OMP_NUM_THREADS} -cc depth cfp"}
+  export BACKGROUND=${BACKGROUND:-""}
+elif [ "$machine" = wcoss2 ]; then
+  export APRUNE=${APRUNE:-"time}
+  export APRUNS=${APRUNS:-"time"}
+  export APRUNO=${APRUNO:-"time"}
+  export APRUNC=${APRUNC:-"mpiexec -n ${TOTAL_TASKS} --cpu-bind core --depth ${OMP_NUM_THREADS}"}
+  export APRUNF=${APRUNF:-"mpiexec -n ${TOTAL_TASKS} cfp"}
+  export APRUNO=${APRUNO:-"time"}
   export BACKGROUND=${BACKGROUND:-""}
 elif [ "$machine" = wcoss_dell_p3 ]; then
   export APRUNE=${APRUNE:-"time"}
@@ -55,7 +64,7 @@ else
   export BACKGROUND=${BACKGROUND:-""}
 fi
 
-# Print out environment 
+# Print out environment
 env
 
 #==============================================================================
