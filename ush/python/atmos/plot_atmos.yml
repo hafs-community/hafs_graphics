@@ -1,0 +1,11 @@
+# yaml configure file for plotATCF.py
+stormModel: HAFS
+stormName: IDA
+stormID: 09L
+stormBasin: AL
+stormDomain: grid02
+ymdh: '2021082800'
+fhhh: 'f036'
+COMhafs: /lfs/h2/emc/hur/noscrub/bin.liu/save/hafs_com_2021082800_09L
+standardLayer: 500
+cartopyDataDir: /lfs/h2/emc/hur/noscrub/local/share/cartopy
