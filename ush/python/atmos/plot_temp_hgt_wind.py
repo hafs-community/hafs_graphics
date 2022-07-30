@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""This script is to plot out HAFS atmospheric vorticity, geopotential height,
+"""This script is to plot out HAFS atmospheric temperature, geopotential height,
 and wind figures on standard layers (e.g., 850, 700, 500, 300, 200 hPa)."""
 
 import os
@@ -57,17 +57,16 @@ lon = np.asarray(grb.select(shortName='ELON')[0].data())
 [nlat, nlon] = np.shape(lon)
 
 levstr=str(conf['standardLayer'])+' mb'
-print('Extracting HGT, ABSV, UGRD, VGRD, at '+levstr)
+print('Extracting HGT, TMP, UGRD, VGRD, at '+levstr)
 hgt = grb.select(shortName='HGT', level=levstr)[0].data()
 hgt.data[hgt.mask] = np.nan
 hgt = np.asarray(hgt) * 0.1 # convert meter to decameter
 hgt = gaussian_filter(hgt, 5)
 
-absv = grb.select(shortName='ABSV', level=levstr)[0].data()
-absv.data[absv.mask] = np.nan
-absv[absv<0.] = np.nan
-absv = np.asarray(absv) * 1.e5 # convert s^-1 to 10^-5 s^-1
-#absv = gaussian_filter(absv, 2)
+tmp = grb.select(shortName='TMP', level=levstr)[0].data()
+tmp.data[tmp.mask] = np.nan
+tmp = np.asarray(tmp) - 273.15 # convert K to degC
+tmp = gaussian_filter(tmp, 2)
 
 ugrd = grb.select(shortName='UGRD', level=levstr)[0].data()
 ugrd.data[ugrd.mask] = np.nan
@@ -78,7 +77,7 @@ vgrd.data[vgrd.mask] = np.nan
 vgrd = np.asarray(vgrd) * 1.94384 # convert m/s to kt
 
 #===================================================================================================
-print('Plotting HGT, ABSV, UGRD, VGRD, at '+levstr)
+print('Plotting HGT, TMP, UGRD, VGRD, at '+levstr)
 fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']
 
 # Set default figure parameters
@@ -92,7 +91,7 @@ mpl.rcParams['legend.fontsize'] = 8
 
 if conf['stormDomain'] == 'grid02':
     mpl.rcParams['figure.figsize'] = [6, 6]
-    fig_name = fig_prefix+'.storm.'+str(conf['standardLayer'])+'mb.vort.hgt.wind.'+conf['fhhh'].lower()+'.png'
+    fig_name = fig_prefix+'.storm.'+str(conf['standardLayer'])+'mb.temp.hgt.wind.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
     lonmin = lon[int(nlat/2), int(nlon/2)]-3
     lonmax = lon[int(nlat/2), int(nlon/2)]+3
@@ -102,7 +101,7 @@ if conf['stormDomain'] == 'grid02':
     wblength = 4.5
 else:
     mpl.rcParams['figure.figsize'] = [8, 5.4]
-    fig_name = fig_prefix+'.'+str(conf['standardLayer'])+'mb.vort.hgt.wind.'+conf['fhhh'].lower()+'.png'
+    fig_name = fig_prefix+'.'+str(conf['standardLayer'])+'mb.temp.hgt.wind.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
     lonmin = np.min(lon)
     lonmax = np.max(lon)
@@ -113,16 +112,22 @@ else:
    #skip = 40
 
 if conf['standardLayer'] == 200:
+    cflevels = np.arange(-70, -19, 1)
     cslevels=np.arange(1080,1290,12)
 elif conf['standardLayer'] == 300:
+    cflevels = np.arange(-60, -9, 1)
     cslevels=np.arange(780,1020,12)
 elif conf['standardLayer'] == 500:
+    cflevels = np.arange(-40, 11, 1)
     cslevels=np.arange(480,600,6)
 elif conf['standardLayer'] == 700:
+    cflevels = np.arange(-30, 31, 1)
     cslevels=np.arange(210,330,3)
 elif conf['standardLayer'] == 850:
+    cflevels = np.arange(-20, 41, 1)
     cslevels=np.arange(60,180,3)
 else:
+    cflevels = np.arange(-60, 31, 2)
     cslevels=np.arange(-50,4000,5)
 
 myproj = ccrs.PlateCarree()
@@ -133,18 +138,18 @@ fig = plt.figure()
 ax = plt.axes(projection=myproj)
 ax.axis('equal')
 
-cflevels = [0.,5.,10.,15.,20.,25.,30.,40.,50.,75.,100.,150.,200.,250.,300.,400.,500.]
-cfcolors = ['white','white','lightcyan','cyan','mediumspringgreen','yellow','gold','orange','darkorange',
-            'orangered','red','darkred','purple','darkviolet','magenta','violet','plum']
-cf = ax.contourf(lon, lat, absv, levels=cflevels, colors=cfcolors, extend='max', transform=transform)
-cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True)
-#cb.set_label('Absolute Vorticity (10${^{-5}}$ s${^{-1}}$)')
+cf = ax.contourf(lon, lat, tmp, levels=cflevels, cmap=plt.cm.jet, transform=transform)
+cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,
+                  ticks=np.arange(-70,41,5))
+#cfs = ax.contour(lon, lat, tmp, levels=cflevels[::2], colors='gray', linewidths=0.3, transform=transform)
 
 wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip],
               length=wblength, linewidth=0.2, color='black', transform=transform)
 
 cs = ax.contour(lon, lat, hgt, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
 lb = plt.clabel(cs, levels=cslevels, inline_spacing=1, fmt='%d', fontsize=8)
+
+#plt.tight_layout()
 
 # Add borders and coastlines
 #ax.add_feature(cfeature.LAND, facecolor='whitesmoke')
@@ -161,7 +166,7 @@ gl.ylabel_style = {'size': 8, 'color': 'black'}
 print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
-title_center = str(conf['standardLayer'])+'-hPa Absolute Vorticity (10${^{-5}}$ s${^{-1}}$, shaded), Height (dam) and Wind (kt)'
+title_center = str(conf['standardLayer'])+'-hPa Temperature (${^o}$C, shaded), Height (dam), Wind (kt)'
 ax.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax.set_title(title_left, loc='left')
