@@ -36,15 +36,18 @@ eparse plotATCF.yml.tmp > plotATCF.yml
 
 # Trim and combine figures
 figpre=${stormName}${stormID}.${ymdh}
-convert -trim ${figpre}.track.png PNG8:${figpre}.track.png
+convert -trim ${figpre}.track.png ${figpre}.track.png
 convert -geometry x790 -bordercolor White -border 5x5 ${figpre}.track.png ${figpre}.track_x800.png
-convert -trim ${figpre}.Vmax.png PNG8:${figpre}.Vmax.png
+convert -trim ${figpre}.Vmax.png ${figpre}.Vmax.png
 convert -geometry x390 -bordercolor White -border 5x5 ${figpre}.Vmax.png ${figpre}.Vmax_x400.png
-convert -trim ${figpre}.Pmin.png PNG8:${figpre}.Pmin.png
+convert -trim ${figpre}.Pmin.png ${figpre}.Pmin.png
 convert -geometry x390 -bordercolor White -border 5x5 ${figpre}.Pmin.png ${figpre}.Pmin_x400.png
 convert -gravity east -append ${figpre}.Vmax_x400.png ${figpre}.Pmin_x400.png ${figpre}.intensity_x800.png
 convert +append ${figpre}.track_x800.png ${figpre}.intensity_x800.png ${figpre}.fcst.png
-convert ${figpre}.fcst.png PNG8:${figpre}.fcst.png
+#convert ${figpre}.track.png PNG8:${figpre}.track.png
+#convert ${figpre}.Vmax.png PNG8:${figpre}.Vmax.png
+#convert ${figpre}.Pmin.png PNG8:${figpre}.Pmin.png
+#convert ${figpre}.fcst.png PNG8:${figpre}.fcst.png
 
 date
 echo "job done"
