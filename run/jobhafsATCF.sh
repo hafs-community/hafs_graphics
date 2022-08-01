@@ -17,7 +17,6 @@ modelColors="['black','red','cyan','purple','green','blue']"
 modelMarkers="['hr','.','.','.','.','.']"
 modelMarkerSizes="[18,15,15,15,15,15]"
 nset=""
-cartopyDataDir=/work/noaa/hwrf/local/share/cartopy
 
 STORMID=`echo ${stormid} | tr '[a-z]' '[A-Z]' `
 stormid=`echo ${stormid} | tr '[A-Z]' '[a-z]' `
@@ -41,7 +40,6 @@ export HOMEgraph=${HOMEgraph:-/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics}
 export USHgraph=${USHgraph:-${HOMEgraph}/ush}
 export WORKgraph=${WORKgraph:-${COMhafs}/../../../${ymdh}/${STORMID}/emc_graphics}
 export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
-export cartopyDataDir=${cartopyDataDir:-/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy}
 
 source ${USHgraph}/graph_pre_job.sh.inc
 export machine=${WHERE_AM_I:-wcoss_cray} # platforms: wcoss_cray, wcoss_dell_p3, hera, orion, jet
@@ -49,18 +47,23 @@ export machine=${WHERE_AM_I:-wcoss_cray} # platforms: wcoss_cray, wcoss_dell_p3,
 if [ ${machine} = jet ]; then
   export ADECKgraph=${ADECKgraph:-/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/aid}
   export BDECKgraph=${BDECKgraph:-/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/btk}
+  export cartopyDataDir=${cartopyDataDir:-/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy}
 elif [ ${machine} = hera ]; then
   export ADECKgraph=${ADECKgraph:-/scratch1/NCEPDEV/hwrf/noscrub/input/abdeck/aid}
   export BDECKgraph=${BDECKgraph:-/scratch1/NCEPDEV/hwrf/noscrub/input/abdeck/btk}
+  export cartopyDataDir=${cartopyDataDir:-/scratch1/NCEPDEV/hwrf/noscrub/local/share/cartopy}
 elif [ ${machine} = orion ]; then
   export ADECKgraph=${ADECKgraph:-/work/noaa/hwrf/noscrub/input/abdeck/aid}
   export BDECKgraph=${BDECKgraph:-/work/noaa/hwrf/noscrub/input/abdeck/btk}
-elif [ ${machine} = wcoss_cray ] || [ ${machine} = wcoss_dell_p3 ]; then
-  export ADECKgraph=${ADECKgraph:-/gpfs/hps3/emc/hwrf/noscrub/emc.hurpara/trak/abdeck/aid}
-  export BDECKgraph=${BDECKgraph:-/gpfs/hps3/emc/hwrf/noscrub/emc.hurpara/trak/abdeck/btk}
+  export cartopyDataDir=${cartopyDataDir:-/work/noaa/hwrf/noscrub/local/share/cartopy}
+elif [ ${machine} = wcoss2 ]; then
+  export ADECKgraph=${ADECKgraph:-/lfs/h2/emc/hur/noscrub/input/abdeck/aid}
+  export BDECKgraph=${BDECKgraph:-/lfs/h2/emc/hur/noscrub/input/abdeck/btk}
+  export cartopyDataDir=${cartopyDataDir:-/lfs/h2/emc/hur/noscrub/local/share/cartopy}
 else
   export ADECKgraph=${ADECKgraph:-/your/abdeck/aid}
   export BDECKgraph=${BDECKgraph:-/your/abdeck/btk}
+  export cartopyDataDir=${cartopyDataDir:-/your/local/share/cartopy}
 fi
 
 if [ ${basin1c} = 'l' ]; then
