@@ -109,6 +109,7 @@ def main():
 
     # Set default figure parameters
     mpl.rcParams['figure.figsize'] = [8, 8]
+    mpl.rcParams['figure.dpi'] = 150
     mpl.rcParams['axes.titlesize'] = 13
     mpl.rcParams['axes.labelsize'] = 12
     mpl.rcParams['xtick.labelsize'] = 11

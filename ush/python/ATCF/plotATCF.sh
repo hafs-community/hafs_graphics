@@ -105,7 +105,8 @@ cd ${work}
 cp -p ${adeckdir}/${adeckfile} ./adeckfile_tmp0
 cp -p ${bdeckdir}/${bdeckfile} ./bdeckfile
 
-atcffile=${storm}${stormid}.${yyyymmddhh}.trak.hwrf.atcfunix
+#atcffile=${storm}${stormid}.${yyyymmddhh}.trak.hwrf.atcfunix
+atcffile=${stormid}.${yyyymmddhh}.hafs.trak.atcfunix
 echo 'atcffile=' ${atcffile}
 if [ -s ${atcfdir}/${atcffile} ]; then
    cp -p ${atcfdir}/${atcffile} ./${atcffile}
@@ -118,7 +119,7 @@ fi
 grep -E "${BASIN}, ${num}.*${yyyymmddhh}" ./adeckfile_tmp0 > ./adeckfile_tmp1
 if [ -s ./${atcffile} ]; then
   grep -v "${MC_MODEL}," ./adeckfile_tmp1 > ./adeckfile_tmp2
-  cat ./${atcffile} >> ./adeckfile_tmp2
+  cat ./${atcffile} | cut -c1-193 >> ./adeckfile_tmp2
 fi
 
 #grep ncep ens tracker records
@@ -152,20 +153,22 @@ techColors=${modelColors:-"['black','red','purple','green','blue']"}
 techMarkers=${modelMarkers:-"['hr','.','.','.','.','.']"}
 techMarkerSizes=${modelMarkerSizes:-"[18,15,15,15,15,15]"}
 timeInfo=True; catInfo=True; catRef=True
+cartopyDataDir=${cartopyDataDir:-/lfs/h2/emc/hur/noscrub/local/share/cartopy}
 eparse plotATCF.yml.tmp > plotATCF.yml
 
 ./plotATCF.py
 
 # Trim and combine figures
 figpre=${stormName}${stormID}.${ymdh}
-convert -trim ${figpre}.track.png ${figpre}.track.png
+convert -trim ${figpre}.track.png PNG8:${figpre}.track.png
 convert -geometry x790 -bordercolor White -border 5x5 ${figpre}.track.png ${figpre}.track_x800.png
-convert -trim ${figpre}.Vmax.png ${figpre}.Vmax.png
+convert -trim ${figpre}.Vmax.png PNG8:${figpre}.Vmax.png
 convert -geometry x390 -bordercolor White -border 5x5 ${figpre}.Vmax.png ${figpre}.Vmax_x400.png
-convert -trim ${figpre}.Pmin.png ${figpre}.Pmin.png
+convert -trim ${figpre}.Pmin.png PNG8:${figpre}.Pmin.png
 convert -geometry x390 -bordercolor White -border 5x5 ${figpre}.Pmin.png ${figpre}.Pmin_x400.png
 convert -gravity east -append ${figpre}.Vmax_x400.png ${figpre}.Pmin_x400.png ${figpre}.intensity_x800.png
 convert +append ${figpre}.track_x800.png ${figpre}.intensity_x800.png ${figpre}.fcst.png
+convert ${figpre}.fcst.png PNG8:${figpre}.fcst.png
 
 # Deliver figures to archive dir
 mkdir -p ${archdir}
@@ -174,7 +177,7 @@ cp -p ${work}/${figpre}.Vmax.png  ${archdir}/${figpre}.Vmax${nset}.png
 cp -p ${work}/${figpre}.track.png ${archdir}/${figpre}.track${nset}.png
 cp -p ${work}/${figpre}.fcst.png  ${archdir}/${figpre}.fcst${nset}.png
 # HWRF website uses a different figure name
-cp -p ${work}/${figpre}.fcst.png  ${archdir}/${figpre}.fsct${nset}.png
+#cp -p ${work}/${figpre}.fcst.png  ${archdir}/${figpre}.fsct${nset}.png
 
 else
   echo "WARNING: Empty ${atcffile} and ${adecktemp}"

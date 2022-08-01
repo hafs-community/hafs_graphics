@@ -1,9 +1,8 @@
 #!/bin/sh
 #
-#  echo "Usage:     sh $0 2019082900 HAFS NATL 00L COMhafs"
 #  echo "Usage:     sh $0 2019082900 HAFS Dorian 05L COMhafs"
 #
-set -xe
+set -x
 
 ymdh=${1:-2019082900}
 stormModel=${2:-HAFS}
@@ -13,21 +12,36 @@ stormid=${4:-00L}
 COMhafs=${5:-${COMhafs:-/hafs/com/dir}}
 HOMEgraph=${HOMEgraph:-$(pwd)/..}
 
-modelLabels='(/"BEST","'$stormModel'","HWRF","HMON","AVNO","OFCL"/)'
-modelColors='(/"black","cyan2","purple","green2","blue","red"/)'
-modelMarkers='(/17,18,18,18,18,18/)'
+modelLabels="['BEST','OFCL','${stormModel}','HWRF','HMON','AVNO']"
+modelColors="['black','red','cyan','purple','green','blue']"
+modelMarkers="['hr','.','.','.','.','.']"
+modelMarkerSizes="[18,15,15,15,15,15]"
+nset=""
+cartopyDataDir=/work/noaa/hwrf/local/share/cartopy
 
 STORMID=`echo ${stormid} | tr '[a-z]' '[A-Z]' `
 stormid=`echo ${stormid} | tr '[A-Z]' '[a-z]' `
 STORMNAME=`echo ${stormname} | tr '[a-z]' '[A-Z]' `
 stormname=`echo ${stormname} | tr '[A-Z]' '[a-z]' `
 
-atcfFile=${6:-${COMhafs}/${stormname}${stormid}.${ymdh}.trak.hafs.atcfunix.all}
+stormnmid=`echo ${stormname}${stormid} | tr '[A-Z]' '[a-z]' `
+STORMNMID=`echo ${stormnmid} | tr '[a-z]' '[A-Z]' `
+STORMNM=${STORMNMID:0:-3}
+stormnm=${STORMNM,,}
+STID=${STORMNMID: -3}
+stid=${STID,,}
+STORMNUM=${STID:0:2}
+BASIN1C=${STID: -1}
+basin1c=${BASIN1C,,}
+yyyy=`echo ${ymdh} | cut -c1-4`
+
+atcfFile=${6:-${COMhafs}/${stormid}.${ymdh}.hafs.trak.atcfunix}
 
 export HOMEgraph=${HOMEgraph:-/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics}
 export USHgraph=${USHgraph:-${HOMEgraph}/ush}
 export WORKgraph=${WORKgraph:-${COMhafs}/../../../${ymdh}/${STORMID}/emc_graphics}
 export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
+export cartopyDataDir=${cartopyDataDir:-/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy}
 
 source ${USHgraph}/graph_pre_job.sh.inc
 export machine=${WHERE_AM_I:-wcoss_cray} # platforms: wcoss_cray, wcoss_dell_p3, hera, orion, jet
@@ -48,39 +62,6 @@ else
   export ADECKgraph=${ADECKgraph:-/your/abdeck/aid}
   export BDECKgraph=${BDECKgraph:-/your/abdeck/btk}
 fi
-
-work_dir="${WORKgraph}"
-archbase="${COMgraph}/figures"
-
-mkdir -p ${work_dir}
-cd ${work_dir}
-
-if [ -f ${atcfFile} ]; then
-  atcfFile=${atcfFile}
-elif [ -f ${atcfFile%.all} ]; then
-  atcfFile=${atcfFile%.all}
-else
-  echo "File ${atcfFile} does not exist"
-  echo 'SCRIPT WILL EXIT'
-  exit 1
-fi
-
-array=$( sh ${USHgraph}/getStormNames.sh ${atcfFile} ${ymdh} )
-echo $array
-
-# Loop for all storms
-for stormnmid in ${array[@]}
-do
-  stormnmid=`echo ${stormnmid} | tr '[A-Z]' '[a-z]' `
-  STORMNMID=`echo ${stormnmid} | tr '[a-z]' '[A-Z]' `
-  STORMNM=${STORMNMID:0:-3}
-  stormnm=${STORMNM,,}
-  STID=${STORMNMID: -3}
-  stid=${STID,,}
-  STORMNUM=${STID:0:2}
-  BASIN1C=${STID: -1}
-  basin1c=${BASIN1C,,}
-  yyyy=`echo ${ymdh} | cut -c1-4`
 
 if [ ${basin1c} = 'l' ]; then
   basin2c='al'
@@ -112,18 +93,25 @@ else
   exit 1
 fi
 
-  archdir="${archbase}/RT${yyyy}_${BASIN}/${STORMNM}${STID}/${STORMNM}${STID}.${ymdh}"
-  storm_atcfFile=${work_dir}/${stormnm}${stid}.${ymdh}.trak.hafs.atcfunix
-  grep "^${BASIN2C}, ${STORMNUM}," ${atcfFile} > ${storm_atcfFile}
+work_dir="${WORKgraph}"
+archbase="${COMgraph}/figures"
+archdir="${archbase}/RT${yyyy}_${BASIN}/${STORMNM}${STID}/${STORMNM}${STID}.${ymdh}"
 
-  if [ -s ${storm_atcfFile} ]; then
-    echo "${storm_atcfFile} present, will proceed"
-    # make the track and intensity plots
-    sh ${HOMEgraph}/ush/plotATCF.sh ${STORMNM} ${STID} ${ymdh} ${stormModel} ${storm_atcfFile} ${ADECKgraph} ${BDECKgraph} ${HOMEgraph}/ush/ncl ${WORKgraph} ${archdir} ${modelLabels} ${modelColors} ${modelMarkers}
-  else
-    echo "${storm_atcfFile} NOT PRESENT. SKIP."
-  fi
-done
+mkdir -p ${work_dir}
+cd ${work_dir}
+
+if [ -f ${atcfFile} ]; then
+  atcfFile=${atcfFile}
+elif [ -f ${atcfFile%.all} ]; then
+  atcfFile=${atcfFile%.all}
+else
+  echo "File ${atcfFile} does not exist"
+  echo 'SCRIPT WILL EXIT'
+  exit 1
+fi
+
+# make the track and intensity plots
+sh ${HOMEgraph}/ush/python/ATCF/plotATCF.sh ${STORMNM} ${STID} ${ymdh} ${stormModel} ${COMhafs} ${ADECKgraph} ${BDECKgraph} ${HOMEgraph}/ush/python ${WORKgraph} ${archdir} ${modelLabels} ${modelColors} ${modelMarkers} ${modelMarkerSizes} ${nset}
 
 date
 
