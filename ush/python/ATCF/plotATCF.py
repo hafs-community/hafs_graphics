@@ -62,13 +62,15 @@ def main():
             conf['techMarkers'][i] = hurricane_marker()
     # Set Cartopy data_dir location
     cartopy.config['data_dir'] = conf['cartopyDataDir']
+    print(conf)
 
     # Details about the ATCF format can be seen from: https://www.nrlmry.navy.mil/atcf_web/docs/database/new/abdeck.txt
     cols = ['basin', 'number', 'ymdh', 'technum', 'tech', 'tau', 'lat', 'lon', 'vmax', 'mslp', 'type',
             'rad', 'windcode', 'rad1', 'rad2', 'rad3', 'rad4', 'pouter', 'router', 'rmw', 'gusts', 'eye',
             'subregion', 'maxseas', 'initials', 'dir', 'speed', 'stormname', 'depth',
             'seas', 'seascode', 'seas1', 'seas2', 'seas3', 'seas4', 'userdefined',
-            'userdata1', 'userdata2', 'userdata3', 'userdata4', 'userdata5', 'userdata6', 'userdata7', 'userdata8']
+            'userdata1', 'userdata2', 'userdata3', 'userdata4', 'userdata5', 'userdata6', 'userdata7', 'userdata8',
+            'userdata9', 'userdata10', 'userdata11', 'userdata12', 'userdata13', 'userdata14', 'userdata15', 'userdata16']
 
     # Read in adeckFile as pandas dataFrame
     print('Read in adeckFile ...')
