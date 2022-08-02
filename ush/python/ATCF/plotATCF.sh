@@ -119,7 +119,7 @@ fi
 grep -E "${BASIN}, ${num}.*${yyyymmddhh}" ./adeckfile_tmp0 > ./adeckfile_tmp1
 if [ -s ./${atcffile} ]; then
   grep -v "${MC_MODEL}," ./adeckfile_tmp1 > ./adeckfile_tmp2
-  cat ./${atcffile} >> ./adeckfile_tmp2
+  sed -e "s/HAFS/${MC_MODEL}/g" ./${atcffile} >> ./adeckfile_tmp2
 fi
 
 #grep ncep ens tracker records

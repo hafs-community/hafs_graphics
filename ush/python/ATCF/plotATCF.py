@@ -57,12 +57,12 @@ def main():
     with open('plotATCF.yml', 'rt') as f:
         conf = yaml.safe_load(f)
     conf['stormNumber']=conf['stormID'][0:2]
+    print(conf)
     for i, marker in enumerate(conf['techMarkers']):
         if marker == 'hr':
             conf['techMarkers'][i] = hurricane_marker()
     # Set Cartopy data_dir location
     cartopy.config['data_dir'] = conf['cartopyDataDir']
-    print(conf)
 
     # Details about the ATCF format can be seen from: https://www.nrlmry.navy.mil/atcf_web/docs/database/new/abdeck.txt
     cols = ['basin', 'number', 'ymdh', 'technum', 'tech', 'tau', 'lat', 'lon', 'vmax', 'mslp', 'type',
