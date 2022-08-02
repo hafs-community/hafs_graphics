@@ -57,6 +57,7 @@ def main():
     with open('plotATCF.yml', 'rt') as f:
         conf = yaml.safe_load(f)
     conf['stormNumber']=conf['stormID'][0:2]
+    print(conf)
     for i, marker in enumerate(conf['techMarkers']):
         if marker == 'hr':
             conf['techMarkers'][i] = hurricane_marker()
@@ -68,7 +69,8 @@ def main():
             'rad', 'windcode', 'rad1', 'rad2', 'rad3', 'rad4', 'pouter', 'router', 'rmw', 'gusts', 'eye',
             'subregion', 'maxseas', 'initials', 'dir', 'speed', 'stormname', 'depth',
             'seas', 'seascode', 'seas1', 'seas2', 'seas3', 'seas4', 'userdefined',
-            'userdata1', 'userdata2', 'userdata3', 'userdata4', 'userdata5', 'userdata6', 'userdata7', 'userdata8']
+            'userdata1', 'userdata2', 'userdata3', 'userdata4', 'userdata5', 'userdata6', 'userdata7', 'userdata8',
+            'userdata9', 'userdata10', 'userdata11', 'userdata12', 'userdata13', 'userdata14', 'userdata15', 'userdata16']
 
     # Read in adeckFile as pandas dataFrame
     print('Read in adeckFile ...')

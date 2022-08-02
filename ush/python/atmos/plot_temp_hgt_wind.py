@@ -112,22 +112,22 @@ else:
    #skip = 40
 
 if conf['standardLayer'] == 200:
-    cflevels = np.arange(-70, -19, 1)
+    cflevels = np.linspace(-70, -20, 101)
     cslevels=np.arange(1080,1290,12)
 elif conf['standardLayer'] == 300:
-    cflevels = np.arange(-60, -9, 1)
+    cflevels = np.linspace(-60, -10, 101)
     cslevels=np.arange(780,1020,12)
 elif conf['standardLayer'] == 500:
-    cflevels = np.arange(-40, 11, 1)
+    cflevels = np.linspace(-40, 10, 101)
     cslevels=np.arange(480,600,6)
 elif conf['standardLayer'] == 700:
-    cflevels = np.arange(-30, 31, 1)
+    cflevels = np.linspace(-30, 30, 121)
     cslevels=np.arange(210,330,3)
 elif conf['standardLayer'] == 850:
-    cflevels = np.arange(-20, 41, 1)
+    cflevels = np.linspace(-20, 40, 121)
     cslevels=np.arange(60,180,3)
 else:
-    cflevels = np.arange(-60, 31, 2)
+    cflevels = np.linspace(-60, 30, 181)
     cslevels=np.arange(-50,4000,5)
 
 myproj = ccrs.PlateCarree()
@@ -138,10 +138,13 @@ fig = plt.figure()
 ax = plt.axes(projection=myproj)
 ax.axis('equal')
 
-cf = ax.contourf(lon, lat, tmp, levels=cflevels, cmap=plt.cm.jet, transform=transform)
+#ctmp = plt.get_cmap('gist_ncar')
+#cmap = mpl.colors.LinearSegmentedColormap.from_list('sub_'+ctmp.name, ctmp(np.linspace(0.10, 0.98, 201)))
+ctmp = plt.get_cmap('nipy_spectral')
+cmap = mpl.colors.LinearSegmentedColormap.from_list('sub_'+ctmp.name, ctmp(np.linspace(0.02, 0.98, 201)))
+cf = ax.contourf(lon, lat, tmp, levels=cflevels, cmap=cmap, extend='both', transform=transform)
 cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,
-                  ticks=np.arange(-70,41,5))
-#cfs = ax.contour(lon, lat, tmp, levels=cflevels[::2], colors='gray', linewidths=0.3, transform=transform)
+                  ticks=cflevels[::10])
 
 wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip],
               length=wblength, linewidth=0.2, color='black', transform=transform)
