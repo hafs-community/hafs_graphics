@@ -138,10 +138,13 @@ fig = plt.figure()
 ax = plt.axes(projection=myproj)
 ax.axis('equal')
 
-cf = ax.contourf(lon, lat, tmp, levels=cflevels, cmap=plt.cm.turbo, extend='both', transform=transform)
+#ctmp = plt.get_cmap('gist_ncar')
+#cmap = mpl.colors.LinearSegmentedColormap.from_list('sub_'+ctmp.name, ctmp(np.linspace(0.10, 0.98, 201)))
+ctmp = plt.get_cmap('nipy_spectral')
+cmap = mpl.colors.LinearSegmentedColormap.from_list('sub_'+ctmp.name, ctmp(np.linspace(0.02, 0.98, 201)))
+cf = ax.contourf(lon, lat, tmp, levels=cflevels, cmap=cmap, extend='both', transform=transform)
 cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,
                   ticks=cflevels[::10])
-#cfs = ax.contour(lon, lat, tmp, levels=cflevels[::2], colors='gray', linewidths=0.3, transform=transform)
 
 wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip],
               length=wblength, linewidth=0.2, color='black', transform=transform)
