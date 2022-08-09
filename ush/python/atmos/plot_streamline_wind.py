@@ -30,8 +30,8 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
-from cartopy.vector_transform import vector_scalar_to_grid
-from matplotlib.axes import Axes
+#from cartopy.vector_transform import vector_scalar_to_grid
+#from matplotlib.axes import Axes
 
 # Parse the yaml config file
 print('Parse the config file: plot_atmos.yml:')
@@ -56,6 +56,7 @@ print('Extracting lat, lon')
 lat = np.asarray(grb.select(shortName='NLAT')[0].data())
 lon = np.asarray(grb.select(shortName='ELON')[0].data())
 [nlat, nlon] = np.shape(lon)
+lon[lon>180.0] = lon[lon>180.0]-360.0
 
 print('Extracting UGRD, VGRD at 850 mb')
 levstr='850 mb'
@@ -149,11 +150,7 @@ cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshri
 cb.ax.set_yticklabels(['10','20','30','40','50','60','70','80','90',                       
                        '100','110','120','130','140','150','160'])
 
-#Transform and interpolate a vector field to a regular grid in the target projection
-lon_rg, lat_rg, ugrd_rg, vgrd_rg = vector_scalar_to_grid(myproj, myproj,
- (np.shape(lon)[0],np.shape(lon)[1]), lon,lat,ugrd,vgrd)
-
-sb=Axes.streamplot(ax, lon_rg, lat_rg, ugrd_rg, vgrd_rg,linewidth=0.75,density=3, color='black',arrowstyle='->', arrowsize=0.75, transform=transform)
+sb=ax.streamplot(lon,lat,ugrd,vgrd,linewidth=0.75,density=3, color='black',arrowstyle='->', arrowsize=0.75, transform=transform)
 # Add borders and coastlines
 #ax.add_feature(cfeature.LAND, facecolor='whitesmoke')
 ax.add_feature(cfeature.BORDERS, linewidth=0.5, facecolor='none', edgecolor='gray')
