@@ -133,7 +133,8 @@ ax.axis('equal')
 
 cflevels = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,99]
 cfcolors = ['#996515','#a3742c','#ad8444','#b8935b','#c2a373','#ccb28a','#d6c1a1','#e0d1b9','#ebe0d0','#f5f0e8', # Brown https://colorswall.com/palette/26287
-            '#ffffff','#cce0cc','#b3d1b3','#99c199','#80b280','#66a266','#4d934d','#338333','#197419','#006400','#005000'] # Green https://colorswall.com/palette/1452
+            '#ffffff','#d1e6cf','#bbdab7','#a4ce9f','#8dc287','#76b56e','#5fa956','#499d3e','#329026','#1b840e','#008000'] # Green https://colorswall.com/palette/1386
+#           '#ffffff','#cce0cc','#b3d1b3','#99c199','#80b280','#66a266','#4d934d','#338333','#197419','#006400','#005000'] # Green https://colorswall.com/palette/1452
 
 cf = ax.contourf(lon, lat, rh, levels=cflevels, colors=cfcolors, extend='max', transform=transform)
 cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, extend='max', extendfrac='auto', shrink=cbshrink, extendrect=True, ticks=cflevels)
