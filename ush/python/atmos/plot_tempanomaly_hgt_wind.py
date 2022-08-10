@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""This script is to plot out HAFS atmospheric MSLP and 10-m wind."""
+"""This script is to plot out HAFS temperature anomaly, geopotential height and wind."""
 
 import os
 import sys
@@ -55,14 +55,23 @@ lat = np.asarray(grb.select(shortName='NLAT')[0].data())
 lon = np.asarray(grb.select(shortName='ELON')[0].data())
 [nlat, nlon] = np.shape(lon)
 
-print('Extracting PRMSL')
-slp = grb.select(shortName='PRMSL',level='mean sea level')[0].data()
-slp.data[slp.mask] = np.nan
-slp = np.asarray(slp) * 0.01 # convert Pa to hPa
-slp = gaussian_filter(slp, 5)
+levstr=str(conf['standardLayer'])+' mb'
+print('Extracting TMP, HGT, UGRD, VGRD, at '+levstr)
+hgt = grb.select(shortName='HGT', level=levstr)[0].data()
+hgt.data[hgt.mask] = np.nan
+hgt = np.asarray(hgt) * 0.1 # convert meter to decameter
+hgt = gaussian_filter(hgt, 5)
 
-print('Extracting UGRD, VGRD at 10 m above ground')
-levstr='10 m above ground'
+tmp = grb.select(shortName='TMP', level=levstr)[0].data()
+tmp.data[tmp.mask] = np.nan
+tmp[tmp<0.] = np.nan
+tmp = np.asarray(tmp) - 273.15
+#tmp = gaussian_filter(tmp, 2)
+
+print('Calculate temperature anomaly at'+levstr)
+tmp_mean = np.nanmean(tmp)
+tmp_anomaly = tmp - tmp_mean
+
 ugrd = grb.select(shortName='UGRD', level=levstr)[0].data()
 ugrd.data[ugrd.mask] = np.nan
 ugrd = np.asarray(ugrd) * 1.94384 # convert m/s to kt
@@ -71,11 +80,8 @@ vgrd = grb.select(shortName='VGRD', level=levstr)[0].data()
 vgrd.data[vgrd.mask] = np.nan
 vgrd = np.asarray(vgrd) * 1.94384 # convert m/s to kt
 
-# Calculate wind speed
-wspd = (ugrd**2+vgrd**2)**.5
-
 #===================================================================================================
-print('Plotting MSLP and 10-m wind')
+print('Plotting HGT, TMP anomaly, UGRD, VGRD, at '+levstr)
 fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']
 
 # Set default figure parameters
@@ -89,25 +95,38 @@ mpl.rcParams['legend.fontsize'] = 8
 
 if conf['stormDomain'] == 'grid02':
     mpl.rcParams['figure.figsize'] = [6, 6]
-    fig_name = fig_prefix+'.storm.'+'mslp_wind10m.'+conf['fhhh'].lower()+'.png'
+    fig_name = fig_prefix+'.storm.'+str(conf['standardLayer'])+'mb.tempanomaly_hgt_wind.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
-    skip = 20
-    wblength = 4.5
     lonmin = lon[int(nlat/2), int(nlon/2)]-3
     lonmax = lon[int(nlat/2), int(nlon/2)]+3
     latmin = lat[int(nlat/2), int(nlon/2)]-3
     latmax = lat[int(nlat/2), int(nlon/2)]+3
+    skip = 20
+    wblength = 4.5
 else:
     mpl.rcParams['figure.figsize'] = [8, 5.4]
-    fig_name = fig_prefix+'.'+'mslp_wind10m.'+conf['fhhh'].lower()+'.png'
+    fig_name = fig_prefix+'.'+str(conf['standardLayer'])+'mb.tempanomaly_hgt_wind.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
-    skip = round(nlon/360)*10
-    wblength = 4
-   #skip = 40
     lonmin = np.min(lon)
     lonmax = np.max(lon)
     latmin = np.min(lat)
     latmax = np.max(lat)
+    skip = round(nlon/360)*10
+    wblength = 4
+   #skip = 40
+
+if conf['standardLayer'] == 200:
+    cslevels=np.arange(1080,1290,12)
+elif conf['standardLayer'] == 300:
+    cslevels=np.arange(780,1020,12)
+elif conf['standardLayer'] == 500:
+    cslevels=np.arange(480,600,6)
+elif conf['standardLayer'] == 700:
+    cslevels=np.arange(210,330,3)
+elif conf['standardLayer'] == 850:
+    cslevels=np.arange(60,180,3)
+else:
+    cslevels=np.arange(-50,4000,5)
 
 myproj = ccrs.PlateCarree()
 transform = ccrs.PlateCarree()
@@ -117,43 +136,26 @@ fig = plt.figure()
 ax = plt.axes(projection=myproj)
 ax.axis('equal')
 
-cflevels = [0,5,10,15,20,25,30,         # TD
-            35,40,45,50,55,60,          # TS
-            65,70,75,80,                # H1
-            85,90,95,                   # H2
-            100,105,110,115,            # H3
-            120,125,130,135,            # H4
-            140,145,150,155,160,165]    # H5
+#cflevels = [-12.,-10.,-8.,-6.,-4.,-2.,0.,2.,4.,6.,8.,10.,12.]
+#cfcolors = ['darkblue','mediumblue','dodgerblue','deepskyblue','lightskyblue','aliceblue',
+#            'seashell','peachpuff','salmon','tomato','red','firebrick','darkred']
+#cflevels = [-32.,-16.,-8.,-4.,-2.,-1.,0.,1.,2.,4.,8.,16.,32.]
+cflevels = [-16.,-12.,-8.,-4.,-2.,-1.,0.,1.,2.,4.,8.,12.,16.]
+cfcolors = ['darkblue','mediumblue','dodgerblue','deepskyblue','lightskyblue','white',
+            'white','salmon','tomato','red','firebrick','darkred']
+cf = ax.contourf(lon, lat, tmp_anomaly, levels=cflevels, colors=cfcolors, extend='both', transform=transform)
 
-cfcolors = ['white','white','#e0ffff','#80ffff','#00e0e0','#00c0c0','#00a0a0',                # TD: Cyan
-            '#a0ffa0','#00ff00','#00e000','#00c000','#00a000','#008000',                      # TS: Green
-            '#ffff80','#e0e000','#c0c000','#a0a000',                                          # H1: Yellow
-            '#ffc000','#ffa000','#ff8000',                                                    # H2: Orange
-            '#ff8080','#ff6060','#ff4040','#ff0000',                                          # H3: Red
-            '#e00000','#c00000','#a00000','#800000',                                          # H4: Darkred
-            '#800080','#a000a0','#c000c0','#ff00ff','#ff60ff','#ffa0ff']                      # H5: Magenta
-#           '#ffa0ff','#ff60ff','#ff00ff','#c000c0','#a000a0','#800080']                      # H5: Magenta
-
-cm = matplotlib.colors.ListedColormap(cfcolors)
-norm = matplotlib.colors.BoundaryNorm(cflevels, cm.N)
-
-cf = ax.contourf(lon, lat, wspd, cflevels, cmap=cm, norm=norm, transform=transform)
-#cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,
-#                  ticks=[10,20,30,35,40,50,60,65,70,80,85,90,100,110,115,120,130,140,150,160])
-#cb.ax.set_yticklabels(['10','20','30','TS','40','50','60','H1','70','80','H2','90',
-#                       'H3','110','H4','120','130','H5','150','160'])
-cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,
-                  ticks=[10,20,30,34,40,50,60,64,70,80,90,96,100,110,120,130,140,150,160])
-cb.ax.set_yticklabels(['10','20','30','TS','40','50','60','HR','70','80','90',
-                       'MH','100','110','120','130','140','150','160'])
+#cflevels = np.linspace(-20.,20.,41)
+#cmap = plt.get_cmap('bwr')
+#cf = ax.contourf(lon, lat, tmp_anomaly, levels=cflevels, cmap=cmap, extend='both', transform=transform)
+#cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True)
+cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True, ticks=cflevels)
 
 wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip],
               length=wblength, linewidth=0.2, color='black', transform=transform)
 
-cslevels = np.arange(840,1040,4)
-cs = ax.contour(lon, lat, slp, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
-lblevels = np.arange(840,1040,8)
-lb = plt.clabel(cs, levels=lblevels, inline_spacing=1, fmt='%d', fontsize=8)
+cs = ax.contour(lon, lat, hgt, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
+lb = plt.clabel(cs, levels=cslevels, inline_spacing=1, fmt='%d', fontsize=8)
 
 # Add borders and coastlines
 #ax.add_feature(cfeature.LAND, facecolor='whitesmoke')
@@ -170,7 +172,7 @@ gl.ylabel_style = {'size': 8, 'color': 'black'}
 print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
-title_center = 'MSLP (hPa), 10 m Wind (kt, shaded)'
+title_center = str(conf['standardLayer'])+' hPa Temperature Anomaly (${^{o}}$C, shaded), Height (dam), Wind (kt)'
 ax.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax.set_title(title_left, loc='left')

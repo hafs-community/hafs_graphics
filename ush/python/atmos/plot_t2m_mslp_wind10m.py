@@ -55,8 +55,8 @@ lat = np.asarray(grb.select(shortName='NLAT')[0].data())
 lon = np.asarray(grb.select(shortName='ELON')[0].data())
 [nlat, nlon] = np.shape(lon)
 
-print('Extracting Surface Temperature')
-levstr='surface'
+print('Extracting Temperature at 2 m above ground')
+levstr='2 m above ground'
 tmp = grb.select(shortName='TMP', level=levstr)[0].data()
 tmp.data[tmp.mask] = np.nan
 tmp = np.asarray(tmp) - 273.15 # convert K to degC
@@ -82,7 +82,7 @@ vgrd = np.asarray(vgrd) * 1.94384 # convert m/s to kt
 wspd = (ugrd**2+vgrd**2)**.5
 
 #===================================================================================================
-print('Plotting Surface Temperature, MSLP and 10-m wind')
+print('Plotting 2 m temperature, MSLP and 10 m wind')
 fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']
 
 # Set default figure parameters
@@ -96,30 +96,29 @@ mpl.rcParams['legend.fontsize'] = 8
 
 if conf['stormDomain'] == 'grid02':
     mpl.rcParams['figure.figsize'] = [6, 6]
-    fig_name = fig_prefix+'.storm.'+'surface.temp.mslp.wind.'+conf['fhhh'].lower()+'.png'
+    fig_name = fig_prefix+'.storm.'+'t2m_mslp_wind10m.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
-    skip = 20
-    wblength = 4.5
     lonmin = lon[int(nlat/2), int(nlon/2)]-3
     lonmax = lon[int(nlat/2), int(nlon/2)]+3
     latmin = lat[int(nlat/2), int(nlon/2)]-3
     latmax = lat[int(nlat/2), int(nlon/2)]+3
+    skip = 20
+    wblength = 4.5
 else:
     mpl.rcParams['figure.figsize'] = [8, 5.4]
-    fig_name = fig_prefix+'.'+'surface.temp.mslp.wind.'+conf['fhhh'].lower()+'.png'
+    fig_name = fig_prefix+'.'+'t2m_mslp_wind10m.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
-    skip = round(nlon/360)*10
-    wblength = 4
-   #skip = 40
     lonmin = np.min(lon)
     lonmax = np.max(lon)
     latmin = np.min(lat)
     latmax = np.max(lat)
+    skip = round(nlon/360)*10
+    wblength = 4
+   #skip = 40
 
 
 myproj = ccrs.PlateCarree()
 transform = ccrs.PlateCarree()
-
 
 # create figure and axes instances
 fig = plt.figure()
@@ -128,7 +127,7 @@ ax.axis('equal')
 
 cflevels = np.linspace(-20, 40, 121)
 ctmp = plt.get_cmap('nipy_spectral')
-cmap = mpl.colors.LinearSegmentedColormap.from_list('sub_'+ctmp.name,ctmp(np.linspace(0.02, 0.98, 201)))
+cmap = mpl.colors.LinearSegmentedColormap.from_list('sub_'+ctmp.name,ctmp(np.linspace(0.04, 0.98, 201)))
 cf = ax.contourf(lon, lat, tmp, levels=cflevels, cmap=cmap, extend='both', transform=transform)
 cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True, ticks=cflevels[::10])
 
@@ -155,7 +154,7 @@ gl.ylabel_style = {'size': 8, 'color': 'black'}
 print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
-title_center = 'Surface Temperature (${^o}$C, shaded), MSLP (hPa) and 10-m Wind (kt)'
+title_center = '2 m Temperature (${^o}$C, shaded), MSLP (hPa), 10 m Wind (kt)'
 ax.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax.set_title(title_left, loc='left')

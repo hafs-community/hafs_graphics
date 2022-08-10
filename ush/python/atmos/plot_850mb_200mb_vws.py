@@ -77,13 +77,13 @@ v850 = grb.select(shortName='VGRD', level=levstr)[0].data()
 v850.data[v850.mask] = np.nan
 v850 = np.asarray(v850) * 1.94384 # convert m/s to kt
 
-# Calculate VWS   
-uvws=u200-u850
-vvws=v200-v850
-mag=(uvws**2+vvws**2)**.5
+# Calculate VWS
+uvws = u200-u850
+vvws = v200-v850
+mag = (uvws**2+vvws**2)**.5
 
 #===================================================================================================
-print('Plotting 200-850-hPa for domain1 only')
+print('Plotting 200-850-hPa vertical wind shear')
 fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']
 
 # Set default figure parameters
@@ -95,16 +95,27 @@ mpl.rcParams['xtick.labelsize'] = 8
 mpl.rcParams['ytick.labelsize'] = 8
 mpl.rcParams['legend.fontsize'] = 8
 
-mpl.rcParams['figure.figsize'] = [8, 5.4]
-fig_name = fig_prefix+'.'+'wind_shear.'+conf['fhhh'].lower()+'.png'
-cbshrink = 1.0
-skip = round(nlon/360)*10
-#skip = round(nlon/360)*20
-wblength = 4
-lonmin = np.min(lon)
-lonmax = np.max(lon)
-latmin = np.min(lat)
-latmax = np.max(lat)
+if conf['stormDomain'] == 'grid02':
+    mpl.rcParams['figure.figsize'] = [6, 6]
+    fig_name = fig_prefix+'.storm.'+'850mb_200mb_vws'+conf['fhhh'].lower()+'.png'
+    cbshrink = 1.0
+    lonmin = lon[int(nlat/2), int(nlon/2)]-3
+    lonmax = lon[int(nlat/2), int(nlon/2)]+3
+    latmin = lat[int(nlat/2), int(nlon/2)]-3
+    latmax = lat[int(nlat/2), int(nlon/2)]+3
+    skip = 20
+    wblength = 4.5
+else:
+    mpl.rcParams['figure.figsize'] = [8, 5.4]
+    fig_name = fig_prefix+'.'+'850mb_200mb_vws.'+conf['fhhh'].lower()+'.png'
+    cbshrink = 1.0
+    lonmin = np.min(lon)
+    lonmax = np.max(lon)
+    latmin = np.min(lat)
+    latmax = np.max(lat)
+    skip = round(nlon/360)*10
+    wblength = 4
+   #skip = 40
 
 myproj = ccrs.PlateCarree()
 transform = ccrs.PlateCarree()
@@ -114,28 +125,30 @@ fig = plt.figure()
 ax = plt.axes(projection=myproj)
 ax.axis('equal')
 
-cflevels = [0,10,20,
-            25,30,35,40,
-            45,50,55,60,
-            65,70,75,80,
-            85,90,95,100,105,110,200]  # Maximum value should be 200 so that vws greater than 110kt is light pink 
+cflevels = [0,5,10,15,
+            20,25,30,35,
+            40,45,50,
+            55,60,65,70,
+            75,80,85,90,
+            95,100,105,110,115,120]
 
-cfcolors = ['white','white','paleturquoise','darkturquoise','cyan',  
-'#3DB388','limegreen','lime','#ADFF2F',
-'#FEFE33','#FEED26','#D9C21D','#EDD622',
-'#ffc000','#ffa000','#ff8000',
-'#F71746','#E21B22','#FF4EA4','#FF93C4','#FFE1FF']
+cfcolors = ['#ffffff','#80ffff','#00c0c0','#00a0a0', # Cyan
+            '#ffff80','#e0e000','#c0c000','#a0a000', # Yellow
+            '#ffc000','#ffa000','#ff8000',           # Orange
+            '#ff8080','#ff6060','#ff4040','#ff0000', # Red
+            '#e00000','#c00000','#a00000','#800000', # Darkred
+            '#800080','#a000a0','#c000c0','#ff00ff','#ff60ff','#ffa0ff'] # Magenta
+#           '#ffa0ff','#ff60ff','#ff00ff','#c000c0','#a000a0','#800080'] # Magenta
 
 cm = matplotlib.colors.ListedColormap(cfcolors)
 norm = matplotlib.colors.BoundaryNorm(cflevels, cm.N)
 
-cf = ax.contourf(lon, lat, mag, cflevels, cmap=cm, norm=norm, transform=transform)
-cb = plt.colorbar(cf, orientation='vertical', pad=0.01, aspect=50, shrink=cbshrink, extendrect=True,
-                  ticks=[10,20,30,40,50,60,70,80,90,100,110])
-cb.ax.set_yticklabels(['Weak','20\nStrong','30','40','50','60','70','80','90','100','110'])
+cf = ax.contourf(lon, lat, mag, cflevels, cmap=cm, norm=norm, extend='max', transform=transform)
+cb = plt.colorbar(cf, orientation='vertical', pad=0.01, aspect=50, extend='max', shrink=cbshrink, extendrect=True,
+                  ticks=cflevels[::2])
 
 wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], u200[::skip,::skip], v200[::skip,::skip],
-              length=wblength, linewidth=0.3, color='purple', transform=transform)
+              length=wblength, linewidth=0.3, color='blue', transform=transform)
 wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], u850[::skip,::skip], v850[::skip,::skip],
               length=wblength, linewidth=0.3, color='black', transform=transform)
 
@@ -154,7 +167,7 @@ gl.ylabel_style = {'size': 8, 'color': 'black'}
 print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
-title_center = '200-hPa wind (purple), 850-hPa wind (black), and 200-850 hPa VWS (kt, shaded)'
+title_center = '200 hPa Wind (blue), 850 hPa Wind (black), 200-850 hPa VWS (kt, shaded)'
 ax.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax.set_title(title_left, loc='left')

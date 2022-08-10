@@ -45,19 +45,19 @@ conf['validTime'] = conf['initTime'] + conf['fcstTime']
 cartopy.config['data_dir'] = conf['cartopyDataDir']
 print(conf)
 
-fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+conf['stormDomain']+'.'+conf['fhhh']+'.grb2' 
+fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+conf['stormDomain']+'.'+conf['fhhh']+'.grb2'
 grib2file = os.path.join(conf['COMhafs'], fname)
 print(f'grib2file: {grib2file}')
-grb = grib2io.open(grib2file,mode='r')   
+grb = grib2io.open(grib2file,mode='r')
 
 if conf['stormDomain'] == 'grid01':
     grb_apcp = grb # extract apcp from domain grid01
 
 if conf['stormDomain'] == 'grid02':
-    fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+'grid01'+'.'+conf['fhhh']+'.grb2' 
+    fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+'grid01'+'.'+conf['fhhh']+'.grb2'
     grib2file = os.path.join(conf['COMhafs'], fname)
     print(f'grib2file for accumulated precipitation: {grib2file}')
-    grb_apcp = grib2io.open(grib2file,mode='r') # extract apcp from domain grid01  
+    grb_apcp = grib2io.open(grib2file,mode='r') # extract apcp from domain grid01
 
     print('Extracting lat, lon for accumulated precipitation')
     lat_apcp = np.asarray(grb_apcp.select(shortName='NLAT')[0].data())
@@ -110,7 +110,7 @@ mpl.rcParams['legend.fontsize'] = 8
 
 if conf['stormDomain'] == 'grid02':
     mpl.rcParams['figure.figsize'] = [6, 6]
-    fig_name = fig_prefix+'.storm.'+'precip.mslp.thk.'+conf['fhhh'].lower()+'.png'
+    fig_name = fig_prefix+'.storm.'+'precip_mslp_thk.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
     lonmin = lon[int(nlat/2), int(nlon/2)]-3
     lonmax = lon[int(nlat/2), int(nlon/2)]+3
@@ -118,7 +118,7 @@ if conf['stormDomain'] == 'grid02':
     latmax = lat[int(nlat/2), int(nlon/2)]+3
 else:
     mpl.rcParams['figure.figsize'] = [8, 5.4]
-    fig_name = fig_prefix+'.'+'precip.mslp.thk.'+conf['fhhh'].lower()+'.png'
+    fig_name = fig_prefix+'.'+'precip_mslp_thk.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
     lonmin = np.min(lon)
     lonmax = np.max(lon)
@@ -145,7 +145,7 @@ lb = plt.clabel(cs, levels=lblevels, inline_spacing=1, fmt='%d', fontsize=6)
 
 cflevels = [0,                   # white
             0.01,0.1,0.25,       # blue
-            0.5,0.75,1,          # greem
+            0.5,0.75,1,          # green
             1.5,2,2.5,           # yellow
             3,4,5,               # red
             6,8,10,11]           # purple
@@ -158,14 +158,14 @@ cfcolors = ['white',                                       # white
             'mediumvioletred','darkorchid','darkmagenta']  # purple
 
 cm = matplotlib.colors.ListedColormap(cfcolors)
-norm = matplotlib.colors.BoundaryNorm(cflevels, cm.N)  
+norm = matplotlib.colors.BoundaryNorm(cflevels, cm.N)
 
 if conf['stormDomain'] == 'grid01':
     cf = ax.contourf(lon, lat, apcp, cflevels, cmap=cm, norm=norm, transform=transform)
 elif conf['stormDomain'] == 'grid02':
     cf = ax.contourf(lon_apcp, lat_apcp, apcp, cflevels, cmap=cm, norm=norm, transform=transform)
 
-cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True, 
+cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,
                   ticks=[0.01,0.1,0.25,0.5,0.75,1,1.5,2,2.5,3,4,5,6,8,10])
 cb.ax.set_yticklabels(['0.01','0.1','0.25','0.5','0.75','1','1.5','2.0','2.5','3.0','4.0','5.0','6.0','8.0','10.0'])
 
@@ -184,13 +184,13 @@ gl.ylabel_style = {'size': 8, 'color': 'black'}
 print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
-title_center = '3-H Acc. Precip. (in), MSLP (hPa), and 1000-500mb Thickness (dam, red)'
+title_center = '3 h Acc. Precip. (in, shaded), MSLP (hPa), 1000-500 hPa Thickness (dam, red)'
 ax.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax.set_title(title_left, loc='left')
 title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
 ax.set_title(title_right, loc='right')
 
-#plt.show() 
+#plt.show()
 plt.savefig(fig_name, bbox_inches='tight')
 plt.close(fig)

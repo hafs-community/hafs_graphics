@@ -45,17 +45,17 @@ conf['validTime'] = conf['initTime'] + conf['fcstTime']
 cartopy.config['data_dir'] = conf['cartopyDataDir']
 print(conf)
 
-fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+conf['stormDomain']+'.'+conf['fhhh']+'.grb2' 
+fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+conf['stormDomain']+'.'+conf['fhhh']+'.grb2'
 grib2file = os.path.join(conf['COMhafs'], fname)
 print(f'grib2file: {grib2file}')
-grb = grib2io.open(grib2file,mode='r')   
+grb = grib2io.open(grib2file,mode='r')
 
 print('Extracting lat, lon')
 lat = np.asarray(grb.select(shortName='NLAT')[0].data())
 lon = np.asarray(grb.select(shortName='ELON')[0].data())
 [nlat, nlon] = np.shape(lon)
 
-print('Extracting Radar Reflectivity')
+print('Extracting Composite Reflectivity')
 ref = grb.select(shortName='REFC')[0].data()
 ref.data[ref.mask] = np.nan
 #ref = gaussian_filter(ref, 5)
@@ -84,7 +84,7 @@ if conf['stormDomain'] == 'grid02':
     latmin = lat[int(nlat/2), int(nlon/2)]-3
     latmax = lat[int(nlat/2), int(nlon/2)]+3
 else:
-    mpl.rcParams['figure.figsize'] = [8, 4.8]
+    mpl.rcParams['figure.figsize'] = [8, 5.4]
     fig_name = fig_prefix+'.'+'reflectivity.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
     skip = round(nlon/360)*10
@@ -103,19 +103,17 @@ fig = plt.figure()
 ax = plt.axes(projection=myproj)
 ax.axis('equal')
 
-cflevels = [0,5,10,15,20,25,30,35,      
-            40,45,50,55,60,65,70,75]
-
+cflevels = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75]
 cfcolors = ['white','cyan','deepskyblue','blue','lime','limegreen','green',
-            'yellow','goldenrod','orange','red','firebrick','darkred','magenta','darkorchid']                        
+            'yellow','gold','orange','red','firebrick','darkred','magenta','darkorchid','purple']
 
 cm = matplotlib.colors.ListedColormap(cfcolors)
-norm = matplotlib.colors.BoundaryNorm(cflevels, cm.N)  
+norm = matplotlib.colors.BoundaryNorm(cflevels, cm.N)
 
-cf = ax.contourf(lon, lat, ref, cflevels, cmap=cm, norm=norm, transform=transform)
-cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True, 
-                  ticks=[5,10,15,20,25,30,35,40,45,50,55,60,65,70])
-cb.ax.set_yticklabels(['5','10','15','20','25','30','35','40','45','50','55','60','65','70'])
+cf = ax.contourf(lon, lat, ref, cflevels, cmap=cm, norm=norm, extend='max', transform=transform)
+cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,
+                  ticks=[5,10,15,20,25,30,35,40,45,50,55,60,65,70,75])
+cb.ax.set_yticklabels(['5','10','15','20','25','30','35','40','45','50','55','60','65','70','75'])
 
 # Add borders and coastlines
 #ax.add_feature(cfeature.LAND, facecolor='whitesmoke')
@@ -132,13 +130,13 @@ gl.ylabel_style = {'size': 8, 'color': 'black'}
 print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
-title_center = 'Radar Reflectivity(shaded, dBZ)'
+title_center = 'Composite Reflectivity (dBZ, shaded)'
 ax.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax.set_title(title_left, loc='left')
 title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
 ax.set_title(title_right, loc='right')
 
-#plt.show() 
+#plt.show()
 plt.savefig(fig_name, bbox_inches='tight')
 plt.close(fig)

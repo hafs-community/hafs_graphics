@@ -1,0 +1,11 @@
+# yaml configure file
+stormModel: ${stormModel:-HAFS}
+stormName: ${stormName:-IDA}
+stormID: ${stormID:-09L}
+stormBasin: ${stormBasin:-AL}
+stormDomain: ${stormDomain:-grid01}
+ymdh: '${ymdh:-2021082800}'
+fhhh: ${fhhh:-f036}
+standardLayer: ${standardLayer:-850}
+COMhafs: ${COMhafs:-/lfs/h2/emc/hur/noscrub/bin.liu/save/hafs_com_2021082800_09L}
+cartopyDataDir: ${cartopyDataDir:-/lfs/h2/emc/hur/noscrub/local/share/cartopy}

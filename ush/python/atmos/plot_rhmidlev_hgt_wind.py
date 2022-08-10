@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""This script is to plot out HAFS temperature anomaly, geopotential height and wind figures at 200 hPa."""
+"""This script is to plot out HAFS atmospheric 700-500hPa mean RH, and 700-hPa geopotential height and wind"""
 
 import os
 import sys
@@ -45,28 +45,41 @@ conf['validTime'] = conf['initTime'] + conf['fcstTime']
 cartopy.config['data_dir'] = conf['cartopyDataDir']
 print(conf)
 
-fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+conf['stormDomain']+'.'+conf['fhhh']+'.grb2' 
+fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+conf['stormDomain']+'.'+conf['fhhh']+'.grb2'
 grib2file = os.path.join(conf['COMhafs'], fname)
 print(f'grib2file: {grib2file}')
-grb = grib2io.open(grib2file,mode='r')   
+grb = grib2io.open(grib2file,mode='r')
 
 print('Extracting lat, lon')
 lat = np.asarray(grb.select(shortName='NLAT')[0].data())
 lon = np.asarray(grb.select(shortName='ELON')[0].data())
 [nlat, nlon] = np.shape(lon)
 
-levstr=str(conf['standardLayer'])+' mb'
-print('Extracting TMP, HGT, UGRD, VGRD, at '+levstr)
+RHlevs=np.arange(500,701,25)
+print(RHlevs)
+for ind, lv in enumerate(RHlevs):
+    levstr= str(lv)+' mb'
+    print('Extracting RH at '+levstr)
+    rh = grb.select(shortName='RH', level=levstr)[0].data()
+    rh.data[rh.mask] = np.nan
+    rh[rh<0.] = np.nan
+    rh = np.asarray(rh)
+    if ind == 0:
+        rhtmp=np.zeros((len(RHlevs),rh.shape[0],rh.shape[1]))
+        print(rhtmp.shape)
+        rhtmp[ind,:,:]=rh
+    rhtmp[ind,:,:]=rh
+print(rhtmp.shape)
+
+rhave = np.mean(rhtmp,axis=0)
+print(rhave.shape)
+
+levstr='700 mb'
+print('Extracting HGT, UGRD, VGRD, at '+levstr)
 hgt = grb.select(shortName='HGT', level=levstr)[0].data()
 hgt.data[hgt.mask] = np.nan
 hgt = np.asarray(hgt) * 0.1 # convert meter to decameter
 hgt = gaussian_filter(hgt, 5)
-
-tmp = grb.select(shortName='TMP', level=levstr)[0].data()
-tmp.data[tmp.mask] = np.nan
-tmp[tmp<0.] = np.nan
-tmp = np.asarray(tmp) - 273.15
-#tmp = gaussian_filter(tmp, 2)
 
 ugrd = grb.select(shortName='UGRD', level=levstr)[0].data()
 ugrd.data[ugrd.mask] = np.nan
@@ -77,12 +90,7 @@ vgrd.data[vgrd.mask] = np.nan
 vgrd = np.asarray(vgrd) * 1.94384 # convert m/s to kt
 
 #===================================================================================================
-print('Calculate temperature anomaly at'+levstr)
-tmp_mean = np.nanmean(tmp)
-tmp_anomaly = tmp - tmp_mean
-
-#===================================================================================================
-print('Plotting HGT, TMPANOMALY, UGRD, VGRD, at '+levstr)
+print('Plotting HGT, RH, UGRD, VGRD, at '+levstr)
 fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']
 
 # Set default figure parameters
@@ -96,7 +104,7 @@ mpl.rcParams['legend.fontsize'] = 8
 
 if conf['stormDomain'] == 'grid02':
     mpl.rcParams['figure.figsize'] = [6, 6]
-    fig_name = fig_prefix+'.storm.'+str(conf['standardLayer'])+'mb.TempAnomaly.hgt.wind.'+conf['fhhh'].lower()+'.png'
+    fig_name = fig_prefix+'.storm.'+'rhmidlev_hgt_wind.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
     lonmin = lon[int(nlat/2), int(nlon/2)]-3
     lonmax = lon[int(nlat/2), int(nlon/2)]+3
@@ -105,8 +113,8 @@ if conf['stormDomain'] == 'grid02':
     skip = 20
     wblength = 4.5
 else:
-    mpl.rcParams['figure.figsize'] = [8, 4.8]
-    fig_name = fig_prefix+'.'+str(conf['standardLayer'])+'mb.TempAnomaly.hgt.wind.'+conf['fhhh'].lower()+'.png'
+    mpl.rcParams['figure.figsize'] = [8, 5.4]
+    fig_name = fig_prefix+'.'+'rhmidlev_hgt_wind.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
     lonmin = np.min(lon)
     lonmax = np.max(lon)
@@ -116,7 +124,7 @@ else:
     wblength = 4
    #skip = 40
 
-cslevels=np.arange(1080,1290,12)
+cslevels=np.arange(210,330,3)
 
 myproj = ccrs.PlateCarree()
 transform = ccrs.PlateCarree()
@@ -126,15 +134,14 @@ fig = plt.figure()
 ax = plt.axes(projection=myproj)
 ax.axis('equal')
 
-#cflevels = [-10.,-9.,-8.,-7.,-6.,-5.,-4.,-3.,-2.,-1.,0.,1.,2.,3.,4.,5.,6.,7.,8.,9.,10.] 
-cflevels = [-12.,-10.,-8.,-6.,-4.,-2.,0.,2.,4.,6.,8.,10.,12.] 
-#cfcolors = ['darkblue','mediumblue','royalblue','dodgerblue','cornflowerblue','deepskyblue','skyblue','lightsteelblue','aliceblue',
-cfcolors = ['darkblue','mediumblue','dodgerblue','deepskyblue','lightskyblue','aliceblue',
-            'seashell','peachpuff','salmon','tomato','red','firebrick','darkred']
-cf = ax.contourf(lon, lat, tmp_anomaly, levels=cflevels, colors=cfcolors, extend='max', transform=transform)
-cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True)
+cflevels = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,99]
+cfcolors = ['#996515','#a3742c','#ad8444','#b8935b','#c2a373','#ccb28a','#d6c1a1','#e0d1b9','#ebe0d0','#f5f0e8', # Brown https://colorswall.com/palette/26287
+            '#ffffff','#cce0cc','#b3d1b3','#99c199','#80b280','#66a266','#4d934d','#338333','#197419','#006400','#005000'] # Green https://colorswall.com/palette/1452
 
-wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip], 
+cf = ax.contourf(lon, lat, rhave, levels=cflevels, colors=cfcolors, extend='max', transform=transform)
+cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, extend='max', extendfrac='auto', shrink=cbshrink, extendrect=True, ticks=cflevels)
+
+wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip],
               length=wblength, linewidth=0.2, color='black', transform=transform)
 
 cs = ax.contour(lon, lat, hgt, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
@@ -155,13 +162,13 @@ gl.ylabel_style = {'size': 8, 'color': 'black'}
 print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
-title_center = str(conf['standardLayer'])+'-hPa Temperature Anomaly(shaded, ${^{o}}$C), Height (dam), Wind (kt)'
+title_center = '700-500 hPa Mean RH (%, shaded), '+'700 hPa Height (dam), Wind (kt)'
 ax.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax.set_title(title_left, loc='left')
 title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
 ax.set_title(title_right, loc='right')
 
-#plt.show() 
+#plt.show()
 plt.savefig(fig_name, bbox_inches='tight')
 plt.close(fig)

@@ -91,7 +91,7 @@ mpl.rcParams['legend.fontsize'] = 8
 
 if conf['stormDomain'] == 'grid02':
     mpl.rcParams['figure.figsize'] = [6, 6]
-    fig_name = fig_prefix+'.storm.'+str(conf['standardLayer'])+'mb.temp.hgt.wind.'+conf['fhhh'].lower()+'.png'
+    fig_name = fig_prefix+'.storm.'+str(conf['standardLayer'])+'mb.temp_hgt_wind.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
     lonmin = lon[int(nlat/2), int(nlon/2)]-3
     lonmax = lon[int(nlat/2), int(nlon/2)]+3
@@ -101,7 +101,7 @@ if conf['stormDomain'] == 'grid02':
     wblength = 4.5
 else:
     mpl.rcParams['figure.figsize'] = [8, 5.4]
-    fig_name = fig_prefix+'.'+str(conf['standardLayer'])+'mb.temp.hgt.wind.'+conf['fhhh'].lower()+'.png'
+    fig_name = fig_prefix+'.'+str(conf['standardLayer'])+'mb.temp_hgt_wind.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
     lonmin = np.min(lon)
     lonmax = np.max(lon)
@@ -141,7 +141,7 @@ ax.axis('equal')
 #ctmp = plt.get_cmap('gist_ncar')
 #cmap = mpl.colors.LinearSegmentedColormap.from_list('sub_'+ctmp.name, ctmp(np.linspace(0.10, 0.98, 201)))
 ctmp = plt.get_cmap('nipy_spectral')
-cmap = mpl.colors.LinearSegmentedColormap.from_list('sub_'+ctmp.name, ctmp(np.linspace(0.02, 0.98, 201)))
+cmap = mpl.colors.LinearSegmentedColormap.from_list('sub_'+ctmp.name, ctmp(np.linspace(0.04, 0.98, 201)))
 cf = ax.contourf(lon, lat, tmp, levels=cflevels, cmap=cmap, extend='both', transform=transform)
 cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,
                   ticks=cflevels[::10])
@@ -169,7 +169,7 @@ gl.ylabel_style = {'size': 8, 'color': 'black'}
 print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
-title_center = str(conf['standardLayer'])+'-hPa Temperature (${^o}$C, shaded), Height (dam), Wind (kt)'
+title_center = str(conf['standardLayer'])+' hPa Temperature (${^o}$C, shaded), Height (dam), Wind (kt)'
 ax.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax.set_title(title_left, loc='left')
