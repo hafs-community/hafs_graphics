@@ -147,18 +147,18 @@ cf = ax.contourf(lon, lat, mag, cflevels, cmap=cm, norm=norm, extend='max', tran
 cb = plt.colorbar(cf, orientation='vertical', pad=0.01, aspect=50, extend='max', shrink=cbshrink, extendrect=True,
                   ticks=cflevels[::2])
 
-wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], u200[::skip,::skip], v200[::skip,::skip],
-              length=wblength, linewidth=0.3, color='blue', transform=transform)
-wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], u850[::skip,::skip], v850[::skip,::skip],
-              length=wblength, linewidth=0.3, color='black', transform=transform)
+wb1 = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], u200[::skip,::skip], v200[::skip,::skip],
+               length=wblength, linewidth=0.3, color='blue', transform=transform)
+wb2 = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], u850[::skip,::skip], v850[::skip,::skip],
+               length=wblength, linewidth=0.3, color='black', transform=transform)
 
 # Add borders and coastlines
-#ax.add_feature(cfeature.LAND, facecolor='whitesmoke')
-ax.add_feature(cfeature.BORDERS, linewidth=0.5, facecolor='none', edgecolor='gray')
-ax.add_feature(cfeature.STATES, linewidth=0.5, facecolor='none', edgecolor='gray')
-ax.add_feature(cfeature.COASTLINE, linewidth=1.0, facecolor='none', edgecolor='dimgray')
+#ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')
+ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.6, color='lightgray', alpha=0.6, linestyle=(0, (5, 10)))
+gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
 gl.top_labels = False
 gl.right_labels = False
 gl.xlabel_style = {'size': 8, 'color': 'black'}

@@ -170,12 +170,12 @@ cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshri
 cb.ax.set_yticklabels(['0.01','0.1','0.25','0.5','0.75','1','1.5','2.0','2.5','3.0','4.0','5.0','6.0','8.0','10.0'])
 
 # Add borders and coastlines
-#ax.add_feature(cfeature.LAND, facecolor='whitesmoke')
-ax.add_feature(cfeature.BORDERS, linewidth=0.5, facecolor='none', edgecolor='gray')
-ax.add_feature(cfeature.STATES, linewidth=0.5, facecolor='none', edgecolor='gray')
-ax.add_feature(cfeature.COASTLINE, linewidth=1.0, facecolor='none', edgecolor='dimgray')
+#ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')
+ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.6, color='lightgray', alpha=0.6, linestyle=(0, (5, 10)))
+gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
 gl.top_labels = False
 gl.right_labels = False
 gl.xlabel_style = {'size': 8, 'color': 'black'}
