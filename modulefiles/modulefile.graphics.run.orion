@@ -29,3 +29,6 @@ module load wgrib2/2.0.8
 #Temporarily workaround since the above wgrib2/2.0.8 does not work for
 #converting grib2 to netcdf
 setenv WGRIB2 /apps/wgrib-2.0.8/wgrib2/wgrib2
+
+setenv MPISERIAL /work/noaa/hwrf/noscrub/local/bin/mpiserial
+setenv cartopyDataDir /work/noaa/hwrf/noscrub/local/share/cartopy
