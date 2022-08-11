@@ -97,7 +97,7 @@ mpl.rcParams['legend.fontsize'] = 8
 
 if conf['stormDomain'] == 'grid02':
     mpl.rcParams['figure.figsize'] = [6, 6]
-    fig_name = fig_prefix+'.storm.'+'850mb_200mb_vws'+conf['fhhh'].lower()+'.png'
+    fig_name = fig_prefix+'.storm.'+'850mb_200mb_vws.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
     lonmin = lon[int(nlat/2), int(nlon/2)]-3
     lonmax = lon[int(nlat/2), int(nlon/2)]+3

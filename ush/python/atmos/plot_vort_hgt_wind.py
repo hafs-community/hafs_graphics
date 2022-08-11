@@ -92,7 +92,7 @@ mpl.rcParams['legend.fontsize'] = 8
 
 if conf['stormDomain'] == 'grid02':
     mpl.rcParams['figure.figsize'] = [6, 6]
-    fig_name = fig_prefix+'.storm.'+str(conf['standardLayer'])+'mb.vort_hgt_wind.'+conf['fhhh'].lower()+'.png'
+    fig_name = fig_prefix+'.storm.'+'vort_hgt_wind.'+str(conf['standardLayer'])+'mb.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
     lonmin = lon[int(nlat/2), int(nlon/2)]-3
     lonmax = lon[int(nlat/2), int(nlon/2)]+3
@@ -102,7 +102,7 @@ if conf['stormDomain'] == 'grid02':
     wblength = 4.5
 else:
     mpl.rcParams['figure.figsize'] = [8, 5.4]
-    fig_name = fig_prefix+'.'+str(conf['standardLayer'])+'mb.vort_hgt_wind.'+conf['fhhh'].lower()+'.png'
+    fig_name = fig_prefix+'.'+'vort_hgt_wind.'+str(conf['standardLayer'])+'mb.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
     lonmin = np.min(lon)
     lonmax = np.max(lon)
