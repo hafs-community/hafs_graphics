@@ -216,19 +216,19 @@ def main():
                       bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
 
     # Add borders and coastlines
-    ax.add_feature(cfeature.LAND, facecolor='whitesmoke')
-    ax.add_feature(cfeature.BORDERS, linewidth=0.5, facecolor='none', edgecolor='gray')
-    ax.add_feature(cfeature.STATES, linewidth=0.5, facecolor='none', edgecolor='gray')
-    ax.add_feature(cfeature.COASTLINE, linewidth=0.5, facecolor='none', edgecolor='gray')
+    ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')
+    ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+    ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+    ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-    ax.set_extent([lonmin, lonmax, latmin, latmax])
-    gl = ax.gridlines(draw_labels=True, linewidth=0.6, color='lightgray', alpha=0.6, linestyle=(0, (5, 10)))
+    gl = ax.gridlines(crs=map_projection, draw_labels=True, linewidth=0.3, color='0.3', alpha=0.6, linestyle=(0, (5, 10)))
     gl.top_labels = False
     gl.right_labels = False
     gl.xlabel_style = {'size': 12, 'color': 'black'}
     gl.ylabel_style = {'size': 12, 'color': 'black'}
-    gl.xlocator = mticker.FixedLocator(lontick[1::])
-    gl.ylocator = mticker.FixedLocator(lattick[1::])
+
+    print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
+    ax.set_extent([lonmin, lonmax, latmin, latmax], crs=map_projection)
 
     handles, labels = ax.get_legend_handles_labels()
     if len(handles) > 8:
@@ -271,7 +271,7 @@ def main():
     x_left, x_right = ax.get_xlim()
     y_low, y_high = ax.get_ylim()
     ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*ratio)
-    ax.grid(linewidth=0.6, color='lightgray', alpha=0.6, linestyle=(0, (5, 10)))
+    ax.grid(linewidth=0.3, color='0.3', alpha=0.6, linestyle=(0, (5, 10)))
 
     handles, labels = ax.get_legend_handles_labels()
     if len(handles) > 8:
@@ -292,7 +292,7 @@ def main():
         vmaxCat = ['TS', 'H1', 'H2', 'H3', 'H4', 'H5']
         for i in range(len(vmaxRef)):
             if vmaxRef[i] > ymin and vmaxRef[i] < ymax:
-                ax.axhline(y=vmaxRef[i], color='gray', linewidth=0.8, linestyle=(0, (5, 5)), alpha=0.6)
+                ax.axhline(y=vmaxRef[i], color='0.2', linewidth=0.5, linestyle=(0, (5, 5)), alpha=0.6)
                 ax.text(conf['forecastLength']+1, vmaxRef[i], vmaxCat[i], size=11, va='center', ha='left')
 
     figname = conf['stormName']+conf['stormID']+'.'+conf['ymdh']+'.Vmax.png'
@@ -324,7 +324,7 @@ def main():
     x_left, x_right = ax.get_xlim()
     y_low, y_high = ax.get_ylim()
     ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*ratio)
-    ax.grid(linewidth=0.6, color='lightgray', alpha=0.6, linestyle=(0, (5, 10)))
+    ax.grid(linewidth=0.3, color='0.3', alpha=0.6, linestyle=(0, (5, 10)))
 
     handles, labels = ax.get_legend_handles_labels()
     if len(handles) > 8:
@@ -345,7 +345,7 @@ def main():
         pminCat = ['H5', 'H4', 'H3', 'H2', 'H1', 'TS']
         for i in range(len(pminRef)):
             if pminRef[i] > ymin and pminRef[i] < ymax:
-                ax.axhline(y=pminRef[i], color='gray', linewidth=0.8, linestyle=(0, (5, 5)), alpha=0.6)
+                ax.axhline(y=pminRef[i], color='0.2', linewidth=0.5, linestyle=(0, (5, 5)), alpha=0.6)
                 ax.text(conf['forecastLength']+1, pminRef[i], pminCat[i], size=11, va='center', ha='left')
 
     figname = conf['stormName']+conf['stormID']+'.'+conf['ymdh']+'.Pmin.png'

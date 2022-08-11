@@ -168,10 +168,12 @@ convert -trim ${figpre}.Pmin.png ${figpre}.Pmin.png
 convert -geometry x390 -bordercolor White -border 5x5 ${figpre}.Pmin.png ${figpre}.Pmin_x400.png
 convert -gravity east -append ${figpre}.Vmax_x400.png ${figpre}.Pmin_x400.png ${figpre}.intensity_x800.png
 convert +append ${figpre}.track_x800.png ${figpre}.intensity_x800.png ${figpre}.fcst.png
-#convert ${figpre}.track.png PNG8:${figpre}.track.png
-#convert ${figpre}.Vmax.png PNG8:${figpre}.Vmax.png
-#convert ${figpre}.Pmin.png PNG8:${figpre}.Pmin.png
-#convert ${figpre}.fcst.png PNG8:${figpre}.fcst.png
+
+# Use convert to reduce colors and thus file size
+#for file in $(/bin/ls -1 *.png); do convert ${file} PNG8:${file} done
+for file in $(/bin/ls -1 *.png);
+  do convert -dither FloydSteinberg -colors 256 ${file} ${file}
+done
 
 # Deliver figures to archive dir
 mkdir -p ${archdir}
