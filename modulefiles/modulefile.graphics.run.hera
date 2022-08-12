@@ -24,3 +24,6 @@ module load hdf5/1.10.6
 module load netcdf/4.7.4
 
 module load wgrib2/2.0.8
+
+setenv MPISERIAL /scratch1/NCEPDEV/hwrf/noscrub/local/bin/mpiserial
+setenv cartopyDataDir /scratch1/NCEPDEV/hwrf/noscrub/local/share/cartopy

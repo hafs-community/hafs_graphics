@@ -53,6 +53,11 @@ module load wgrib2/2.0.8_wmo
 #converting grib2 to netcdf
 #setenv WGRIB2 /apps/wgrib-2.0.8/wgrib2/wgrib2
 
+setenv MPISERIAL /lfs/h2/emc/hur/noscrub/local/bin/mpiserial
+setenv cartopyDataDir /lfs/h2/emc/hur/noscrub/local/share/cartopy
+
+setenv cartopyDataDir /lfs/h2/emc/hur/noscrub/local/share/cartopy
+
 module load gsl/2.6
 module load udunits/2.2.28
 module load nco/4.9.7
