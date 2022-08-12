@@ -69,15 +69,17 @@ lat = np.asarray(grb.select(shortName='NLAT')[0].data())
 lon = np.asarray(grb.select(shortName='ELON')[0].data())
 [nlat, nlon] = np.shape(lon)
 
-print('Extracting PRMSL')
-slp = grb.select(shortName='PRMSL',level='mean sea level')[0].data()
+print('Extracting MSLET')
+#slp = grb.select(shortName='PRMSL',level='mean sea level')[0].data()
+slp = grb.select(shortName='MSLET')[0].data()
 slp.data[slp.mask] = np.nan
 slp = np.asarray(slp) * 0.01 # convert Pa to hPa
 slp = gaussian_filter(slp, 2)
 
 print('Extracting accumulate precipitation at surface')
-levstr='surface'
-apcp = grb_apcp.select(shortName='APCP', level=levstr)[0].data()*0.0393701  # convert kg/m^2 to in
+#levstr='surface'
+#apcp = grb_apcp.select(shortName='APCP', level=levstr)[0].data()*0.0393701  # convert kg/m^2 to in
+apcp = grb_apcp.select(shortName='APCP')[0].data()*0.0393701  # convert kg/m^2 to in
 apcp.data[apcp.mask] = np.nan
 apcp = gaussian_filter(apcp, 2)
 
@@ -96,7 +98,7 @@ thk1000_500 = (hgt500 - hgt1000)/10
 thk1000_500 = gaussian_filter(thk1000_500, 2)
 
 #===================================================================================================
-print('Plotting MSLP, APCP and 1000-500 geopotential thickness ')
+print('Plotting MSLET, APCP and 1000-500 geopotential thickness ')
 fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']
 
 # Set default figure parameters
@@ -184,7 +186,7 @@ gl.ylabel_style = {'size': 8, 'color': 'black'}
 print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
-title_center = '3 h Acc. Precip. (in, shaded), MSLP (hPa), 1000-500 hPa Thickness (dam, red)'
+title_center = '3 h Acc. Precip. (in, shaded), MSLET (hPa), 1000-500 hPa Thickness (dam, red)'
 ax.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax.set_title(title_left, loc='left')

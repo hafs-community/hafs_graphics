@@ -53,10 +53,14 @@ grb = grib2io.open(grib2file,mode='r')
 print('Extracting lat, lon')
 lat = np.asarray(grb.select(shortName='NLAT')[0].data())
 lon = np.asarray(grb.select(shortName='ELON')[0].data())
+lon = lon - 180
 [nlat, nlon] = np.shape(lon)
 
-print('Extracting PRMSL')
-slp = grb.select(shortName='PRMSL',level='mean sea level')[0].data()
+#print('Extracting PRMSL')
+#slp = grb.select(shortName='PRMSL',level='mean sea level')[0].data()
+#slp = grb.select(shortName='PRMSL')[0].data()
+print('Extracting MSLET')
+slp = grb.select(shortName='MSLET')[0].data()
 slp.data[slp.mask] = np.nan
 slp = np.asarray(slp) * 0.01 # convert Pa to hPa
 slp = gaussian_filter(slp, 5)
@@ -75,7 +79,7 @@ vgrd = np.asarray(vgrd) * 1.94384 # convert m/s to kt
 wspd = (ugrd**2+vgrd**2)**.5
 
 #===================================================================================================
-print('Plotting MSLP and 10-m wind')
+print('Plotting MSLET and 10-m wind')
 fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']
 
 # Set default figure parameters
@@ -170,7 +174,7 @@ gl.ylabel_style = {'size': 8, 'color': 'black'}
 print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
-title_center = 'MSLP (hPa), 10 m Wind (kt, shaded)'
+title_center = 'MSLET (hPa), 10 m Wind (kt, shaded)'
 ax.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax.set_title(title_left, loc='left')
