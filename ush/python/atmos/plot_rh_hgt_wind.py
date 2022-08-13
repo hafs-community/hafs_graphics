@@ -53,6 +53,16 @@ grb = grib2io.open(grib2file,mode='r')
 print('Extracting lat, lon')
 lat = np.asarray(grb.select(shortName='NLAT')[0].data())
 lon = np.asarray(grb.select(shortName='ELON')[0].data())
+# The lon range in grib2 is typically between 0 and 360
+# Cartopy's PlateCarree projection typically uses the lon range of -180 to 180
+print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
+if abs(np.max(lon) - 360.) < 10.:
+    lon[lon>180] = lon[lon>180] - 360.
+    lon_offset = 0.
+else:
+    lon_offset = 180.
+lon = lon - lon_offset
+print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 [nlat, nlon] = np.shape(lon)
 
 levstr=str(conf['standardLayer'])+' mb'
@@ -94,8 +104,10 @@ if conf['stormDomain'] == 'grid02':
     cbshrink = 1.0
     lonmin = lon[int(nlat/2), int(nlon/2)]-3
     lonmax = lon[int(nlat/2), int(nlon/2)]+3
+    lonint = 2.0
     latmin = lat[int(nlat/2), int(nlon/2)]-3
     latmax = lat[int(nlat/2), int(nlon/2)]+3
+    latint = 2.0
     skip = 20
     wblength = 4.5
 else:
@@ -104,8 +116,10 @@ else:
     cbshrink = 1.0
     lonmin = np.min(lon)
     lonmax = np.max(lon)
+    lonint = 10.0
     latmin = np.min(lat)
     latmax = np.max(lat)
+    latint = 10.0
     skip = round(nlon/360)*10
     wblength = 4
    #skip = 40
@@ -123,8 +137,8 @@ elif conf['standardLayer'] == 850:
 else:
     cslevels=np.arange(-50,4000,5)
 
-myproj = ccrs.PlateCarree()
-transform = ccrs.PlateCarree()
+myproj = ccrs.PlateCarree(lon_offset)
+transform = ccrs.PlateCarree(lon_offset)
 
 # create figure and axes instances
 fig = plt.figure()
@@ -151,9 +165,12 @@ ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='non
 ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
+#gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
+gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
 gl.top_labels = False
 gl.right_labels = False
+gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, lonint))
+gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, latint))
 gl.xlabel_style = {'size': 8, 'color': 'black'}
 gl.ylabel_style = {'size': 8, 'color': 'black'}
 

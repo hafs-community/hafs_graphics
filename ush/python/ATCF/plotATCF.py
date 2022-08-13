@@ -221,7 +221,8 @@ def main():
     ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
     ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-    gl = ax.gridlines(crs=map_projection, draw_labels=True, linewidth=0.3, color='0.3', alpha=0.6, linestyle=(0, (5, 10)))
+   #gl = ax.gridlines(crs=map_projection, draw_labels=True, linewidth=0.3, color='0.3', alpha=0.6, linestyle=(0, (5, 10)))
+    gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.3', alpha=0.6, linestyle=(0, (5, 10)))
     gl.top_labels = False
     gl.right_labels = False
     gl.xlabel_style = {'size': 12, 'color': 'black'}
