@@ -76,7 +76,7 @@ cp -up ${HOMEgraph}/ush/python/atmos/plot_atmos.yml.tmp ${work_dir}/
 cp -up ${HOMEgraph}/ush/python/atmos/${figScript} ${work_dir}
 
 # Generate the yaml config file
-stormModel=${stormModel}; stormName=${STORM}; stormID=${STORMID}
+stormModel=${stormModel}; stormName=${STORMNAME}; stormID=${STORMID}
 stormBasin=${BASIN2C}; stormDomain=${stormDomain}
 ymdh=${startDate}; fhhh=${fhhh}
 standardLayer=${standardLayer}; cartopyDataDir=${cartopyDataDir}
