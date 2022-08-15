@@ -87,12 +87,14 @@ if conf['stormDomain'] == 'grid02':
     mpl.rcParams['figure.figsize'] = [6, 6]
     fig_name = fig_prefix+'.storm.'+'reflectivity.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
-    skip = 20
-    wblength = 4.5
     lonmin = lon[int(nlat/2), int(nlon/2)]-3
     lonmax = lon[int(nlat/2), int(nlon/2)]+3
+    lonint = 2.0
     latmin = lat[int(nlat/2), int(nlon/2)]-3
     latmax = lat[int(nlat/2), int(nlon/2)]+3
+    latint = 2.0
+    skip = 20
+    wblength = 4.5
 else:
     mpl.rcParams['figure.figsize'] = [8, 5.4]
     fig_name = fig_prefix+'.'+'reflectivity.'+conf['fhhh'].lower()+'.png'
