@@ -81,7 +81,7 @@ print('Extracting accumulate precipitation at surface')
 #apcp = grb_apcp.select(shortName='APCP', level=levstr)[0].data()*0.0393701  # convert kg/m^2 to in
 apcp = grb_apcp.select(shortName='APCP')[0].data()*0.0393701  # convert kg/m^2 to in
 apcp.data[apcp.mask] = np.nan
-apcp = gaussian_filter(apcp, 2)
+#apcp = gaussian_filter(apcp, 2)
 
 print('Extracting height of the 1000 mb geopotential ')
 levstr='1000 mb'
@@ -186,13 +186,13 @@ gl.ylabel_style = {'size': 8, 'color': 'black'}
 print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
-title_center = '3 h Acc. Precip. (in, shaded), MSLET (hPa), 1000-500 hPa Thickness (dam, red)'
+title_center = '3 h Acc. Precip. (in, shaded), MSLP (hPa), 1000-500 hPa Thickness (dam, red)'
 ax.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax.set_title(title_left, loc='left')
 title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
 ax.set_title(title_right, loc='right')
 
-#plt.show()
+plt.show()
 plt.savefig(fig_name, bbox_inches='tight')
-plt.close(fig)
+#plt.close(fig)

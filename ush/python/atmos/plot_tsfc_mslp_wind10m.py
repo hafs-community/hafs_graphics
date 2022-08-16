@@ -158,7 +158,7 @@ gl.ylabel_style = {'size': 8, 'color': 'black'}
 print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
-title_center = 'Surface Water Temperature (${^o}$C, shaded), MSLET (hPa), 10 m Wind (kt)'
+title_center = 'Surface Water Temperature (${^o}$C, shaded), MSLP (hPa), 10 m Wind (kt)'
 ax.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax.set_title(title_left, loc='left')
