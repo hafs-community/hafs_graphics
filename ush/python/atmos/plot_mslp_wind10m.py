@@ -94,7 +94,7 @@ fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+
 # Set default figure parameters
 mpl.rcParams['figure.figsize'] = [8, 8]
 mpl.rcParams["figure.dpi"] = 150
-mpl.rcParams['axes.titlesize'] = 9
+mpl.rcParams['axes.titlesize'] = 8
 mpl.rcParams['axes.labelsize'] = 8
 mpl.rcParams['xtick.labelsize'] = 8
 mpl.rcParams['ytick.labelsize'] = 8

@@ -92,7 +92,7 @@ fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+
 # Set default figure parameters
 mpl.rcParams['figure.figsize'] = [8, 8]
 mpl.rcParams["figure.dpi"] = 150
-mpl.rcParams['axes.titlesize'] = 9
+mpl.rcParams['axes.titlesize'] = 8
 mpl.rcParams['axes.labelsize'] = 8
 mpl.rcParams['xtick.labelsize'] = 8
 mpl.rcParams['ytick.labelsize'] = 8
@@ -156,8 +156,11 @@ cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, extend='max',
 wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip],
               length=wblength, linewidth=0.2, color='black', transform=transform)
 
-cs = ax.contour(lon, lat, hgt, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
-lb = plt.clabel(cs, levels=cslevels, inline_spacing=1, fmt='%d', fontsize=8)
+try:
+    cs = ax.contour(lon, lat, hgt, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
+    lb = plt.clabel(cs, levels=cslevels, inline_spacing=1, fmt='%d', fontsize=8)
+except:
+    print('ax.contour failed, continue anyway')
 
 # Add borders and coastlines
 #ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')
