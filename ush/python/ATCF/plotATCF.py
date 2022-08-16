@@ -134,12 +134,17 @@ def main():
 
     # Storm track
     print('Plotting storm track ...')
-    latlonrange = 0.6
-    if (df['lon'].max() - df['lon'].min()) > 180:
-        map_projection = ccrs.PlateCarree(180.)
-        df['lon'] = df['lon'].apply(lambda x: x+360. if x < 0. else x)
+    print('raw df lonlat range:', df['lon'].min(), df['lon'].max(), df['lat'].min(), df['lat'].max())
+    if conf['stormBasin'] == 'AL':
+        lon_offset = 0.
     else:
-        map_projection = ccrs.PlateCarree(0.)
+        lon_offset = 180.
+        df['lon'] = df['lon'].apply(lambda x: x+360. if x < 0. else x)
+    print('lon_offset:', lon_offset)
+    df['lon'] = df['lon'] - lon_offset
+    print('new df lonlat range:', df['lon'].min(), df['lon'].max(), df['lat'].min(), df['lat'].max())
+    map_projection = ccrs.PlateCarree(lon_offset)
+    latlonrange = 0.6
 
     # Optimize lon/lat range and tick
     minLon = df['lon'].min()
@@ -170,9 +175,6 @@ def main():
         llint = 10.
     else:
         llint = 5.
-    lontick = np.arange(lonmin, lonmax, llint)
-    lattick = np.arange(latmin, latmax, llint)
-    lontick[lontick>180.] = lontick[lontick>180.] - 360.
 
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(1, 1, 1, projection=map_projection)
@@ -180,10 +182,13 @@ def main():
     for i, model in enumerate(conf['techModels']):
         print(f'Plotting {model} track')
         pf = df[df['tech']==model]
+       #if pf.empty: continue
         ax.plot(pf['lon'], pf['lat'], linestyle='solid', linewidth=1.5, clip_on=False, zorder=(n-i)*10,
                 color=conf['techColors'][i], alpha=1.0, marker=conf['techMarkers'][i],
                 markersize=conf['techMarkerSizes'][i], markerfacecolor=conf['techColors'][i],
-                markeredgecolor=conf['techColors'][i], label=conf['techLabels'][i], transform=ccrs.Geodetic())
+                markeredgecolor=conf['techColors'][i], label=conf['techLabels'][i])
+       #        markeredgecolor=conf['techColors'][i], label=conf['techLabels'][i], transform=map_projection)
+       #        markeredgecolor=conf['techColors'][i], label=conf['techLabels'][i], transform=ccrs.Geodetic())
         if conf['catInfo']:
             for lon, lat, vmax in zip(pf['lon'], pf['lat'], pf['vmax']):
                 if vmax >= 137.:
@@ -202,6 +207,7 @@ def main():
                     strCat = 'D'
                 ax.text(lon, lat, strCat, color='white', size=6, fontweight="bold",
                         va='center', ha='center', zorder=(n-i)*10+5)
+               #        va='center', ha='center', zorder=(n-i)*10+5, transform=map_projection)
             t=ax.text(0.02, 0.98, 'D: TD  S: TS  1-5: Hurricane Cat 1-5',
                       fontsize=10, fontweight='normal', va='top', ha='left', transform=ax.transAxes,
                       bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
@@ -211,6 +217,7 @@ def main():
                     strTau = str(int(round(tau)))
                     ax.text(lon, lat+0.3, strTau, color=conf['techColors'][i], fontsize=10,
                             va='bottom', ha='center', zorder=(n-i)*10+5)
+                   #        va='bottom', ha='center', zorder=(n-i)*10+5, transform=map_projection)
             t=ax.text(0.98, 0.98, '24,48,72,...: Forecast Hours',
                       fontsize=10, fontweight='normal', va='top', ha='right', transform=ax.transAxes,
                       bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
@@ -221,13 +228,16 @@ def main():
     ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
     ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-    gl = ax.gridlines(crs=map_projection, draw_labels=True, linewidth=0.3, color='0.3', alpha=0.6, linestyle=(0, (5, 10)))
+   #gl = ax.gridlines(crs=map_projection, draw_labels=True, linewidth=0.3, color='0.3', alpha=0.6, linestyle=(0, (5, 10)))
+    gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.3', alpha=0.6, linestyle=(0, (5, 10)))
     gl.top_labels = False
     gl.right_labels = False
+    gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, llint))
+    gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, llint))
     gl.xlabel_style = {'size': 12, 'color': 'black'}
     gl.ylabel_style = {'size': 12, 'color': 'black'}
 
-    print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
+    print('lonlat limits:', [lonmin, lonmax, latmin, latmax], 'with the lon_offset of', lon_offset)
     ax.set_extent([lonmin, lonmax, latmin, latmax], crs=map_projection)
 
     handles, labels = ax.get_legend_handles_labels()
@@ -253,6 +263,7 @@ def main():
     for i, model in enumerate(conf['techModels']):
         print(f'Plotting {model}')
         pf = df[df['tech']==model]
+       #if pf.empty: continue
         ax.plot(pf['tau'], pf['vmax'], linestyle='solid', linewidth=1.5, clip_on=False, zorder=n-i,
                 color=conf['techColors'][i], alpha=1.0, marker=conf['techMarkers'][i],
                 markersize=0.8*conf['techMarkerSizes'][i], markerfacecolor=conf['techColors'][i],
@@ -306,6 +317,7 @@ def main():
     for i, model in enumerate(conf['techModels']):
         print(f'Plotting {model}')
         pf = df[df['tech']==model]
+       #if pf.empty: continue
         ax.plot(pf['tau'], pf['mslp'], linestyle='solid', linewidth=1.5, clip_on=False, zorder=n-i,
                 color=conf['techColors'][i], alpha=1.0, marker=conf['techMarkers'][i],
                 markersize=0.8*conf['techMarkerSizes'][i], markerfacecolor=conf['techColors'][i],
