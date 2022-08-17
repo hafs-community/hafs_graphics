@@ -154,16 +154,24 @@ ax.axis('equal')
 #cfcolors = ['darkblue','mediumblue','dodgerblue','deepskyblue','lightskyblue','aliceblue',
 #            'seashell','peachpuff','salmon','tomato','red','firebrick','darkred']
 #cflevels = [-32.,-16.,-8.,-4.,-2.,-1.,0.,1.,2.,4.,8.,16.,32.]
-cflevels = [-16.,-12.,-8.,-4.,-2.,-1.,0.,1.,2.,4.,8.,12.,16.]
-cfcolors = ['darkblue','mediumblue','dodgerblue','deepskyblue','lightskyblue','white',
-            'white','salmon','tomato','red','firebrick','darkred']
-cf = ax.contourf(lon, lat, tmp_anomaly, levels=cflevels, colors=cfcolors, extend='both', transform=transform)
+
+#cflevels = [-16.,-12.,-8.,-4.,-2.,-1.,0.,1.,2.,4.,8.,12.,16.]
+#cfcolors = ['darkblue','mediumblue','dodgerblue','deepskyblue','lightskyblue','white',
+#            'white','salmon','tomato','red','firebrick','darkred']
+#cf = ax.contourf(lon, lat, tmp_anomaly, levels=cflevels, colors=cfcolors, extend='both', transform=transform)
+#cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True, ticks=cflevels)
+
+cflevels = np.arange(-16,17,1)
+ticks = np.arange(-16,17,2)
+cmap = 'RdBu_r'
+
+cf = ax.contourf(lon, lat, tmp_anomaly, levels=cflevels, cmap=cmap, extend='both', transform=transform)
+cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True, ticks=ticks)
 
 #cflevels = np.linspace(-20.,20.,41)
 #cmap = plt.get_cmap('bwr')
 #cf = ax.contourf(lon, lat, tmp_anomaly, levels=cflevels, cmap=cmap, extend='both', transform=transform)
 #cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True)
-cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True, ticks=cflevels)
 
 wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip],
               length=wblength, linewidth=0.2, color='black', transform=transform)
@@ -201,4 +209,4 @@ ax.set_title(title_right, loc='right')
 
 #plt.show()
 plt.savefig(fig_name, bbox_inches='tight')
-plt.close(fig)
+#plt.close(fig)

@@ -6,6 +6,6 @@ stormBasin: AL
 stormDomain: grid02
 ymdh: '2021082800'
 fhhh: f036
-standardLayer: 500
+standardLayer: 850
 COMhafs: /work2/noaa/hwrf/scrub/bliu/hafs_20220603_v0p3a_hfab/com/2021082800/09L
 cartopyDataDir: /work/noaa/hwrf/local/share/cartopy

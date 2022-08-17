@@ -7,7 +7,7 @@ set -xue
 # eparse function
 eparse() { set -eux; eval "set -eux; cat<<_EOF"$'\n'"$(< "$1")"$'\n'"_EOF"; }
 
-HOMEgraph=/work/noaa/hwrf/save/bliu/hafs_graphics_202207
+HOMEgraph=/work/noaa/hwrf/save/maristiz/hafs_graphics/
 module use ${HOMEgraph}/modulefiles
 module load modulefile.graphics.run.orion
 module list
@@ -33,7 +33,8 @@ for domain in grid01 grid02; do
   ./plot_850mb_200mb_vws.py
   ./plot_rhmidlev_hgt_wind.py
 
-  for level in 850 700 500 200; do
+  #for level in 850 700 500 200; do
+  for level in 850; do
     standardLayer=${level}
     eparse plot_atmos.yml.tmp > plot_atmos.yml
     ./plot_temp_hgt_wind.py
