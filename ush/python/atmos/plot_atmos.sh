@@ -32,6 +32,7 @@ for domain in grid01 grid02; do
   ./plot_reflectivity.py
   ./plot_850mb_200mb_vws.py
   ./plot_rhmidlev_hgt_wind.py
+  ./plot_heatflux_wind10m.py
 
   #for level in 850 700 500 200; do
   for level in 850; do
