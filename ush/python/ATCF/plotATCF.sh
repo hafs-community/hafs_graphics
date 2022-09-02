@@ -114,6 +114,7 @@ if [ -s ${atcfdir}/${atcffile} ]; then
   trkexist=True
 elif [ -s ${atcfdir}/${atcffile}.all ]; then
   cp -p ${atcfdir}/${atcffile}.all ./${atcffile}
+  grep -E "${BASIN}, ${num}.*${yyyymmddhh}" ${atcfdir}/${atcffile}.all > ./${atcffile}
   trkexist=True
 else
   echo "WARNING: ${atcfdir}/${atcffile} NOT PRESENT OR EMPTY"
