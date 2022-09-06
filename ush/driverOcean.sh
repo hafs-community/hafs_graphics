@@ -30,7 +30,7 @@ USHgraph=${USHgraph:-${HOMEgraph}/ush}
 WORKgraph=${WORKgraph:-${COMhafs}/../../../${startDate}/${STORMID}/emc_graphics}
 COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 
-atcfFile=${COMhafs}/${stormname}${stormid}.${startDate}.trak.hafs.atcfunix.all
+atcfFile=${COMhafs}/${stormid}.${startDate}.hafs.trak.atcfunix.all
 
 work_dir="${WORKgraph}/${STORMNAME}${STORMID}/${startDate}.${figScript%.py}"
 

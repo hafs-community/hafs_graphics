@@ -1,13 +1,13 @@
 """
 
- storm_MLD.py
+ storm_Z26.py
  -------------
     read a HYCOM 3z .nc file,
-    extract footprint MLD and plot in time series (R<=500km)
+    extract footprint Z26 and plot in time series (R<=500km)
 
 
  ************************************************************************
- usage: python storm_MLD.py stormModel stormName stormID YMDH trackon COMhafs graphdir
+ usage: python storm_Z26.py stormModel stormName stormID YMDH trackon COMhafs graphdir
  -----
  ************************************************************************
 
@@ -69,7 +69,7 @@ if not os.path.isdir(graphdir):
       p=Path(graphdir)
       p.mkdir(parents=True)
 
-print("code:   storm_MLD.py")
+print("code:   storm_Z26.py")
 
 cx,cy=coast180()
 
@@ -94,11 +94,23 @@ afiles = sorted(glob.glob(os.path.join(COMOUT,'*3z*.nc')))
 #ncfile0 = nc.Dataset(afile0[0])
 ncfile0 = xr.open_dataset(afiles[0])
 
-var0 = ncfile0['mixed_layer_thickness']
+temp = ncfile0['temperature'].isel(Z=0)
+var0 = ncfile0['depth of 26C isotherm']
 lon = np.asarray(var0[0].Longitude)
 lat = np.asarray(var0[0].Latitude)
 
-var_name = 'MLD'
+# reduce array size to 2D
+temp = np.squeeze(temp)
+var0 = np.squeeze(var0)
+
+# reshape arrays to 1D for boolean indexing
+ind = temp.shape
+temp = np.reshape(np.asarray(temp),(ind[0]*ind[1],1))
+var0 = np.reshape(np.asarray(var0),(ind[0]*ind[1],1))
+var0[np.argwhere(np.isnan(temp))] = np.nan
+var0 = np.reshape(var0,(ind[0],ind[1]))
+
+var_name = 'Z26'
 units = '(m)'
 
 lns,lts = np.meshgrid(lon,lat)
@@ -120,10 +132,18 @@ for k in range(count):
    #ncfile = nc.Dataset(afiles[k])
    ncfile = xr.open_dataset(afiles[k])
 
-   varr = ncfile['mixed_layer_thickness']
+   varr = ncfile['depth of 26C isotherm']
    var = np.asarray(varr[0])*dumb
    dvar = np.asarray(varr[0]-np.squeeze(var0))*dumb
 
+   # land mask
+   var = np.reshape(np.asarray(var),(ind[0]*ind[1],1))
+   var[np.argwhere(np.isnan(temp))] = np.nan
+   var = np.reshape(var,(ind[0],ind[1]))
+   dvar = np.reshape(np.asarray(dvar),(ind[0]*ind[1],1))
+   dvar[np.argwhere(np.isnan(temp))] = np.nan
+   dvar = np.reshape(dvar,(ind[0],ind[1]))
+   
    # define forecast hour
    fhr=k*6
    
@@ -132,10 +152,10 @@ for k in range(count):
    ax = plt.axes(projection=ccrs.PlateCarree())
    ax.axis('scaled')
    
-   cflevels = np.linspace(0, 100, 41)
+   cflevels = np.linspace(0, 150, 61)
    cmap = plt.get_cmap('RdYlBu_r')
    cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
-   cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=30, shrink=0.75, extendrect=True, ticks=cflevels[::4])
+   cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=30, shrink=0.75, extendrect=True, ticks=cflevels[::10])
    cb.ax.tick_params(labelsize=8)
    if trackon[0].lower()=='y':
          plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
@@ -160,7 +180,7 @@ for k in range(count):
    ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
    ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-   title_center = 'Mixed Layer Depth (m)'
+   title_center = 'Depth of 26$^oC$ Isotherm (m)'
    ax.set_title(title_center, loc='center', y=1.05, fontsize=8)
    title_left = model.upper()+' '+storm.upper()+tcid.upper()
    ax.set_title(title_left, loc='left', fontsize=8)
@@ -204,7 +224,7 @@ for k in range(count):
    ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
    ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-   title_center = 'Mixed Layer Depth Change (m)'
+   title_center = 'Depth of 26$^oC$ Isotherm Change (m)'
    ax.set_title(title_center, loc='center', y=1.05, fontsize=8)
    title_left = model.upper()+' '+storm.upper()+tcid.upper()
    ax.set_title(title_left, loc='left', fontsize=8)

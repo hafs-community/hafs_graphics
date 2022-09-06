@@ -1,13 +1,13 @@
 """
 
- Z20nc.py
+ Z26nc.py
  -------------
     read a HYCOM 3z .nc file,
-    extract Z20 and plot in time series.
+    extract Z26 and plot in time series.
 
 
  ************************************************************************
- usage: python Z20nc.py stormModel stormName stormID YMDH trackon COMhafs graphdir
+ usage: python Z26nc.py stormModel stormName stormID YMDH trackon COMhafs graphdir
  -----
  ************************************************************************
 
@@ -68,7 +68,7 @@ if not os.path.isdir(graphdir):
       p=Path(graphdir)
       p.mkdir(parents=True)
 
-print("code:   Z20nc.py")
+print("code:   Z26nc.py")
 
 cx,cy=coast180()
 
@@ -95,7 +95,7 @@ afiles = sorted(glob.glob(os.path.join(COMOUT,'*3z*.nc')))
 ncfile0 = xr.open_dataset(afiles[0])
 
 temp = ncfile0['temperature'].isel(Z=0)
-var0 = ncfile0['depth of 20C isotherm']
+var0 = ncfile0['depth of 26C isotherm']
 lon = np.asarray(var0.Longitude)
 lat = np.asarray(var0.Latitude)
 
@@ -115,7 +115,7 @@ lonmin = np.min(lon)
 lonmax = np.max(lon)
 latmin = np.min(lat)
 latmax = np.max(lat)
-var_name = 'Z20'
+var_name = 'Z26'
 units = '(m)'
 
 if np.logical_or(np.min(lon) > 0,np.max(lon) > 360):
@@ -127,7 +127,7 @@ for k in range(count):
 
    #ncfile = nc.Dataset(afiles[k])
    ncfile = xr.open_dataset(afiles[k])
-   varr = ncfile['depth of 20C isotherm']
+   varr = ncfile['depth of 26C isotherm']
    var = np.asarray(varr[0])
 
    # land mask
@@ -143,10 +143,10 @@ for k in range(count):
    ax = plt.axes(projection=ccrs.PlateCarree())
    ax.axis('scaled')
    
-   cflevels = np.linspace(0, 300, 61)
+   cflevels = np.linspace(0, 150, 61)
    cmap = plt.get_cmap('RdYlBu_r')
    cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
-   cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::5])
+   cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::10])
    cb.ax.tick_params(labelsize=8)
    if trackon[0].lower()=='y':
       for m,G in enumerate(gatcf):
@@ -176,7 +176,7 @@ for k in range(count):
    ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
    ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-   title_center = 'Depth of 20${^o}$C Isotherm'
+   title_center = 'Depth of 26${^o}$C Isotherm'
    ax.set_title(title_center, loc='center', y=1.05, fontsize=8)
    title_left = model.upper()+' '+storm.upper()+tcid.upper()
    ax.set_title(title_left, loc='left', fontsize=8)

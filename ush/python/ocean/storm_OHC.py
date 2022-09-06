@@ -2,54 +2,69 @@
 
  storm_OHC.py
  -------------
-    read a HYCOM surface archive .[ab] file,
-    extract 26oC isotherm and plot footprint Z20 and temporal variation 
-    on the footprint (R<=500 km).
+    read a HYCOM 3z .nc file,
+    extract 26C isotherm and plot footprint OHC  in time series (R<=500km)
 
 
- ****************************************************************************
- usage: python storm_OHC.py stormModel stormName stormID YMDH trackon COMhafs
+ ************************************************************************
+ usage: python storm_OHC.py stormModel stormName stormID YMDH trackon COMhafs graphdir
  -----
- ****************************************************************************
+ ************************************************************************
+
 
  HISTORY
  -------
-    modified to comply the convention of number of input argument and
+    modified to implement new filenames and hycom domains, as well as
+        improve graphics -JS & MA 06/2022
+    modified to comply the convention of number of input argument and 
        graphic filename. -hsk 8/2020
-    modified, so to read in *.nc files. -hsk 7/16/2020.
-    modified by HSK 9/19/2018 for multi-processing use
-    by Hyun-Sook Kim 3/1/2017
+    modified to take global varibles from kick_graphics.py -hsk 9/20/2018
+    modified to fit for RT run by Hyun-Sook Kim 5/17/2017
+    edited by Hyun-Sook Kim 9/18/2015
+    modified by Hyun-Sook Kim 11/18/2016
 ---------------------------------------------------------------
 """
-import sys
-#sys.path.insert(0,'/lfs4/HFIP/hwrfv3/Hyun.Sook.Kim/myconda')
 
 from utils4HWRF import readTrack6hrly
 from utils import coast180
 from geo4HYCOM import haversine
 
-
+import os
+import sys
+import glob
 import xarray as xr
+import numpy as np
+import netCDF4 as nc
+
 from datetime import datetime, timedelta
 
-import os
-import glob
-
+import matplotlib
+import matplotlib as mpl
 import matplotlib.pyplot as plt
-import numpy as np
-
+import matplotlib.path as mpath
+import matplotlib.ticker as mticker
+from matplotlib.gridspec import GridSpec
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+  
 from pathlib import Path
 
+import pyproj
+import cartopy
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
+
 plt.switch_backend('agg')
+
 #================================================================
-model =sys.argv[1]
+model = sys.argv[1]
 storm = sys.argv[2]
 tcid = sys.argv[3]
 cycle = sys.argv[4]
 trackon = sys.argv[5]
 COMOUT = sys.argv[6]
-
 graphdir = sys.argv[7]
+
 if not os.path.isdir(graphdir):
       p=Path(graphdir)
       p.mkdir(parents=True)
@@ -59,108 +74,167 @@ print("code:   storm_OHC.py")
 cx,cy=coast180()
 
 cx_hycom = np.asarray([cx+360 if cx<74.16 else cx for cx in np.asarray(cx)])
-cy_hycom = cy
+cy_hycom = cy 
 
-aprefix = storm.lower()+tcid.lower()+'.'+cycle
-if tcid[-1].lower()=='l':
-   nprefix = aprefix + '.hafs_hycom_hat10'
-if tcid[-1].lower()=='e':
-   nprefix = aprefix + '.hafs_hycom_hep20'
-if tcid[-1].lower()=='w':
-   nprefix = aprefix + '.hafs_hycom_hwp30'
-if tcid[-1].lower()=='c':
-   nprefix = aprefic + '.hafs_hycom_hcp70'
+atcf = COMOUT+'/' + tcid + '.' + cycle + '.' + model + '.trak.atcfunix'
 
-atcf = COMOUT+'/' + storm + tcid + '.' + cycle + '.trak.' + model + '.atcfunix'
-
-# ------------------------------------------------------------------------------------
-Rkm=500         # search radius
-#
-# - get OHC0 from *basin.yyyy_yrday_hh.nc (generated from rtofs_archv3z2nc (new hafs_ab2data codes)
-# prefix for  rtofs*.[ab] files
-#afiles = sorted(glob.glob(os.path.join(COMOUT,nprefix+'*3z*.nc')))
-afiles = sorted(glob.glob(os.path.join(COMOUT,'*3z*.nc')))
-
-# - get OHC from each *.nc files
-ncfiles=xr.open_mfdataset(afiles)
-
-adt,aln,alt,pmn,vmx=readTrack6hrly(atcf)
+adt,aln,alt,pmn,vmx = readTrack6hrly(atcf)
 aln_hycom = np.asarray([ln+360 if ln<74.16 else ln for ln in aln])
 alt_hycom = alt
 
-varr = ncfiles['ocean_heat_content']
-dvarr = varr-varr[0]
+# Set Cartopy data_dir location (not needed when modulefiles is updated)
+#cartopy.config['data_dir'] = '/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy'
+
+#   ------------------------------------------------------------------------------------
+Rkm=500    # search radius [km]
+
+# - get SST  *_3z_*.[nc] files
+afiles = sorted(glob.glob(os.path.join(COMOUT,'*3z*.nc')))
+
+#ncfile0 = nc.Dataset(afile0[0])
+ncfile0 = xr.open_dataset(afiles[0])
+
+temp = ncfile0['temperature'].isel(Z=0)
+var0 = ncfile0['ocean_heat_content']
+lon = np.asarray(var0[0].Longitude)
+lat = np.asarray(var0[0].Latitude)
+
+# reduce array size to 2D
+temp = np.squeeze(temp)
+var0 = np.squeeze(var0)
+
+# reshape arrays to 1D for boolean indexing
+ind = temp.shape
+temp = np.reshape(np.asarray(temp),(ind[0]*ind[1],1))
+var0 = np.reshape(np.asarray(var0),(ind[0]*ind[1],1))
+var0[np.argwhere(np.isnan(temp))] = np.nan
+var0 = np.reshape(var0,(ind[0],ind[1]))
+
 var_name = 'OHC'
 units = '($kJ/cm^2$)'
 
-lns,lts=np.meshgrid(varr['Longitude'],varr['Latitude'])
-dummy=np.ones(lns.shape)
+lns,lts = np.meshgrid(lon,lat)
+dummy = np.ones(lns.shape)
 
-for k in range(len(aln)):
+if np.logical_or(np.min(lon) > 0,np.max(lon) > 360):
+    cx = cx_hycom
+    cy = cy_hycom
+    aln = aln_hycom
+    alt = alt_hycom
+
+count = len(afiles)        
+for k in range(count):
 
    dR=haversine(lns,lts,aln[k],alt[k])/1000.
    dumb=dummy.copy()
    dumb[dR>Rkm]=np.nan
 
-   lon = np.asarray(varr[k].Longitude)
-   lat = np.asarray(varr[k].Latitude)
-   var = np.asarray(varr[k])*dumb
-   dvar = np.asarray(varr[k]-varr[0])*dumb
+   #ncfile = nc.Dataset(afiles[k])
+   ncfile = xr.open_dataset(afiles[k])
 
+   varr = ncfile['ocean_heat_content']
+   var = np.asarray(varr[0])*dumb
+   dvar = np.asarray(varr[0]-np.squeeze(var0))*dumb
+
+   # land mask
+   var = np.reshape(np.asarray(var),(ind[0]*ind[1],1))
+   var[np.argwhere(np.isnan(temp))] = np.nan
+   var = np.reshape(var,(ind[0],ind[1]))
+   dvar = np.reshape(np.asarray(dvar),(ind[0]*ind[1],1))
+   dvar[np.argwhere(np.isnan(temp))] = np.nan
+   dvar = np.reshape(dvar,(ind[0],ind[1]))
+
+   # define forecast hour
    fhr=k*6
-
-   fig=plt.figure(figsize=(14,5))
-   plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%03d"%(fhr)+'  (IC='+cycle+'): '+var_name+ ' & Change '+units,fontsize=15)
-
-   ax121 = plt.subplot(121)
-   kw = dict(levels=np.arange(0,166,5))
-   #kw = dict(levels=np.arange(np.floor(np.nanmin(var)),np.round(np.nanmax(var),-1)+delta_var,delta_var))
-   plt.contourf(lon,lat,var,cmap='RdYlBu_r',**kw)
-   cbar = plt.colorbar()
-   cbar.set_label(units,fontsize=14)
-   plt.plot(cx_hycom,cy_hycom,'.',color='gray',markersize=2)
+   
+   # create figure and axes instances
+   fig = plt.figure(figsize=(6,6))
+   ax = plt.axes(projection=ccrs.PlateCarree())
+   ax.axis('scaled')
+   
+   cflevels = np.linspace(0, 180, 37)
+   cmap = plt.get_cmap('Spectral_r')
+   cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
+   cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=30, shrink=0.75, extendrect=True, ticks=cflevels[::4])
+   cb.ax.tick_params(labelsize=8)
    if trackon[0].lower()=='y':
-        plt.plot(aln_hycom,alt_hycom,'-ok',linewidth=3,alpha=0.6,markersize=2)
-        plt.plot(aln_hycom[k],alt_hycom[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
+         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
+         plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
    mnmx="(min,max)="+"(%6.1f"%np.nanmin(var)+","+"%6.1f)"%np.nanmax(var)
-   plt.text(aln_hycom[k]-4.25,alt_hycom[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
-   plt.axis([aln_hycom[k]-5.5,aln_hycom[k]+5.5,alt[k]-5,alt[k]+5])
-   xticks =  np.arange(np.round(aln_hycom[k]-5.5,0),np.round(aln_hycom[k]+5.5,0),2)
-   xticklabel_geo = np.asarray([str(xt-360) if xt>=180 else str(xt) for xt in xticks])
-   ax121.set_xticks(xticks)
-   ax121.set_xticklabels(xticklabel_geo)
-   ax121.set_aspect('equal')
-   plt.ylabel('Latitude',fontsize=14)
-   plt.xlabel('Longitude',fontsize=14)
+   plt.text(aln[k]-2.15,alt[k]-4.75,mnmx,fontsize=8,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
+   plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
 
-   ax122 = plt.subplot(122)
-   kw = dict(levels=np.arange(-80,81,5))
-   plt.contourf(lon,lat,dvar,cmap='bwr',**kw)
-   cbar = plt.colorbar()
-   cbar.set_label(units,fontsize=14)
-   #dvar.plot.contourf(levels=np.arange(-500,550,50),cmap='bwr')
-   plt.plot(cx_hycom,cy_hycom,'.',color='gray',markersize=2)
-   if trackon[0].lower()=='y':
-        plt.plot(aln_hycom,alt_hycom,'-ok',linewidth=3,alpha=0.6,markersize=2)
-        plt.plot(aln_hycom[k],alt_hycom[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
-   mnmx="(min,max)="+"(%6.1f"%np.nanmin(dvar)+","+"%6.1f)"%np.nanmax(dvar)
-   plt.text(aln_hycom[k]-4.25,alt_hycom[k]-4.75,mnmx,fontsize=14,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
-   plt.axis([aln_hycom[k]-5.5,aln_hycom[k]+5.5,alt[k]-5,alt[k]+5])
-   xticks =  np.arange(np.round(aln_hycom[k]-5.5,0),np.round(aln_hycom[k]+5.5,0),2)
-   xticklabel_geo = np.asarray([str(xt-360) if xt>=180 else str(xt) for xt in xticks])
-   ax122.set_xticks(xticks)
-   ax122.set_xticklabels(xticklabel_geo)
-   ax122.set_aspect('equal')
-   plt.ylabel('Latitude',fontsize=14)
-   plt.xlabel('Longitude',fontsize=14)
+   # Add gridlines and labels
+   #gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
+   gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
+   gl.top_labels = False
+   gl.right_labels = False
+   gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, 2))
+   gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, 2))
+   gl.xlabel_style = {'size': 8, 'color': 'black'}
+   gl.ylabel_style = {'size': 8, 'color': 'black'}   
 
-   pngFile=os.path.join(graphdir,aprefix.upper()+'.'+model.upper()+'.storm.OHC.f'+"%03d"%(fhr)+'.png')
-   plt.savefig(pngFile,bbox_inches='tight')
+   # Add borders and coastlines
+   #ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')
+   ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+   ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+   ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-   plt.savefig(pngFile)
+   title_center = 'Ocean Heat Content ($kJ/cm^2$)'
+   ax.set_title(title_center, loc='center', y=1.05, fontsize=8)
+   title_left = model.upper()+' '+storm.upper()+tcid.upper()
+   ax.set_title(title_left, loc='left', fontsize=8)
+   title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
+   ax.set_title(title_right, loc='right', fontsize=8)
+ 
+   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.storm.'+var_name+'.f'+"%03d"%(fhr)+'.png')
+   plt.savefig(pngFile,bbox_inches='tight',dpi=150)
    plt.close("all")
 
+   # create figure and axes instances for change plot
+   fig = plt.figure(figsize=(6,6))
+   ax = plt.axes(projection=ccrs.PlateCarree())
+   ax.axis('scaled')
+
+   cflevels = np.linspace(-50, 50, 41)
+   cmap = plt.get_cmap('RdBu_r')
+   cf = ax.contourf(lon, lat, dvar, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
+   cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=30, shrink=0.75, extendrect=True, ticks=cflevels[::4])
+   cb.ax.tick_params(labelsize=8)
+   if trackon[0].lower()=='y':
+         plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
+         plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
+   mnmx="(min,max)="+"(%6.1f"%np.nanmin(dvar)+","+"%6.1f)"%np.nanmax(dvar)
+   plt.text(aln[k]-2.15,alt[k]-4.75,mnmx,fontsize=8,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
+   plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
+
+   # Add gridlines and labels
+#  gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
+   gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
+   gl.top_labels = False
+   gl.right_labels = False
+   gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, 2))
+   gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, 2))
+   gl.xlabel_style = {'size': 8, 'color': 'black'}
+   gl.ylabel_style = {'size': 8, 'color': 'black'}
+
+   # Add borders and coastlines
+   #ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')
+   ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+   ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+   ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+
+   title_center = 'Ocean Heat Content Change ($kJ/cm^2$)'
+   ax.set_title(title_center, loc='center', y=1.05, fontsize=8)
+   title_left = model.upper()+' '+storm.upper()+tcid.upper()
+   ax.set_title(title_left, loc='left', fontsize=8)
+   title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
+   ax.set_title(title_right, loc='right', fontsize=8)
+
+   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.storm.'+var_name+'.change.f'+"%03d"%(fhr)+'.png')
+   plt.savefig(pngFile,bbox_inches='tight',dpi=150)
+   plt.close("all")
 
 # --- successful exit
 sys.exit(0)
-#-------------------------------------------------------------------------
+

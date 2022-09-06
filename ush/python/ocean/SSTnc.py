@@ -2,18 +2,20 @@
 
  SSTnc.py
  -------------
-    read a HYCOM surface archive .[ab] file,
+    read a HYCOM 3z .nc file,
     extract SST and plot in time series.
 
 
  ************************************************************************
- usage: python SSTnc.py stormModel stormName stormID YMDH trackon COMhafs
+ usage: python SSTnc.py stormModel stormName stormID YMDH trackon COMhafs graphdir
  -----
  ************************************************************************
 
 
  HISTORY
  -------
+    modified to implement new filenames and hycom domains, as well as
+        improve graphics -JS & MA 06/2022
     modified to comply the convention of number of input argument and 
        graphic filename. -hsk 8/2020
     modified to take global varibles from kick_graphics.py -hsk 9/20/2018
@@ -30,13 +32,26 @@ import os
 import sys
 import glob
 import xarray as xr
+import numpy as np
+import netCDF4 as nc
 
 from datetime import datetime, timedelta
 
+import matplotlib
+import matplotlib as mpl
 import matplotlib.pyplot as plt
-import numpy as np
+import matplotlib.path as mpath
+import matplotlib.ticker as mticker
+from matplotlib.gridspec import GridSpec
+from mpl_toolkits.axes_grid1 import make_axes_locatable
   
 from pathlib import Path
+
+import pyproj
+import cartopy
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
 plt.switch_backend('agg')
 
@@ -47,8 +62,8 @@ tcid = sys.argv[3]
 cycle = sys.argv[4]
 trackon = sys.argv[5]
 COMOUT = sys.argv[6]
-
 graphdir = sys.argv[7]
+
 if not os.path.isdir(graphdir):
       p=Path(graphdir)
       p.mkdir(parents=True)
@@ -60,15 +75,6 @@ cx,cy=coast180()
 cx_hycom = np.asarray([cx+360 if cx<74.16 else cx for cx in np.asarray(cx)])
 cy_hycom = cy 
 
-aprefix=storm.lower()+tcid.lower()+'.'+cycle
-if tcid[-1].lower()=='l':
-   nprefix = aprefix + '.hafs_hycom_hat10'
-if tcid[-1].lower()=='e':
-   nprefix = aprefix + '.hafs_hycom_hep20'
-if tcid[-1].lower()=='w':
-   nprefix = aprefix + '.hafs_hycom_hwp30'
-if tcid[-1].lower()=='c':
-   nprefix = aprefic + '.hafs_hycom_hcp70'
 
 if trackon[0].lower()=='y':
    gatcf = glob.glob(COMOUT+'/*.atcfunix')
@@ -77,86 +83,94 @@ if trackon[0].lower()=='y':
    else:
       trackon = 'no'
 
+# Set Cartopy data_dir location (not needed when modulefiles is updated)
+#cartopy.config['data_dir'] = '/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy'
+
 #   ------------------------------------------------------------------------------------
 # - get SST  *_3z_*.[nc] files
-#
-# prefix for  rtofs*.[ab] files
-#afiles = sorted(glob.glob(os.path.join(COMOUT,nprefix+'*3z*.nc')))
 afiles = sorted(glob.glob(os.path.join(COMOUT,'*3z*.nc')))
+#afile0 = glob.glob(os.path.join(COMOUT,'*3z.f000.nc'))
 
-ncfiles=xr.open_mfdataset(afiles)
+#ncfile0 = nc.Dataset(afile0[0])
+ncfile0 = xr.open_dataset(afiles[0])
 
-varr = ncfiles['temperature'].isel(Z=0)
-dvarr = varr-varr[0]
+var0 = ncfile0['temperature'].isel(Z=0)
+lon = np.asarray(var0.Longitude)
+lat = np.asarray(var0.Latitude)
+
+# define grid boundaries
+lonmin = np.min(lon)
+lonmax = np.max(lon)
+latmin = np.min(lat)
+latmax = np.max(lat)
 var_name = 'SST'
 units = '($^oC$)'
-        
-for k in range(varr.shape[0]):
-   
-   lon = np.asarray(varr[k].Longitude)
-   lat = np.asarray(varr[k].Latitude)
-   lon_geo = np.asarray([ln-360 if ln>=180 else ln for ln in lon])
-   lat_geo = lat 
-   var = np.asarray(varr[k])
-   dvar = np.asarray(dvarr[k])
 
+if np.logical_or(np.min(lon) > 0,np.max(lon) > 360):
+    cx = cx_hycom
+    cy = cy_hycom
+
+count = len(afiles)        
+for k in range(count):
+
+   #ncfile = nc.Dataset(afiles[k])
+   ncfile = xr.open_dataset(afiles[k])
+
+   varr = ncfile['temperature'].isel(Z=0)
+   var = np.asarray(varr[0])
+
+   # define forecast hour
    fhr=k*6
-   fig=plt.figure(figsize=(15,5))
-   plt.suptitle(storm.upper()+tcid.upper()+'  '+'Ver Hr '+"%3d"%(fhr)+'  (IC='+cycle+'): '+var_name + ' & Change '+units,fontsize=15)
-
-   ax121=plt.subplot(121)
-   kw = dict(levels=np.arange(18,32,0.5))
-   #kw = dict(levels=np.arange(np.floor(np.nanmin(var)),np.ceil(np.nanmax(var)),delta_var))
-   plt.contourf(lon,lat,var,cmap='RdYlBu_r',**kw)
-   cbar = plt.colorbar()
-   cbar.set_label(units,fontsize=14)
-   plt.plot(cx_hycom,cy_hycom,'.',color='gray',markersize=2)
+   
+   # create figure and axes instances
+   fig = plt.figure(figsize=(8,4))
+   ax = plt.axes(projection=ccrs.PlateCarree())
+   ax.axis('scaled')
+   
+   cflevels = np.linspace(16, 32, 65)
+   cmap = plt.get_cmap('turbo')
+   cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
+   cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::8])
+   cb.ax.tick_params(labelsize=8)
    if trackon[0].lower()=='y':
       for m,G in enumerate(gatcf):
          adt,aln,alt,pmn,vmx=readTrack6hrly(G)
-         aln_hycom = np.asarray([ln+360 if ln<74.16 else ln for ln in aln])
-         alt_hycom = alt 
-         plt.plot(aln_hycom,alt_hycom,'-ok',markersize=2,alpha=0.4)
+
+         if np.logical_or(np.min(lon) > 0,np.max(lon) > 360):
+             aln = np.asarray([ln+360 if ln<74.16 else ln for ln in aln])
+
+         plt.plot(aln,alt,'-ok',markersize=2,alpha=0.4)
          if k < len(aln):
-            plt.plot(aln_hycom[k],alt_hycom[k],'ok',markersize=6,alpha=0.4,markerfacecolor='None')
-   plt.axis([lon[0],lon[-1],lat[0],lat[-1]])
-   xticks =  np.arange(np.round(lon[0],-1),np.round(lon[-1],-1),20)
-   xticklabel_geo = np.asarray([str(xt-360) if xt>=180 else str(xt) for xt in xticks])
-   ax121.set_xticks(xticks)
-   ax121.set_xticklabels(xticklabel_geo)
-   ax121.set_aspect('equal')
-   plt.ylabel('Latitude',fontsize=14)
-   plt.xlabel('Longitude',fontsize=14)
+            plt.plot(aln[k],alt[k],'ok',markersize=6,alpha=0.4,markerfacecolor='None')
+   ax.set_extent([lonmin, lonmax, latmin, latmax], crs=ccrs.PlateCarree())
 
-   ax122=plt.subplot(122)
-   kw = dict(levels=np.arange(-4,4.1,0.5))
-   plt.contourf(lon,lat,dvar,cmap='bwr',**kw)
-   cbar = plt.colorbar()
-   cbar.set_label(units,fontsize=14)
-   plt.plot(cx_hycom,cy_hycom,'.',color='gray',markersize=2)
-   if trackon[0].lower()=='y':
-      for m,G in enumerate(gatcf):
-         adt,aln,alt,pmn,vmx=readTrack6hrly(G)
-         aln_hycom = np.asarray([ln+360 if ln<74.16 else ln for ln in aln])
-         alt_hycom = alt
-         plt.plot(aln_hycom,alt_hycom,'-ok',markersize=2,alpha=0.4)
-         if k < len(aln):
-            plt.plot(aln_hycom[k],alt_hycom[k],'ok',markersize=6,alpha=0.4,markerfacecolor='None')
-   plt.axis([lon[0],lon[-1],lat[0],lat[-1]])
-   xticks =  np.arange(np.round(lon[0],-1),np.round(lon[-1],-1),20)
-   xticklabel_geo = np.asarray([str(xt-360) if xt>=180 else str(xt) for xt in xticks])
-   ax122.set_xticks(xticks)
-   ax122.set_xticklabels(xticklabel_geo)
-   ax122.set_aspect('equal')
-   plt.ylabel('Latitude',fontsize=14)
-   plt.xlabel('Longitude',fontsize=14)
+   # Add gridlines and labels 
+#  gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
+   gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
+   gl.top_labels = False
+   gl.right_labels = False
+   gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, 20))
+   gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, 10))
+   gl.xlabel_style = {'size': 8, 'color': 'black'}
+   gl.ylabel_style = {'size': 8, 'color': 'black'}
+  
+   # Add borders and coastlines
+   #ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')
+   ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+   ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+   ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-   pngFile=os.path.join(graphdir,aprefix.upper()+'.'+model.upper()+'.'+var_name+'.f'+"%03d"%(fhr)+'.png')
-   plt.savefig(pngFile,bbox_inches='tight',pad_inches=0.2)
-
+   title_center = 'Sea Surface Temperature (${^o}$C)'
+   ax.set_title(title_center, loc='center', y=1.05, fontsize=8)
+   title_left = model.upper()+' '+storm.upper()+tcid.upper()
+   ax.set_title(title_left, loc='left', fontsize=8)
+   title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
+   ax.set_title(title_right, loc='right', fontsize=8)
+ 
+   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.'+var_name+'.f'+"%03d"%(fhr)+'.png')
+   plt.savefig(pngFile,bbox_inches='tight',dpi=150)
    plt.close("all")
 
 # --- successful exit
 sys.exit(0)
-#end of script
 
