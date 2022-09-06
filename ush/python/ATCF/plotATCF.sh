@@ -107,13 +107,18 @@ cp -p ${bdeckdir}/${bdeckfile} ./bdeckfile
 
 #atcffile=${storm}${stormid}.${yyyymmddhh}.trak.hwrf.atcfunix
 atcffile=${stormid}.${yyyymmddhh}.hafs.trak.atcfunix
+
 echo 'atcffile=' ${atcffile}
 if [ -s ${atcfdir}/${atcffile} ]; then
-   cp -p ${atcfdir}/${atcffile} ./${atcffile}
-   trkexist=True
+  cp -p ${atcfdir}/${atcffile} ./${atcffile}
+  trkexist=True
+elif [ -s ${atcfdir}/${atcffile}.all ]; then
+  cp -p ${atcfdir}/${atcffile}.all ./${atcffile}
+  grep -E "${BASIN}, ${num}.*${yyyymmddhh}" ${atcfdir}/${atcffile}.all > ./${atcffile}
+  trkexist=True
 else
-   echo "WARNING: ${atcfdir}/${atcffile} NOT PRESENT OR EMPTY"
-   trkexist=False
+  echo "WARNING: ${atcfdir}/${atcffile} NOT PRESENT OR EMPTY"
+  trkexist=False
 fi
 
 grep -E "${BASIN}, ${num}.*${yyyymmddhh}" ./adeckfile_tmp0 > ./adeckfile_tmp1
