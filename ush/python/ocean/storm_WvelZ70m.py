@@ -82,8 +82,8 @@ adt,aln,alt,pmn,vmx = readTrack6hrly(atcf)
 aln_hycom = np.asarray([ln+360 if ln<74.16 else ln for ln in aln])
 alt_hycom = alt
 
-# Set Cartopy data_dir location (not needed when modulefiles is updated)
-#cartopy.config['data_dir'] = '/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy'
+# Set Cartopy data_dir location
+cartopy.config['data_dir'] = os.getenv('cartopyDataDir')
 
 #   ------------------------------------------------------------------------------------
 Rkm=500    # search radius [km]

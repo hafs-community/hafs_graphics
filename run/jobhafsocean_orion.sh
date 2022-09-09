@@ -70,20 +70,23 @@ touch $cmdfile
 
 figScriptAll=( \
   "SSTnc.py" \
+  "SSSnc.py" \
   "MLDnc.py" \
   "OHCnc.py" \
   "Z20nc.py" \
+  "Z26nc.py" \
   "storm_SST.py" \
+  "storm_SSS.py" \
   "storm_MLD.py" \
   "storm_OHC.py" \
   "storm_Z20.py" \
+  "storm_Z26.py" \
   "storm_tempZ40m.py" \
   "storm_tempZ70m.py" \
   "storm_tempZ100m.py" \
   "storm_WvelZ40m.py" \
   "storm_WvelZ70m.py" \
   "storm_WvelZ100m.py" \
-  "storm_HeatFlux.py" \
   )
 
 nscripts=${#figScriptAll[*]}

@@ -83,8 +83,8 @@ if trackon[0].lower()=='y':
    else:
       trackon = 'no'
 
-# Set Cartopy data_dir location (not needed when modulefiles is updated)
-#cartopy.config['data_dir'] = '/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy'
+# Set Cartopy data_dir location
+cartopy.config['data_dir'] = os.getenv('cartopyDataDir')
 
 #   ------------------------------------------------------------------------------------
 # - get SST  *_3z_*.[nc] files

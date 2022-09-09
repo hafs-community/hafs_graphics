@@ -83,8 +83,8 @@ if trackon[0].lower()=='y':
    else:
       trackon = 'no'
 
-# Set Cartopy data_dir location (not needed when modulefiles is updated)
-#cartopy.config['data_dir'] = '/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy'
+# Set Cartopy data_dir location
+cartopy.config['data_dir'] = os.getenv('cartopyDataDir')
 
 #   ------------------------------------------------------------------------------------
 # - get SST  *_3z_*.[nc] files
@@ -176,7 +176,7 @@ for k in range(count):
    ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
    ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-   title_center = 'Depth of 26${^o}$C Isotherm'
+   title_center = 'Depth of 26${^o}$C Isotherm (m)'
    ax.set_title(title_center, loc='center', y=1.05, fontsize=8)
    title_left = model.upper()+' '+storm.upper()+tcid.upper()
    ax.set_title(title_left, loc='left', fontsize=8)
