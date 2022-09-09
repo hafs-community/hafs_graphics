@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""This script is to plot out HAFS atmospheric total heat flux and 10-m wind."""
+"""This script is to plot out HAFS atmospheric latent heat flux and 10-m wind."""
 
 import os
 import sys
@@ -66,19 +66,11 @@ print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 [nlat, nlon] = np.shape(lon)
 
 
-print('Extracting SHTFL, LHTFL at surface')
-shf = grb.select(shortName='SHTFL')[0].data()
-shf.data[shf.mask] = np.nan
-shf = np.asarray(shf)
-#shf = gaussian_filter(shf, 5)
-
+print('Extracting LHTFL at surface')
 lhf = grb.select(shortName='LHTFL')[0].data()
 lhf.data[lhf.mask] = np.nan
 lhf = np.asarray(lhf)
 #lhf = gaussian_filter(lhf, 5)
-
-# Calculate total heat flux
-thf = shf + lhf
 
 print('Extracting UGRD, VGRD at 10 m above ground')
 levstr='10 m above ground'
@@ -94,7 +86,7 @@ vgrd = np.asarray(vgrd) * 1.94384 # convert m/s to kt
 wspd = (ugrd**2+vgrd**2)**.5
 
 #===================================================================================================
-print('Plotting Enthalpy Flux and 10-m wind')
+print('Plotting Latent Heat Flux and 10-m wind')
 fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']
 
 # Set default figure parameters
@@ -108,7 +100,7 @@ mpl.rcParams['legend.fontsize'] = 8
 
 if conf['stormDomain'] == 'grid02':
     mpl.rcParams['figure.figsize'] = [6, 6]
-    fig_name = fig_prefix+'.storm.'+'TurbFlux.'+conf['fhhh'].lower()+'.png'
+    fig_name = fig_prefix+'.storm.'+'LHTFlux.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
     lonmin = lon[int(nlat/2), int(nlon/2)]-3
     lonmax = lon[int(nlat/2), int(nlon/2)]+3
@@ -120,7 +112,7 @@ if conf['stormDomain'] == 'grid02':
     wblength = 4.5
 else:
     mpl.rcParams['figure.figsize'] = [8, 5.4]
-    fig_name = fig_prefix+'.'+'TurbFlux.'+conf['fhhh'].lower()+'.png'
+    fig_name = fig_prefix+'.'+'LHTFlux.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
     lonmin = np.min(lon)
     lonmax = np.max(lon)
@@ -140,10 +132,10 @@ fig = plt.figure()
 ax = plt.axes(projection=myproj)
 ax.axis('equal')
 
-cflevels = np.linspace(0, 1500, 61)
+cflevels = np.linspace(0, 1200, 49)
 ctmp = plt.get_cmap('afmhot_r')
 cmap = mpl.colors.LinearSegmentedColormap.from_list('sub_'+ctmp.name,ctmp(np.linspace(0, 0.90, 101)))
-cf = ax.contourf(lon, lat, thf, cflevels, cmap=cmap, extend='both', transform=transform)
+cf = ax.contourf(lon, lat, lhf, cflevels, cmap=cmap, extend='both', transform=transform)
 cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True, ticks=cflevels[::4])
 
 wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip],
@@ -167,7 +159,7 @@ gl.ylabel_style = {'size': 8, 'color': 'black'}
 print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
-title_center = 'Surface Enthalpy Flux (W/m$^2$, shaded), 10 m Wind (kt)'
+title_center = 'Latent Heat Flux (W/m$^2$, shaded), 10 m Wind (kt)'
 ax.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax.set_title(title_left, loc='left')
