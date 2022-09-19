@@ -26,8 +26,10 @@ STORMID=${STORMID:-09L}
 stormModel=${stormModel:-HAFS}
 fhhhAll=$(seq -f "f%03g" 0 3 126)
 
+#HOMEgraph=/your/graph/home/dir
 #WORKgraph=/your/graph/work/dir # if not specified, a default location relative to COMhafs will be used
 #COMgraph=/your/graph/com/dir   # if not specified, a default location relative to COMhafs will be used
+#COMhafs=/your/hafs/com/dir
 
 export HOMEgraph=${HOMEgraph:-/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics}
 export USHgraph=${USHgraph:-${HOMEgraph}/ush}
@@ -39,8 +41,17 @@ export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 
 source ${USHgraph}/graph_pre_job.sh.inc
 export machine=${WHERE_AM_I:-wcoss2} # platforms: wcoss2, hera, orion, jet
-export cartopyDataDir=${cartopyDataDir:-/your/local/share/cartopy}
-export MPISERIAL=${MPISERIAL:-mpiserial}
+if [ ${machine} = jet ]; then
+  export cartopyDataDir=${cartopyDataDir:-/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy}
+elif [ ${machine} = hera ]; then
+  export cartopyDataDir=${cartopyDataDir:-/scratch1/NCEPDEV/hwrf/noscrub/local/share/cartopy}
+elif [ ${machine} = orion ]; then
+  export cartopyDataDir=${cartopyDataDir:-/work/noaa/hwrf/noscrub/local/share/cartopy}
+elif [ ${machine} = wcoss2 ]; then
+  export cartopyDataDir=${cartopyDataDir:-/lfs/h2/emc/hur/noscrub/local/share/cartopy}
+else
+  export cartopyDataDir=${cartopyDataDir:-/your/local/share/cartopy}
+fi
 
 export TOTAL_TASKS=${TOTAL_TASKS:-${SLURM_NTASKS:-480}}
 export NCTSK=${NCTSK:-10}
@@ -66,6 +77,9 @@ if [ ${stormDomain} = "grid01" ]; then
     plot_mslp_wind10m.py \
     plot_tsfc_mslp_wind10m.py \
     plot_t2m_mslp_wind10m.py \
+    plot_heatflux_wind10m.py \
+    plot_shtflux_wind10m.py \
+    plot_lhtflux_wind10m.py \
     plot_precip_mslp_thk.py \
     plot_reflectivity.py \
     plot_850mb_200mb_vws.py \
@@ -92,6 +106,9 @@ if [ ${stormDomain} = "grid01" ]; then
     1003 \
     1003 \
     1003 \
+    1003 \
+    1003 \
+    1003 \
     850 \
     700 \
     500 \
@@ -111,6 +128,9 @@ elif [ ${stormDomain} = "grid02" ]; then
     plot_mslp_wind10m.py \
     plot_tsfc_mslp_wind10m.py \
     plot_t2m_mslp_wind10m.py \
+    plot_heatflux_wind10m.py \
+    plot_shtflux_wind10m.py \
+    plot_lhtflux_wind10m.py \
     plot_precip_mslp_thk.py \
     plot_reflectivity.py \
     plot_rhmidlev_hgt_wind.py \
@@ -130,6 +150,9 @@ elif [ ${stormDomain} = "grid02" ]; then
     plot_tempanomaly_hgt_wind.py \
     )
   levAll=( \
+    1003 \
+    1003 \
+    1003 \
     1003 \
     1003 \
     1003 \

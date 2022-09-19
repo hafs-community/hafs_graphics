@@ -1,13 +1,13 @@
 """
 
- storm_MLD.py
+ plot_storm_mld.py
  -------------
     read a HYCOM 3z .nc file,
     extract footprint MLD and plot in time series (R<=500km)
 
 
  ************************************************************************
- usage: python storm_MLD.py stormModel stormName stormID YMDH trackon COMhafs graphdir
+ usage: python plot_storm_mld.py stormModel stormName stormID YMDH trackon COMhafs graphdir
  -----
  ************************************************************************
 
@@ -69,7 +69,7 @@ if not os.path.isdir(graphdir):
       p=Path(graphdir)
       p.mkdir(parents=True)
 
-print("code:   storm_MLD.py")
+print("code:   plot_storm_mld.py")
 
 cx,cy=coast180()
 
@@ -98,7 +98,7 @@ var0 = ncfile0['mixed_layer_thickness']
 lon = np.asarray(var0[0].Longitude)
 lat = np.asarray(var0[0].Latitude)
 
-var_name = 'MLD'
+var_name = 'mld'
 units = '(m)'
 
 lns,lts = np.meshgrid(lon,lat)
@@ -167,7 +167,7 @@ for k in range(count):
    title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
    ax.set_title(title_right, loc='right', fontsize=8)
  
-   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.storm.'+var_name+'.f'+"%03d"%(fhr)+'.png')
+   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.ocean.storm.'+var_name+'.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight',dpi=150)
    plt.close("all")
 
@@ -211,7 +211,7 @@ for k in range(count):
    title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
    ax.set_title(title_right, loc='right', fontsize=8)
 
-   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.storm.'+var_name+'.change.f'+"%03d"%(fhr)+'.png')
+   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.ocean.storm.'+var_name+'.change.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight',dpi=150)
    plt.close("all")
 

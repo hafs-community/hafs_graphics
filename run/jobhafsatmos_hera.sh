@@ -1,19 +1,19 @@
 #!/bin/sh
 #BATCH --job-name=jobhafsgraph
-#SBATCH --account=hwrfv3
+#SBATCH --account=hurricane
 #SBATCH --qos=batch
 ##SBATCH --qos=debug
-#SBATCH --nodes=10
-#SBATCH --tasks-per-node=12
+#SBATCH --nodes=12
+#SBATCH --tasks-per-node=10
 #SBATCH --cpus-per-task=1
 #SBATCH -t 01:00:00
 ##SBATCH -t 00:30:00
-#SBATCH --partition=xjet
+##SBATCH --partition=xjet
 ##SBATCH --partition=orion
 #SBATCH -o jobhafsgraph.log.%j
 #SBATCH -e jobhafsgraph.log.%j
-#SBATCH --mem=0
-#SBATCH --exclusive
+##SBATCH --mem=0
+##SBATCH --exclusive
 #SBATCH -D.
 
 set -x

@@ -1,13 +1,13 @@
 """
 
- MLDnc.py
+ plot_mld.py
  -------------
     read a HYCOM 3z .nc file,
     extract MLD and plot in time series.
 
 
  ************************************************************************
- usage: python MLDnc.py stormModel stormName stormID YMDH trackon COMhafs graphdir
+ usage: python plot_mld.py stormModel stormName stormID YMDH trackon COMhafs graphdir
  -----
  ************************************************************************
 
@@ -68,7 +68,7 @@ if not os.path.isdir(graphdir):
       p=Path(graphdir)
       p.mkdir(parents=True)
 
-print("code:   MLDnc.py")
+print("code:   plot_mld.py")
 
 cx,cy=coast180()
 
@@ -103,7 +103,7 @@ lonmin = np.min(lon)
 lonmax = np.max(lon)
 latmin = np.min(lat)
 latmax = np.max(lat)
-var_name = 'MLD'
+var_name = 'mld'
 units = '(m)'
 
 if np.logical_or(np.min(lon) > 0,np.max(lon) > 360):
@@ -167,7 +167,7 @@ for k in range(count):
    title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
    ax.set_title(title_right, loc='right', fontsize=8)
  
-   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.'+var_name+'.f'+"%03d"%(fhr)+'.png')
+   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.ocean.'+var_name+'.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight',dpi=150)
    plt.close("all")
 

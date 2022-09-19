@@ -87,8 +87,8 @@ eparse plot_atmos.yml.tmp > plot_atmos.yml
 
 # Use convert to reduce colors and thus file size
 #for file in $(/bin/ls -1 *.png); do convert ${file} PNG8:${file} done
-for file in $(/bin/ls -1 *.png);
-  do convert -dither FloydSteinberg -colors 256 ${file} ${file}
+for file in $(/bin/ls -1 *.png); do
+  convert -dither FloydSteinberg -colors 256 ${file} ${file}
 done
 
 # Deliver figure to archive_dir
