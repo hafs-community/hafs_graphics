@@ -1,13 +1,13 @@
 """
 
- storm_Z26.py
+ plot_storm_Z26.py
  -------------
     read a HYCOM 3z .nc file,
     extract footprint Z26 and plot in time series (R<=500km)
 
 
  ************************************************************************
- usage: python storm_Z26.py stormModel stormName stormID YMDH trackon COMhafs graphdir
+ usage: python plot_storm_Z26.py stormModel stormName stormID YMDH trackon COMhafs graphdir
  -----
  ************************************************************************
 
@@ -69,7 +69,7 @@ if not os.path.isdir(graphdir):
       p=Path(graphdir)
       p.mkdir(parents=True)
 
-print("code:   storm_Z26.py")
+print("code:   plot_storm_Z26.py")
 
 cx,cy=coast180()
 
@@ -110,7 +110,7 @@ var0 = np.reshape(np.asarray(var0),(ind[0]*ind[1],1))
 var0[np.argwhere(np.isnan(temp))] = np.nan
 var0 = np.reshape(var0,(ind[0],ind[1]))
 
-var_name = 'Z26'
+var_name = 'z26'
 units = '(m)'
 
 lns,lts = np.meshgrid(lon,lat)
@@ -187,7 +187,7 @@ for k in range(count):
    title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
    ax.set_title(title_right, loc='right', fontsize=8)
  
-   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.storm.'+var_name+'.f'+"%03d"%(fhr)+'.png')
+   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.ocean.storm.'+var_name+'.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight',dpi=150)
    plt.close("all")
 
@@ -231,7 +231,7 @@ for k in range(count):
    title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
    ax.set_title(title_right, loc='right', fontsize=8)
 
-   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.storm.'+var_name+'.change.f'+"%03d"%(fhr)+'.png')
+   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.ocean.storm.'+var_name+'.change.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight',dpi=150)
    plt.close("all")
 

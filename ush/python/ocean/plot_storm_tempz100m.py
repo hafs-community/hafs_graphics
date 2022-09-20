@@ -1,13 +1,13 @@
 """
 
- storm_Z20.py
+ plot_storm_tempz100m.py
  -------------
     read a HYCOM 3z .nc file,
-    extract footprint Z20 and plot in time series (R<=500km)
+    extract footprint tempZ100m and plot in time series (R<=500km)
 
 
  ************************************************************************
- usage: python storm_Z20.py stormModel stormName stormID YMDH trackon COMhafs graphdir
+ usage: python plot_storm_tempz100m.py stormModel stormName stormID YMDH trackon COMhafs graphdir
  -----
  ************************************************************************
 
@@ -69,7 +69,7 @@ if not os.path.isdir(graphdir):
       p=Path(graphdir)
       p.mkdir(parents=True)
 
-print("code:   storm_Z20.py")
+print("code:   plot_storm_tempz100m.py")
 
 cx,cy=coast180()
 
@@ -94,26 +94,17 @@ afiles = sorted(glob.glob(os.path.join(COMOUT,'*3z*.nc')))
 #ncfile0 = nc.Dataset(afile0[0])
 ncfile0 = xr.open_dataset(afiles[0])
 
-temp = ncfile0['temperature'].isel(Z=0)
-var0 = ncfile0['depth of 20C isotherm']
+var0 = ncfile0['temperature'].isel(Z=14)
 lon = np.asarray(var0[0].Longitude)
 lat = np.asarray(var0[0].Latitude)
 
-# reduce array size to 2D
-temp = np.squeeze(temp)
-var0 = np.squeeze(var0)
-
-# reshape arrays to 1D for boolean indexing
-ind = temp.shape
-temp = np.reshape(np.asarray(temp),(ind[0]*ind[1],1))
-var0 = np.reshape(np.asarray(var0),(ind[0]*ind[1],1))
-var0[np.argwhere(np.isnan(temp))] = np.nan
-var0 = np.reshape(var0,(ind[0],ind[1]))
-
-var_name = 'Z20'
-units = '(m)'
+var_name = 'tempz100m'
+units = '($^oC$)'
 
 lns,lts = np.meshgrid(lon,lat)
+skip=6
+ln=lns[::skip,::skip]
+lt=lts[::skip,::skip]
 dummy = np.ones(lns.shape)
 
 if np.logical_or(np.min(lon) > 0,np.max(lon) > 360):
@@ -132,17 +123,15 @@ for k in range(count):
    #ncfile = nc.Dataset(afiles[k])
    ncfile = xr.open_dataset(afiles[k])
 
-   varr = ncfile['depth of 20C isotherm']
+   varr = ncfile['temperature'].isel(Z=14)
    var = np.asarray(varr[0])*dumb
    dvar = np.asarray(varr[0]-np.squeeze(var0))*dumb
 
-   # land mask
-   var = np.reshape(np.asarray(var),(ind[0]*ind[1],1))
-   var[np.argwhere(np.isnan(temp))] = np.nan
-   var = np.reshape(var,(ind[0],ind[1]))
-   dvar = np.reshape(np.asarray(dvar),(ind[0]*ind[1],1))
-   dvar[np.argwhere(np.isnan(temp))] = np.nan
-   dvar = np.reshape(dvar,(ind[0],ind[1]))
+   u0=ncfile['u_velocity'].isel(Z=14)
+   v0=ncfile['v_velocity'].isel(Z=14)
+
+   u0=np.squeeze(u0)[::skip,::skip]
+   v0=np.squeeze(v0)[::skip,::skip]
 
    # define forecast hour
    fhr=k*6
@@ -152,10 +141,10 @@ for k in range(count):
    ax = plt.axes(projection=ccrs.PlateCarree())
    ax.axis('scaled')
    
-   cflevels = np.linspace(0, 300, 61)
-   cmap = plt.get_cmap('RdYlBu_r')
+   cflevels = np.linspace(16, 28, 49)
+   cmap = plt.get_cmap('turbo')
    cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
-   cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=30, shrink=0.75, extendrect=True, ticks=cflevels[::5])
+   cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=30, shrink=0.75, extendrect=True, ticks=cflevels[::4])
    cb.ax.tick_params(labelsize=8)
    if trackon[0].lower()=='y':
          plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
@@ -163,6 +152,7 @@ for k in range(count):
    mnmx="(min,max)="+"(%6.1f"%np.nanmin(var)+","+"%6.1f)"%np.nanmax(var)
    plt.text(aln[k]-2.15,alt[k]-4.75,mnmx,fontsize=8,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
    plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
+   q=plt.quiver(ln,lt,u0,v0,scale=2000)
 
    # Add gridlines and labels
    #gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
@@ -180,14 +170,14 @@ for k in range(count):
    ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
    ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-   title_center = 'Depth of 20$^oC$ Isotherm (m)'
+   title_center = '100 m Temperature (${^o}$C), Currents'
    ax.set_title(title_center, loc='center', y=1.05, fontsize=8)
    title_left = model.upper()+' '+storm.upper()+tcid.upper()
    ax.set_title(title_left, loc='left', fontsize=8)
    title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
    ax.set_title(title_right, loc='right', fontsize=8)
  
-   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.storm.'+var_name+'.f'+"%03d"%(fhr)+'.png')
+   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.ocean.storm.'+var_name+'.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight',dpi=150)
    plt.close("all")
 
@@ -196,10 +186,10 @@ for k in range(count):
    ax = plt.axes(projection=ccrs.PlateCarree())
    ax.axis('scaled')
 
-   cflevels = np.linspace(-30, 30, 61)
+   cflevels = np.linspace(-4, 4, 33)
    cmap = plt.get_cmap('RdBu_r')
    cf = ax.contourf(lon, lat, dvar, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
-   cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=30, shrink=0.75, extendrect=True, ticks=cflevels[::5])
+   cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=30, shrink=0.75, extendrect=True, ticks=cflevels[::4])
    cb.ax.tick_params(labelsize=8)
    if trackon[0].lower()=='y':
          plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
@@ -224,14 +214,14 @@ for k in range(count):
    ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
    ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-   title_center = 'Depth of 20$^oC$ Isotherm Change (m)'
+   title_center = '100 m Temperature Change (${^o}$C)'
    ax.set_title(title_center, loc='center', y=1.05, fontsize=8)
    title_left = model.upper()+' '+storm.upper()+tcid.upper()
    ax.set_title(title_left, loc='left', fontsize=8)
    title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
    ax.set_title(title_right, loc='right', fontsize=8)
 
-   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.storm.'+var_name+'.change.f'+"%03d"%(fhr)+'.png')
+   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.ocean.storm.'+var_name+'.change.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight',dpi=150)
    plt.close("all")
 

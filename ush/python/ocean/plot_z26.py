@@ -1,13 +1,13 @@
 """
 
- OHCnc.py
+ plot_z26.py
  -------------
     read a HYCOM 3z .nc file,
-    extract OHC and plot in time series.
+    extract Z26 and plot in time series.
 
 
  ************************************************************************
- usage: python OHCnc.py stormModel stormName stormID YMDH trackon COMhafs graphdir
+ usage: python plot_z26.py stormModel stormName stormID YMDH trackon COMhafs graphdir
  -----
  ************************************************************************
 
@@ -68,7 +68,7 @@ if not os.path.isdir(graphdir):
       p=Path(graphdir)
       p.mkdir(parents=True)
 
-print("code:   OHCnc.py")
+print("code:   plot_z26.py")
 
 cx,cy=coast180()
 
@@ -95,7 +95,7 @@ afiles = sorted(glob.glob(os.path.join(COMOUT,'*3z*.nc')))
 ncfile0 = xr.open_dataset(afiles[0])
 
 temp = ncfile0['temperature'].isel(Z=0)
-var0 = ncfile0['ocean_heat_content']
+var0 = ncfile0['depth of 26C isotherm']
 lon = np.asarray(var0.Longitude)
 lat = np.asarray(var0.Latitude)
 
@@ -115,8 +115,8 @@ lonmin = np.min(lon)
 lonmax = np.max(lon)
 latmin = np.min(lat)
 latmax = np.max(lat)
-var_name = 'OHC'
-units = '($kJ/cm^2$)'
+var_name = 'z26'
+units = '(m)'
 
 if np.logical_or(np.min(lon) > 0,np.max(lon) > 360):
     cx = cx_hycom
@@ -127,7 +127,7 @@ for k in range(count):
 
    #ncfile = nc.Dataset(afiles[k])
    ncfile = xr.open_dataset(afiles[k])
-   varr = ncfile['ocean_heat_content']
+   varr = ncfile['depth of 26C isotherm']
    var = np.asarray(varr[0])
 
    # land mask
@@ -142,11 +142,11 @@ for k in range(count):
    fig = plt.figure(figsize=(8,4))
    ax = plt.axes(projection=ccrs.PlateCarree())
    ax.axis('scaled')
- 
-   cflevels = np.linspace(0, 180, 37)
-   cmap = plt.get_cmap('Spectral_r')
+   
+   cflevels = np.linspace(0, 150, 61)
+   cmap = plt.get_cmap('RdYlBu_r')
    cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
-   cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::4])
+   cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::10])
    cb.ax.tick_params(labelsize=8)
    if trackon[0].lower()=='y':
       for m,G in enumerate(gatcf):
@@ -160,7 +160,7 @@ for k in range(count):
             plt.plot(aln[k],alt[k],'ok',markersize=6,alpha=0.4,markerfacecolor='None')
    ax.set_extent([lonmin, lonmax, latmin, latmax], crs=ccrs.PlateCarree())
 
-   # Add gridlines and labels   
+   # Add gridlines and labels
 #  gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
    gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
    gl.top_labels = False
@@ -169,21 +169,21 @@ for k in range(count):
    gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, 10))
    gl.xlabel_style = {'size': 8, 'color': 'black'}
    gl.ylabel_style = {'size': 8, 'color': 'black'}
-
+   
    # Add borders and coastlines
    #ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')
    ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
    ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
    ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-   title_center = 'Ocean Heat Content ($kJ/cm^2$)'
+   title_center = 'Depth of 26${^o}$C Isotherm (m)'
    ax.set_title(title_center, loc='center', y=1.05, fontsize=8)
    title_left = model.upper()+' '+storm.upper()+tcid.upper()
    ax.set_title(title_left, loc='left', fontsize=8)
    title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
    ax.set_title(title_right, loc='right', fontsize=8)
  
-   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.'+var_name+'.f'+"%03d"%(fhr)+'.png')
+   pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.ocean.'+var_name+'.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight',dpi=150)
    plt.close("all")
 
