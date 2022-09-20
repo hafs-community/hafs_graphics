@@ -1,13 +1,13 @@
 """
 
- plot_storm_Z26.py
+ plot_storm_z26.py
  -------------
     read a HYCOM 3z .nc file,
-    extract footprint Z26 and plot in time series (R<=500km)
+    extract footprint z26 and plot in time series (R<=500km)
 
 
  ************************************************************************
- usage: python plot_storm_Z26.py stormModel stormName stormID YMDH trackon COMhafs graphdir
+ usage: python plot_storm_z26.py stormModel stormName stormID YMDH trackon COMhafs graphdir
  -----
  ************************************************************************
 
@@ -69,7 +69,7 @@ if not os.path.isdir(graphdir):
       p=Path(graphdir)
       p.mkdir(parents=True)
 
-print("code:   plot_storm_Z26.py")
+print("code:   plot_storm_z26.py")
 
 cx,cy=coast180()
 

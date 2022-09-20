@@ -1,13 +1,13 @@
 """
 
- plot_storm_Z20.py
+ plot_storm_z20.py
  -------------
     read a HYCOM 3z .nc file,
-    extract footprint Z20 and plot in time series (R<=500km)
+    extract footprint z20 and plot in time series (R<=500km)
 
 
  ************************************************************************
- usage: python plot_storm_Z20.py stormModel stormName stormID YMDH trackon COMhafs graphdir
+ usage: python plot_storm_z20.py stormModel stormName stormID YMDH trackon COMhafs graphdir
  -----
  ************************************************************************
 
