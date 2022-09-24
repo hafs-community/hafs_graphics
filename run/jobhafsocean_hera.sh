@@ -5,7 +5,7 @@
 ##SBATCH --qos=debug
 #SBATCH --nodes=1
 ##SBATCH --tasks-per-node=24
-#SBATCH --tasks-per-node=16
+#SBATCH --tasks-per-node=20
 #SBATCH --cpus-per-task=1
 #SBATCH -t 01:00:00
 ##SBATCH -t 00:30:00
@@ -78,28 +78,25 @@ touch $cmdfile
 #==============================================================================
 
 figScriptAll=( \
+  "plot_sst.py" \
+  "plot_sss.py" \
   "plot_mld.py" \
+  "plot_ohc.py" \
+  "plot_z20.py" \
+  "plot_z26.py" \
+  "plot_storm_sst.py" \
+  "plot_storm_sss.py" \
   "plot_storm_mld.py" \
+  "plot_storm_ohc.py" \
+  "plot_storm_z20.py" \
+  "plot_storm_z26.py" \
+  "plot_storm_tempz40m.py" \
+  "plot_storm_tempz70m.py" \
+  "plot_storm_tempz100m.py" \
+  "plot_storm_wvelz40m.py" \
+  "plot_storm_wvelz70m.py" \
+  "plot_storm_wvelz100m.py" \
   )
-# "plot_sst.py" \
-# "plot_sss.py" \
-# "plot_mld.py" \
-# "plot_ohc.py" \
-# "plot_z20.py" \
-# "plot_z26.py" \
-# "plot_storm_sst.py" \
-# "plot_storm_sss.py" \
-# "plot_storm_mld.py" \
-# "plot_storm_ohc.py" \
-# "plot_storm_z20.py" \
-# "plot_storm_z26.py" \
-# "plot_storm_tempz40m.py" \
-# "plot_storm_tempz70m.py" \
-# "plot_storm_tempz100m.py" \
-# "plot_storm_wvelz40m.py" \
-# "plot_storm_wvelz70m.py" \
-# "plot_storm_wvelz100m.py" \
-# )
 
 nscripts=${#figScriptAll[*]}
 
@@ -113,9 +110,6 @@ do
 done
 #==============================================================================
 
-if [ "$machine" = hera ] || [ "$machine" = orion ] || [ "$machine" = jet ]; then
-  echo 'wait' >> $cmdfile
-fi
 chmod u+x ./$cmdfile
 ${APRUNC} ${MPISERIAL} -m ./$cmdfile
 
