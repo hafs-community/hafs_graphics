@@ -65,10 +65,10 @@ lon = lon - lon_offset
 print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 [nlat, nlon] = np.shape(lon)
 
-print('Extracting Surface Water Temperature')
-#levstr='surface'
-#tmp = grb.select(shortName='TMP',level=levstr)[0].data()
-tmp = grb.select(shortName='WTMP')[0].data()
+print('Extracting Surface Temperature')
+levstr='surface'
+tmp = grb.select(shortName='TMP', level=levstr)[0].data()
+#tmp = grb.select(shortName='WTMP')[0].data()
 tmp.data[tmp.mask] = np.nan
 tmp = np.asarray(tmp) - 273.15 # convert K to degC
 tmp = gaussian_filter(tmp, 2)
@@ -94,7 +94,7 @@ vgrd = np.asarray(vgrd) * 1.94384 # convert m/s to kt
 wspd = (ugrd**2+vgrd**2)**.5
 
 #===================================================================================================
-print('Plotting WTMP, MLSET and 10 m wind')
+print('Plotting surface TMP, MSLET and 10 m wind')
 fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']
 
 # Set default figure parameters
@@ -140,12 +140,15 @@ fig = plt.figure()
 ax = plt.axes(projection=myproj)
 ax.axis('equal')
 
-cflevels = np.linspace(5, 35, 61)
+#cflevels = np.linspace(5, 35, 61)
+cflevels = np.linspace(-20, 40, 121)
 ctmp = plt.get_cmap('nipy_spectral')
 cmap = mpl.colors.LinearSegmentedColormap.from_list('sub_'+ctmp.name,ctmp(np.linspace(0.04, 0.98, 201)))
 #cf = ax.contourf(lon, lat, tmp, levels=cflevels, cmap=cmap, extend='both', transform=transform)
 #cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True, ticks=cflevels[::10])
-pm = ax.pcolormesh(lon, lat, tmp, cmap=cmap, vmin=5, vmax=35, transform=transform)
+#pm = ax.pcolormesh(lon, lat, tmp, cmap=cmap, vmin=5, vmax=35, transform=transform)
+#cb = plt.colorbar(pm, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True, ticks=cflevels[::10])
+pm = ax.pcolormesh(lon, lat, tmp, cmap=cmap, vmin=-20, vmax=40, transform=transform)
 cb = plt.colorbar(pm, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True, ticks=cflevels[::10])
 
 wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip],
@@ -174,7 +177,7 @@ gl.ylabel_style = {'size': 8, 'color': 'black'}
 print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
-title_center = 'Surface Water Temperature (${^o}$C, shaded), MSLP (hPa), 10 m Wind (kt)'
+title_center = 'Surface Temperature (${^o}$C, shaded), MSLP (hPa), 10 m Wind (kt)'
 ax.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax.set_title(title_left, loc='left')
