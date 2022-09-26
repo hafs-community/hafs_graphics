@@ -39,12 +39,12 @@ list_tcids=[]
 if len(gatcf) >1:
    for m,G in enumerate(gatcf):
        tmp=G.partition(COMhafs)
-      
+
        patcf0=tmp[-1].partition('.'+cycle)[0]
        patcf=patcf0.replace('/','')
        list_storms.append(patcf[:-3])
        list_tcids.append(patcf[-3:])
- 
+
 cdir=os.getcwd()
 
 #---- produce basin-scale figures:

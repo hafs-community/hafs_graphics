@@ -60,7 +60,7 @@ def NDBCstations():
         s=float(line[29:31])+float(line[33:35])/60.+float(line[37:39])/3600.
         nlat.append(s)
         del (s)
-	    
+
     nlon=[]
     for line in lines[:-1]:
         m=(-1.)*(float(line[46:49])+float(line[51:53])/60.+float(line[55:58])/3600.)
@@ -160,8 +160,8 @@ def r_NDBC(infile,var,PER_HOUR=True):
    ovar[ovar==99.0]=np.nan
    return(dns,dts,ovar)
 
-def xy4NDBC(IDofI):   
-   """ read in list.ids and returns a set of (lon,lat) position 
+def xy4NDBC(IDofI):
+   """ read in list.ids and returns a set of (lon,lat) position
        for the station(id).
 
        -hsk 9/2019

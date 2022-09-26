@@ -10,7 +10,7 @@
     4. astring_to_strings
     5. mapdomain(basin) - sets of (min,max) in longitude and latitude
                           for mapping.
-    6. Colors_SaffirSimpson  - returns a set of colors 
+    6. Colors_SaffirSimpson  - returns a set of colors
 			corresponding the Saffir-Simpson scale.
     7. fromAdeck - read adeck for operational guidance
     8. Rwinds6hr(bt,fhr) - returns an average radius for a set of 3 wind thresholds (34,50,64)-kt
@@ -38,13 +38,13 @@ def fromAdeck(opm,afile,YMDH):
         a model of interest(opm)
     '''
     import re
-    
+
     with open(afile,'r') as infile:
        atxt=[];
        for n in infile.readlines():
           if re.search(opm, n) and re.search(YMDH, n):
             atxt.append(n)
-        
+
     d0 =[ datetime.strptime(s.split(', ')[2],'%Y%m%d%H') for s in atxt ]
     dt = [ timedelta(int(s.split(', ')[5])) for s in atxt ]
 
@@ -67,7 +67,7 @@ def atcfRmax6hr(bt):
     '''
     --- read atcf file and returns a set of variables at 6 hourly including Rmax ---
     '''
-    # - find indices for 6 hourly intervals 
+    # - find indices for 6 hourly intervals
     with open(bt,'r') as infile:
         atxt=[]
         for n in infile.readlines():
@@ -75,12 +75,12 @@ def atcfRmax6hr(bt):
            st=int(s.split(', ')[5])
            if st%6 == 0:
               atxt.append(n)
-    
+
     fhrs=np.array([ int(s.split(', ')[5]) for s in atxt])
     sfr=np.unique(fhrs)
 
-    # - build a file with the radius of the largest wind threshold 
-    #   along (34, 50, 64) kt. 
+    # - build a file with the radius of the largest wind threshold
+    #   along (34, 50, 64) kt.
     #
     afull=[]
     for n in range(0,len(sfr),1):
@@ -102,21 +102,21 @@ def atcfRmax6hr(bt):
     rx=[]
     for n in range(13,17,1):
       rx.append([float(s.split(', ')[n]) for s in afull])
-   
+
     r34=np.mean(rx,axis=0)
     r34=np.array(r34)
-    
+
     return (dts, lns, lts, pmin, vmax, r34)
 
 # -------------------------------------------
 def Rwinds6hr(bt,fhr,units=True):
     '''
-    --- read atcf file and returns a set of variables corresponding 
+    --- read atcf file and returns a set of variables corresponding
         to Vxx (34-kt, 50-kt and 64-kt wind thresholds at fhr ---
-        
+
     --- units= True -> rout in [km]  (default)
               False -> rout in [nm]
-    
+
     --- rout in 3 columns [35-kt,50-kt,64-kt] at maximum.
 
     '''
@@ -133,7 +133,7 @@ def Rwinds6hr(bt,fhr,units=True):
 
     fhrs = np.array([ int(s.split(', ')[5]) for s in atxt])
     ii = [ x for x,y in enumerate(fhrs) if y==fhr ]
-   
+
     atxt = atxt[ii]
 
     rout=[]
@@ -323,12 +323,12 @@ def SaffirSimpsonColor_Vmax(Vkt):
        return (Colors_SaffirSimpson('c5')[-1])
 
 def SaffirSimpson_track(lons,lats,Vkt,alpha,linewidth):
-   
+
     from utils4HWRF import SaffirSimpsonColor_Vmax
     import matplotlib.pylab as plt
- 
+
     lnc=[]
-    ltc=[] 
+    ltc=[]
     for k in range(len(lons)-1):
        lnc.append([lons[k],lons[k+1]])
        ltc.append([lats[k],lats[k+1]])
@@ -339,7 +339,7 @@ def SaffirSimpson_track(lons,lats,Vkt,alpha,linewidth):
 
 def grb2subset2nc(grb2,vars,WErange,SNrange):
     """ Subsetting HWRF/HMOM parent domain
-    using -new_grid 
+    using -new_grid
     and save it to netCDF. -hsk 2019 """
 
     w2path='/gpfs/hps/usrx/local/nceplibs/grib_util.v1.1.1/exec'

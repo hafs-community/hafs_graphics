@@ -13,7 +13,7 @@
     8. readBinz - read HYCOM 3z level [ab], calling parse_z
 
     x. arakawa
-    
+
     by Hyun-Sook Kim 9/13/2015
 ---------------------------------------------------------------
 """
@@ -25,22 +25,22 @@ import sys
 from datetime import datetime, timedelta
 
 def parse_b(inFile,fileType='archive'):
-    
+
     hycom={}  #define empty dictionary
 
     inFile=inFile+'.b'
     lines=[line.rstrip() for line in open(inFile)]
 
     if fileType=='relax' or fileType=='depth':
-        idm=int([line.split() for line in lines if 'i/jdm' in line][0][2])                
-        jdm=int([line.split() for line in lines if 'i/jdm' in line][0][3][:-1])          
+        idm=int([line.split() for line in lines if 'i/jdm' in line][0][2])
+        jdm=int([line.split() for line in lines if 'i/jdm' in line][0][3][:-1])
     elif fileType=='forcing':
         idm=int([line.split() for line in lines if 'i/jdm' in line][0][2])
         jdm=int([line.split() for line in lines if 'i/jdm' in line][0][3])
     elif fileType=='archive' or fileType=='grid':
         idm=int([line.split() for line in lines if 'longitudinal' in line][0][0])
         jdm=int([line.split() for line in lines if 'latitudinal' in line][0][0])
-        
+
     hycom['idm']=idm
     hycom['jdm']=jdm
 
@@ -53,7 +53,7 @@ def parse_b(inFile,fileType='archive'):
             (fileType == 'forcing' and line[0:5]=='i/jdm') or \
 	    (fileType == 'grid' and line[0:5]=='plon:'):
             break
-        
+
     if (fileType=='grid'):
        count=count-1
     if (fileType=='depth'):
@@ -71,10 +71,10 @@ def parse_b(inFile,fileType='archive'):
     for var in vars:
         count += 1
         if hycom.__contains__(var):
-            hycom[var]=hycom[var] +[count] 
+            hycom[var]=hycom[var] +[count]
         else:
-            hycom[var]=[count] 
-        
+            hycom[var]=[count]
+
     return hycom
 
 def readVar(inFile,fileType,fieldName,pntidx=None):
@@ -89,7 +89,7 @@ def readVar(inFile,fileType,fieldName,pntidx=None):
 
     fid=open(inFile,'rb')
     Index=hycom[fieldName]
- 
+
     for lyr in range(0,len(Index),1):
         fid.seek((hycom[fieldName][lyr-1]-1)*4*(npad+ijdm),0)
         fld=fid.read(ijdm*4)
@@ -124,11 +124,11 @@ def parse_l(inFile,fileType='archive'):
     jdm=int([line.split() for line in lines if 'latitudinal' in line][0][0])
     vlist['idm']=idm
     vlist['jdm']=jdm
-   
+
     count=0
     for line in lines:
         count+=1
-        if (fileType=='archive' and line[0:5] == 'field'): 
+        if (fileType=='archive' and line[0:5] == 'field'):
            break
 
     lines=lines[count:]
@@ -165,7 +165,7 @@ def parse_z(inFile,nlevels,fileType='3z'):
 
     lines=lines[count:]
     vars=[line.split()[2] for line in lines]
-   
+
     count=0
     for var in vars:
        count += 1
@@ -188,7 +188,7 @@ def readBinz(zbinFile,fileType,fieldName,pntidx=None):
 
     aFile = zbinFile+'.a'
     fid   = open(aFile,'rb')
-    
+
     #print myvar
 
     Indx=myvar[fieldName]
@@ -232,7 +232,7 @@ def readBin(binFile,fileType,fieldName,pntidx=None):
     fid   = open(aFile,'rb')
 
     Indx=myvar[fieldName]
-   
+
     for knt in range(0,len(Indx),1):
        #print 'readBin: lyr=',lyr
        lyr = Indx[knt]
@@ -267,7 +267,7 @@ def readgrids(rFile,fieldName,layers,pntidx=None):
 
     aFile = rFile+'.a'
     fid   = open(aFile,'rb')
-    
+
     for lyr in layers:
        fid.seek((lonlat[fieldName][lyr-1]-1)*4*(npad+ijdm),0)
        fld = fid.read(ijdm*4)
@@ -339,7 +339,7 @@ def HYCOMday2normal(hytime):
 def get_hycomtime(bfile,fileType):
     """
     --- read b file and return a time series in gregorian
-    
+
     Caveat: it applies to only forcing.*.b and archv.*.b.
     """
 
@@ -350,24 +350,24 @@ def get_hycomtime(bfile,fileType):
     for line in lines:
         count+=1
         if (fileType=='archive' and line[0:5] == 'field') or \
-            (fileType == 'forcing' and line[0:5]=='i/jdm'): 
+            (fileType == 'forcing' and line[0:5]=='i/jdm'):
             break
 
     lines=lines[count:]
 
     htimes=[HYCOMday2normal(float(line.split()[3])) for line in lines]
-    
+
     return(htimes)
-    
+
 def datetime2matlabdn(dt):
-    mdn = dt + timedelta(days = 366) 
+    mdn = dt + timedelta(days = 366)
     frac_seconds = (dt-datetime(dt.year,dt.month,dt.day,0,0,0)).seconds / (24.0 * 60.0 * 60.0)
     frac_microseconds = dt.microsecond / (24.0 * 60.0 * 60.0 * 1000000.0)
     return mdn.toordinal() + frac_seconds + frac_microseconds
 
 def find_ijs(in2d, target):
     for row, i in (in2d):
-       try:	
+       try:
            column = i.index(target)
        except ValueError:
            continue
@@ -388,7 +388,7 @@ def fixed3zlayers():
 
 def EkmanPumping(lns,lts,txs,tys):
 # Compute Ekman Pumping
-#   input: Wind stress on (Ulon,Ulat) 
+#   input: Wind stress on (Ulon,Ulat)
 #          Grids for a scalar variable (lns,lts)
 #
 #   output: vertical velocity induced by wind stress [m/s]
@@ -420,9 +420,9 @@ def EkmanPumping(lns,lts,txs,tys):
 
 
 def readrestart(basin,inFile,fieldName,pntindx=None):
-   """ reads a restart.[a/b] and extract 2D field 
+   """ reads a restart.[a/b] and extract 2D field
        for a var of interest(fieldName).
-   
+
        note: (u,v,temp,saln,dp) are of 2 time steps.
        When one of these inquired, the values will come from the 2nd time-step.
        -----------------------------------------------------------------------
@@ -441,7 +441,7 @@ def readrestart(basin,inFile,fieldName,pntindx=None):
 
    inFile=inFile+'.a'
    print('processing',fieldName,' from ',inFile)
-   
+
    # delete values in (u,v,temp,saln,dp) for the 1st time-step
    del hycom['u'][:kdm]
    del hycom['v'][:kdm]
@@ -487,7 +487,7 @@ def parse_r(inFile,fileType='restart'):
 
    lines=lines[count:]
    vars=[line.split()[0] for line in lines]
-      
+
    count=0
    for var in vars:
       count += 1
@@ -497,9 +497,9 @@ def parse_r(inFile,fileType='restart'):
           hycom[var]=[count]
 
    return hycom
-    
+
 def hycombasin(basin):
-   """ extract idm,jdm,kdm,iref,jref for a regional domain dimensions 
+   """ extract idm,jdm,kdm,iref,jref for a regional domain dimensions
 	and a lower left corner index (iref,jref) in the global 1/12-degree HYCOM.
 
         Hyun-Sook Kim July 15, 2020."""

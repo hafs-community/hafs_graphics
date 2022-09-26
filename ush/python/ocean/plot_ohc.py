@@ -16,7 +16,7 @@
  -------
     modified to implement new filenames and hycom domains, as well as
         improve graphics -JS & MA 06/2022
-    modified to comply the convention of number of input argument and 
+    modified to comply the convention of number of input argument and
        graphic filename. -hsk 8/2020
     modified to take global varibles from kick_graphics.py -hsk 9/20/2018
     modified to fit for RT run by Hyun-Sook Kim 5/17/2017
@@ -44,7 +44,7 @@ import matplotlib.path as mpath
 import matplotlib.ticker as mticker
 from matplotlib.gridspec import GridSpec
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-  
+
 from pathlib import Path
 
 import pyproj
@@ -73,7 +73,7 @@ print("code:   plot_ohc.py")
 cx,cy=coast180()
 
 cx_hycom = np.asarray([cx+360 if cx<74.16 else cx for cx in np.asarray(cx)])
-cy_hycom = cy 
+cy_hycom = cy
 
 
 if trackon[0].lower()=='y':
@@ -122,7 +122,7 @@ if np.logical_or(np.min(lon) > 0,np.max(lon) > 360):
     cx = cx_hycom
     cy = cy_hycom
 
-count = len(afiles)        
+count = len(afiles)
 for k in range(count):
 
    #ncfile = nc.Dataset(afiles[k])
@@ -137,12 +137,12 @@ for k in range(count):
 
    # define forecast hour
    fhr=k*6
-   
+
    # create figure and axes instances
    fig = plt.figure(figsize=(8,4))
    ax = plt.axes(projection=ccrs.PlateCarree())
    ax.axis('scaled')
- 
+
    cflevels = np.linspace(0, 180, 37)
    cmap = plt.get_cmap('Spectral_r')
    cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
@@ -160,7 +160,7 @@ for k in range(count):
             plt.plot(aln[k],alt[k],'ok',markersize=6,alpha=0.4,markerfacecolor='None')
    ax.set_extent([lonmin, lonmax, latmin, latmax], crs=ccrs.PlateCarree())
 
-   # Add gridlines and labels   
+   # Add gridlines and labels
 #  gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
    gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
    gl.top_labels = False
@@ -182,7 +182,7 @@ for k in range(count):
    ax.set_title(title_left, loc='left', fontsize=8)
    title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
    ax.set_title(title_right, loc='right', fontsize=8)
- 
+
    pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.ocean.'+var_name+'.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight',dpi=150)
    plt.close("all")

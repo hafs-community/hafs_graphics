@@ -3,7 +3,7 @@
 
 import numpy as np
 
-# 
+#
 import math
 
 #
@@ -30,7 +30,7 @@ class Struct:
         return '\n'.join(
             ['{} : {}'.format(
                 k,repr(v)) for k,v in sorted(self.__dict__.iteritems())])
-    
+
 # ################################################
 # FUNCTIONS
 # ################################################
@@ -79,7 +79,7 @@ def arclength(lon1, lat1, lon2, lat2):
     Returns
     =======
     arclength : float [rad]
-    
+
     Credits
     =======
     http://code.google.com/p/pyroms/
@@ -107,9 +107,9 @@ def haversine(lon1, lat1, lon2, lat2):
     Returns
     =======
     distance [metres]
-    
+
     """
-    
+
     c = arclength(lon1, lat1, lon2, lat2)
     return 6378.1 * 1e3 * c
 
@@ -125,14 +125,14 @@ def bearing(lon1, lat1, lon2, lat2):
     Returns
     =======
     bearing : float [decimal degrees]
-    
+
     Credits
     =======
     http://www.movable-type.co.uk/scripts/latlong.html
     """
     # convert decimal degrees to radians
     lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
-    
+
     # compute bearing
     return np.degrees(
         np.arctan2(
@@ -147,7 +147,7 @@ def waypoints(lon1, lat1, lon2, lat2, f=0.5, n=None):
 
     connecting the two given end points at a fraction f [%]
     of the distance from lon1,lat1.
-    
+
     Parameters
     ==========
     lon1,lat1,lon2,lat2 : float
@@ -160,7 +160,7 @@ def waypoints(lon1, lat1, lon2, lat2, f=0.5, n=None):
     Note
     ====
     Either f or n must be provided. If both are, if is used.
-    
+
     Credits
     =======
     http://williams.best.vwh.net/avform.htm#Intermediate
@@ -168,13 +168,13 @@ def waypoints(lon1, lat1, lon2, lat2, f=0.5, n=None):
     # if given, compute f from n
     if n != None:
         f = np.linspace(0,1,n)
-    
+
     # compute arc length between points
     d = arclength(lon1, lat1, lon2, lat2)
 
     # convert decimal degrees to radians
     lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
-    
+
     # compute waypoints
     a = np.sin((1.-f)*d) / np.sin(d)
     b = np.sin(f*d) / np.sin(d)
@@ -227,14 +227,14 @@ def waypoints_segments(lons, lats, f=None, n=10, returndist=False):
     for p in range(len(lons)-1):
         ia = p*n
         io = (p+1)*n
-        
+
         # get waypoints
         waylons[ia:io],waylats[ia:io] = waypoints(lons[p],lats[p],lons[p+1],lats[p+1],f)
 
     # compute distance
-    if returndist:    
+    if returndist:
         dist = np.cumsum([0.]+[haversine(lon1, lat1, lon2, lat2) for lon1,lat1,lon2,lat2 in zip(waylons[1:],waylats[1:],waylons[:-1],waylats[:-1])])
-        
+
         return waylons,waylats,dist
     else:
         return waylons,waylats
@@ -262,11 +262,11 @@ def binary_search_grid(gridlon,gridlat,px,py,returndist=False):
     Dependencies
     ============
     haversine
-    
+
     Credits
     =======
     Mads Hvid Ribergaard mhri@dmi.dk (MATLAB version)
-       
+
     """
     idm,jdm = np.shape(gridlon)
 
@@ -281,7 +281,7 @@ def binary_search_grid(gridlon,gridlat,px,py,returndist=False):
             jmid = np.array([Lo[1] + np.floor(.25*(Hi[1]-Lo[1])),
                              Hi[1] - np.floor(.25*(Hi[1]-Lo[1]))],dtype=int)
             return np.ix_(imid,jmid)
-        
+
         imid,jmid = centerpoints(Lo,Hi)
 
         # Loop: Recrusive decrease square until 2*2 square is found
@@ -301,11 +301,11 @@ def binary_search_grid(gridlon,gridlat,px,py,returndist=False):
                 Hi[0] = Hi[0] - np.floor(.5*(Hi[0]-Lo[0]))
             elif kmin == 3:
                 Lo = Lo + np.floor(.5*(Hi-Lo))
-          
+
             imid,jmid = centerpoints(Lo,Hi)
 
         # Find closest point from the remaining 2*2 square
-        dist = haversine(gridlon[imid,jmid],gridlat[imid,jmid],x,y); 
+        dist = haversine(gridlon[imid,jmid],gridlat[imid,jmid],x,y);
         print(dist,dist.argmin())
         kmin = dist.argmin()
         if kmin == 0:
@@ -375,7 +375,7 @@ def nearest_gridpt(gridlon,gridlat,px,py,unravel=True):
         return ind
     else:
         return np.unravel_index(ind,gridlon.shape)
-        
+
 
 
 # ########################################################################
@@ -406,20 +406,20 @@ def secline(gridlon,gridlat,px,py,f=None,n=50):
     ====
     The linear index is returned in row-major order (C-like).
     MATLAB uses column-major order (Fortran-like)
-    
+
     Dependencies
     ============
     waypoints_segments  nearest_gridpt  secline_uv (inline)
-    
-    """ 
+
+    """
     SEC = {}
-    
+
     # refine waypoints
     pxx,pyy = waypoints_segments(px, py, f, n)
-    
+
     # find nearest grid points
     ind = nearest_gridpt(gridlon,gridlat,pxx,pyy,unravel=False)
-    
+
     # remove repeating points
     mask = np.insert((ind[1:] != ind[:-1]),0,ind[0])
     ind = ind[mask]
@@ -430,10 +430,10 @@ def secline(gridlon,gridlat,px,py,f=None,n=50):
 
     # get grid positions
     lons,lats = gridlon.flat[ind],gridlat.flat[ind]
-    
+
     # generate distance axis
     SEC['dist'] = haversine(lons,lats,pxx,pyy)
-    
+
     # compute bearings between consecutive points
     SEC['bearing'] = bearing(lons[:-1], lats[:-1], lons[1:], lats[1:])
 
@@ -448,7 +448,7 @@ def secline_uv(ind,dim,ijdir=(1,1)):
 
     """
     in_p = ind
-    
+
     i,j = np.unravel_index(in_p,dim)
 
     di = ijdir[0]*np.diff(i) ; di = np.append(di,di[-1])
@@ -468,17 +468,17 @@ def getEndPoint(lon1,lat1,bearing,xnm):
    Use for drawing a storm size (in nautical miles)
 	hy Hyun-Sook Kim 8/18/2016
    """
-   
+
    R=6378.1			# Radius of the Earth in km
    brng=math.radians(bearing)	# Convert degrees to radians
    d = xnm*1.852			# Convert nautical miles to km
- 
+
    lon1 = math.radians(lon1)
    lat1 = math.radians(lat1)
 
-     
+
    lat2 = math.asin( math.sin(lat1)*math.cos(d/R) + math.cos(lat1)*math.sin(d/R)*math.cos(brng) )
-  
+
    xxx = math.sin(brng)*math.sin(d/R)*math.cos(lat1)
    yyy = math.cos(d/R) - math.sin(lat1)*math.sin(lat2)
    lon2 = lon1 + math.atan2(xxx,yyy)
@@ -490,7 +490,7 @@ def getEndPoint(lon1,lat1,bearing,xnm):
 
 # ########################################################################
 def getPointsCircle(lon0,lat0,xnm):
-   """Find a set (lons,lats) for a circle with a radius of xnm distance 
+   """Find a set (lons,lats) for a circle with a radius of xnm distance
       from a point of interest (lon0,lat0)
 
    Use for drawing a storm size (in nautical miles)
