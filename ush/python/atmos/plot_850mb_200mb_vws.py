@@ -66,6 +66,15 @@ print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 [nlat, nlon] = np.shape(lon)
 
 #==========================================================
+#print('Extracting PRMSL')
+#slp = grb.select(shortName='PRMSL',level='mean sea level')[0].data()
+#slp = grb.select(shortName='PRMSL')[0].data()
+print('Extracting MSLET')
+slp = grb.select(shortName='MSLET')[0].data()
+slp.data[slp.mask] = np.nan
+slp = np.asarray(slp) * 0.01 # convert Pa to hPa
+slp = gaussian_filter(slp, 5)
+
 print('Extracting UGRD, VGRD at 200 hPa')
 levstr='200 mb'
 u200 = grb.select(shortName='UGRD', level=levstr)[0].data()
@@ -166,6 +175,11 @@ wb1 = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], u200[::skip,::skip], v200
 wb2 = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], u850[::skip,::skip], v850[::skip,::skip],
                length=wblength, linewidth=0.3, color='black', transform=transform)
 
+cslevels = np.arange(840,1040,4)
+cs = ax.contour(lon, lat, slp, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
+lblevels = np.arange(840,1040,8)
+lb = plt.clabel(cs, levels=lblevels, inline_spacing=1, fmt='%d', fontsize=8)
+
 # Add borders and coastlines
 #ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')
 ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
@@ -184,7 +198,7 @@ gl.ylabel_style = {'size': 8, 'color': 'black'}
 print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
-title_center = '200 hPa Wind (blue), 850 hPa Wind (black), 200-850 hPa VWS (kt, shaded)'
+title_center = '200 hPa Wind (blue), 850 hPa Wind (black), 200-850 hPa VWS (kt, shaded), MSLP (hPa)'
 ax.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax.set_title(title_left, loc='left')
