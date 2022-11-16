@@ -89,7 +89,7 @@ export WHERE_AM_I=${target}
 moduleuse=$HOMEgraph/modulefiles
 if [[ "$moduleuse" != no ]] ; then
   module use $moduleuse
-  module load modulefile.graphics.run.$WHERE_AM_I
+  module load graphics.run.$WHERE_AM_I
 fi
 set +u
 if [[ "Q${utilexec:-}" != Q ]] ; then
