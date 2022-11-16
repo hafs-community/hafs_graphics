@@ -40,6 +40,9 @@ prepend_path("MODULEPATH", "/lfs/h1/mdl/nbm/save/apps/modulefiles")
 python_modules_ver=os.getenv("python_modules_ver") or "3.8.6"
 load(pathJoin("python_modules", python_modules_ver))
 
+grib2io_ver=os.getenv("grib2io_ver") or "1.1.0"
+load(pathJoin("grib2io", grib2io_ver))
+
 setenv("HPC_OPT", "/apps/ops/para/libs")
 prepend_path("MODULEPATH", "/apps/ops/para/libs/modulefiles/compiler/intel/19.1.3.304")
 prepend_path("MODULEPATH", "/apps/ops/para/libs/modulefiles/mpi/intel/19.1.3.304/cray-mpich/8.1.7")
