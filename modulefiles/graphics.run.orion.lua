@@ -5,8 +5,8 @@ loads HAFS application level modulefile on Orion
 ncl_ver=os.getenv("ncl") or "6.6.2"
 load(pathJoin("ncl", ncl_ver))
 
-prepend_path("PATH", "/work/noaa/hwrf/save/maristiz/miniconda3/envs/WCOSS2_env/bin")
-prepend_path("PYTHONPATH", "/work/noaa/hwrf/save/maristiz/miniconda3/envs/WCOSS2_env")
+prepend_path("MODULEPATH", "/work/noaa/hwrf/noscrub/local/modulefiles")
+load(pathJoin("python", "wcoss2_env"))
 
 prepend_path("MODULEPATH", "/work/noaa/epic-ps/hpc-stack/libs/intel/2022.1.2/modulefiles/stack")
 

@@ -5,8 +5,8 @@ loads HAFS application level modulefile on Jet
 ncl_ver=os.getenv("ncl") or "6.5.0"
 load(pathJoin("ncl", ncl_ver))
 
-prepend_path("PATH", "/lfs4/HFIP/hwrfv3/Maria.Aristizabal/miniconda3/envs/WCOSS2_env/bin")
-prepend_path("PYTHONPATH", "/lfs4/HFIP/hwrfv3/Maria.Aristizabal/miniconda3/envs/WCOSS2_env")
+prepend_path("MODULEPATH", "/mnt/lfs4/HFIP/hwrfv3/local/modulefiles")
+load(pathJoin("python", "wcoss2_env"))
 
 prepend_path("MODULEPATH", "/lfs4/HFIP/hfv3gfs/nwprod/hpc-stack/libs/modulefiles/stack")
 

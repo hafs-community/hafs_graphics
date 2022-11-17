@@ -5,8 +5,8 @@ loads HAFS application level modulefile on Hera
 ncl_ver=os.getenv("ncl") or "6.5.0"
 load(pathJoin("ncl", ncl_ver))
 
-prepend_path("PATH", "/scratch1/NCEPDEV/hwrf/save/Maria.Aristizabal/miniconda3/envs/WCOSS2_env/bin")
-prepend_path("PYTHONPATH", "/scratch1/NCEPDEV/hwrf/save/Maria.Aristizabal/miniconda3/envs/WCOSS2_env")
+prepend_path("MODULEPATH", "/scratch1/NCEPDEV/hwrf/noscrub/local/modulefiles")
+load(pathJoin("python","wcoss2_env"))
 
 prepend_path("MODULEPATH", "/scratch2/NCEPDEV/nwprod/hpc-stack/libs/hpc-stack/modulefiles/stack")
 
