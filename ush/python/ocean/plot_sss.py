@@ -95,8 +95,10 @@ afiles = sorted(glob.glob(os.path.join(COMOUT,'*3z*.nc')))
 ncfile0 = xr.open_dataset(afiles[0])
 
 var0 = ncfile0['salinity'].isel(Z=0)
-lon = np.asarray(var0.Longitude)
-lat = np.asarray(var0.Latitude)
+#lon = np.asarray(var0.Longitude)
+#lat = np.asarray(var0.Latitude)
+lon = np.asarray(ncfile0.Longitude)
+lat = np.asarray(ncfile0.Latitude)
 
 #define grid boundaries
 lonmin = np.min(lon)

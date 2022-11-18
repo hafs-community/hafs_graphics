@@ -95,8 +95,10 @@ afiles = sorted(glob.glob(os.path.join(COMOUT,'*3z*.nc')))
 ncfile0 = xr.open_dataset(afiles[0])
 
 var0 = ncfile0['mixed_layer_thickness']
-lon = np.asarray(var0[0].Longitude)
-lat = np.asarray(var0[0].Latitude)
+#lon = np.asarray(var0[0].Longitude)
+#lat = np.asarray(var0[0].Latitude)
+lon = np.asarray(ncfile0.Longitude)
+lat = np.asarray(ncfile0.Latitude)
 
 var_name = 'mld'
 units = '(m)'

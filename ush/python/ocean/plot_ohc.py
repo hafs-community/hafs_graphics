@@ -96,8 +96,10 @@ ncfile0 = xr.open_dataset(afiles[0])
 
 temp = ncfile0['temperature'].isel(Z=0)
 var0 = ncfile0['ocean_heat_content']
-lon = np.asarray(var0.Longitude)
-lat = np.asarray(var0.Latitude)
+#lon = np.asarray(var0.Longitude)
+#lat = np.asarray(var0.Latitude)
+lon = np.asarray(ncfile0.Longitude)
+lat = np.asarray(ncfile0.Latitude)
 
 # reduce array size to 2D
 temp = np.squeeze(temp)
