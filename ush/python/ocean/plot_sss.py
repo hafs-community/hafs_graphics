@@ -26,32 +26,19 @@
 """
 
 from utils4HWRF import readTrack6hrly
-from utils import coast180
 
 import os
 import sys
 import glob
 import xarray as xr
 import numpy as np
-import netCDF4 as nc
 
-from datetime import datetime, timedelta
-
-import matplotlib
-import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-  
-from pathlib import Path
 
-import pyproj
 import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
 plt.switch_backend('agg')
 
@@ -70,12 +57,6 @@ if not os.path.isdir(graphdir):
 
 print("code:   plot_sss.py")
 
-cx,cy=coast180()
-
-cx_hycom = np.asarray([cx+360 if cx<74.16 else cx for cx in np.asarray(cx)])
-cy_hycom = cy 
-
-
 if trackon[0].lower()=='y':
    gatcf = glob.glob(COMOUT+'/*.atcfunix')
    if gatcf:
@@ -89,14 +70,10 @@ cartopy.config['data_dir'] = os.getenv('cartopyDataDir')
 #   ------------------------------------------------------------------------------------
 # - get SST  *_3z_*.[nc] files
 afiles = sorted(glob.glob(os.path.join(COMOUT,'*3z*.nc')))
-#afile0 = glob.glob(os.path.join(COMOUT,'*3z.f000.nc'))
 
-#ncfile0 = nc.Dataset(afile0[0])
 ncfile0 = xr.open_dataset(afiles[0])
 
 var0 = ncfile0['salinity'].isel(Z=0)
-#lon = np.asarray(var0.Longitude)
-#lat = np.asarray(var0.Latitude)
 lon = np.asarray(ncfile0.Longitude)
 lat = np.asarray(ncfile0.Latitude)
 
@@ -108,14 +85,15 @@ latmax = np.max(lat)
 var_name = 'sss'
 units = '(psu)'
 
-if np.logical_or(np.min(lon) > 0,np.max(lon) > 360):
-    cx = cx_hycom
-    cy = cy_hycom
+# Shift central longitude so the Southern Hemisphere and North Indin Ocean domains are plotted continuously
+if lonmin > 180:
+    central_longitude = 0
+else:
+    central_longitude = 200
 
 count = len(afiles)        
 for k in range(count):
 
-   #ncfile = nc.Dataset(afiles[k])
    ncfile = xr.open_dataset(afiles[k])
 
    varr = ncfile['salinity'].isel(Z=0)
@@ -126,24 +104,25 @@ for k in range(count):
    
    # create figure and axes instances
    fig = plt.figure(figsize=(8,4))
-   ax = plt.axes(projection=ccrs.PlateCarree())
+   ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=central_longitude))
    ax.axis('scaled')
    
-   cflevels = np.linspace(30, 38, 41)
+   cflevels = np.linspace(30, 38, 21)
    cmap = plt.get_cmap('YlGnBu_r')
    cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
+   ax.contour(lon, lat, var, levels=[36], colors='grey',alpha=0.5, transform=ccrs.PlateCarree())
    cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::5])
    cb.ax.tick_params(labelsize=8)
    if trackon[0].lower()=='y':
       for m,G in enumerate(gatcf):
          adt,aln,alt,pmn,vmx=readTrack6hrly(G)
 
-         if np.logical_or(np.min(lon) > 0,np.max(lon) > 360):
-             aln = np.asarray([ln+360 if ln<74.16 else ln for ln in aln])
+         #if np.logical_or(np.min(lon) > 0,np.max(lon) > 360):
+         #    aln = np.asarray([ln+360 if ln<74.16 else ln for ln in aln])
 
-         plt.plot(aln,alt,'-ok',markersize=2,alpha=0.4)
+         ax.plot(aln,alt,'-ok',markersize=2,alpha=0.4,transform=ccrs.PlateCarree(central_longitude=0))
          if k < len(aln):
-            plt.plot(aln[k],alt[k],'ok',markersize=6,alpha=0.4,markerfacecolor='None')
+            ax.plot(aln[k],alt[k],'ok',markersize=6,alpha=0.4,markerfacecolor='None',transform=ccrs.PlateCarree(central_longitude=0))
    ax.set_extent([lonmin, lonmax, latmin, latmax], crs=ccrs.PlateCarree())
 
    # Add gridlines and labels
