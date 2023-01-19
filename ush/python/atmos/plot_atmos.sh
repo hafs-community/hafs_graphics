@@ -12,7 +12,7 @@ module use ${HOMEgraph}/modulefiles
 module load modulefile.graphics.run.orion
 module list
 
-stormModel=HAFS
+stormModel=HFSA
 stormName=IDA
 stormID=09L
 stormBasin=AL
@@ -21,7 +21,7 @@ fhhh=f036
 COMhafs=/work2/noaa/hwrf/scrub/bliu/hafs_20220603_v0p3a_hfab/com/2021082800/09L
 cartopyDataDir=/work/noaa/hwrf/local/share/cartopy
 
-for domain in grid01 grid02; do
+for domain in parent storm; do
   stormDomain=${domain}
   standardLayer=none
   eparse plot_atmos.yml.tmp > plot_atmos.yml

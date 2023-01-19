@@ -23,7 +23,7 @@ date
 YMDH=${1:-${YMDH:-2021082800}}
 STORM=${STORM:-IDA}
 STORMID=${STORMID:-09L}
-stormModel=${stormModel:-HAFS}
+stormModel=${stormModel:-HFSA}
 fhhhAll=$(seq -f "f%03g" 0 3 126)
 
 #HOMEgraph=/your/graph/home/dir
@@ -70,9 +70,9 @@ touch $cmdfile
 
 for fhhh in ${fhhhAll}; do
 
-for stormDomain in grid01 grid02; do
+for stormDomain in parent storm; do
 
-if [ ${stormDomain} = "grid01" ]; then
+if [ ${stormDomain} = "parent" ]; then
   figScriptAll=( \
     plot_mslp_wind10m.py \
     plot_tsfc_mslp_wind10m.py \
@@ -123,7 +123,7 @@ if [ ${stormDomain} = "grid01" ]; then
     200 \
     850 \
     )
-elif [ ${stormDomain} = "grid02" ]; then
+elif [ ${stormDomain} = "storm" ]; then
   figScriptAll=( \
     plot_mslp_wind10m.py \
     plot_tsfc_mslp_wind10m.py \

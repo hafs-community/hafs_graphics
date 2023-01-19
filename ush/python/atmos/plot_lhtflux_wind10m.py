@@ -45,7 +45,7 @@ conf['validTime'] = conf['initTime'] + conf['fcstTime']
 cartopy.config['data_dir'] = conf['cartopyDataDir']
 print(conf)
 
-fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+conf['stormDomain']+'.'+conf['fhhh']+'.grb2'
+fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+conf['stormDomain']+'.atm.'+conf['fhhh']+'.grb2'
 grib2file = os.path.join(conf['COMhafs'], fname)
 print(f'grib2file: {grib2file}')
 grb = grib2io.open(grib2file,mode='r')
@@ -98,7 +98,7 @@ mpl.rcParams['xtick.labelsize'] = 8
 mpl.rcParams['ytick.labelsize'] = 8
 mpl.rcParams['legend.fontsize'] = 8
 
-if conf['stormDomain'] == 'grid02':
+if conf['stormDomain'] == 'storm':
     mpl.rcParams['figure.figsize'] = [6, 6]
     fig_name = fig_prefix+'.storm.'+'lhtflux_wind10m.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0

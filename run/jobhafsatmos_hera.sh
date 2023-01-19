@@ -23,7 +23,7 @@ date
 YMDH=${1:-${YMDH:-2021082800}}
 STORM=${STORM:-IDA}
 STORMID=${STORMID:-09L}
-stormModel=${stormModel:-HAFS}
+stormModel=${stormModel:-HFSA}
 fhhhAll=$(seq -f "f%03g" 0 3 126)
 
 #HOMEgraph=/your/graph/home/dir

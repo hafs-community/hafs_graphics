@@ -1,9 +1,9 @@
 # yaml configure file
-stormModel: ${stormModel:-HAFS}
+stormModel: ${stormModel:-HFSA}
 stormName: ${stormName:-IDA}
 stormID: ${stormID:-09L}
 stormBasin: ${stormBasin:-AL}
-stormDomain: ${stormDomain:-grid01}
+stormDomain: ${stormDomain:-parent}
 ymdh: '${ymdh:-2021082800}'
 fhhh: ${fhhh:-f036}
 standardLayer: ${standardLayer:-850}

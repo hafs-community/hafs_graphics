@@ -39,7 +39,7 @@ export COMhafs=${COMhafs:-/hafs/com/${YMDH}/${STORMID}}
 export WORKgraph=${WORKgraph:-${COMhafs}/../../../${YMDH}/${STORMID}/emc_graphics}
 export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 
-stormModel=${stormModel:-HAFS}
+stormModel=${stormModel:-HFSA}
 is6Hr=${is6Hr:-False}
 trackOn=${trackOn:-True}
 figTimeLevels=$(seq 0 42)

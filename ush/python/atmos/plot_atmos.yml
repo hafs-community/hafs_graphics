@@ -1,9 +1,9 @@
 # yaml configure file
-stormModel: HAFS
+stormModel: HFSA
 stormName: IDA
 stormID: 09L
 stormBasin: AL
-stormDomain: grid02
+stormDomain: storm
 ymdh: '2021082800'
 fhhh: f036
 standardLayer: 850

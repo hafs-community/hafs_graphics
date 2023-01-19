@@ -45,16 +45,16 @@ conf['validTime'] = conf['initTime'] + conf['fcstTime']
 cartopy.config['data_dir'] = conf['cartopyDataDir']
 print(conf)
 
-fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+conf['stormDomain']+'.'+conf['fhhh']+'.grb2'
+fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+conf['stormDomain']+'.atm.'+conf['fhhh']+'.grb2'
 grib2file = os.path.join(conf['COMhafs'], fname)
 print(f'grib2file: {grib2file}')
 grb = grib2io.open(grib2file,mode='r')
 
-if conf['stormDomain'] == 'grid01':
+if conf['stormDomain'] == 'parent':
     grb_apcp = grb # extract apcp from domain grid01
 
-if conf['stormDomain'] == 'grid02':
-    fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+'grid01'+'.'+conf['fhhh']+'.grb2'
+if conf['stormDomain'] == 'storm':
+    fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+'parent'+'.atm.'+conf['fhhh']+'.grb2'
     grib2file = os.path.join(conf['COMhafs'], fname)
     print(f'grib2file for accumulated precipitation: {grib2file}')
     grb_apcp = grib2io.open(grib2file,mode='r') # extract apcp from domain grid01
@@ -79,7 +79,7 @@ lon = lon - lon_offset
 print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 [nlat, nlon] = np.shape(lon)
 
-if conf['stormDomain'] == 'grid02':
+if conf['stormDomain'] == 'storm':
     lon_apcp = lon_apcp - lon_offset
 
 print('Extracting MSLET')
@@ -123,7 +123,7 @@ mpl.rcParams['xtick.labelsize'] = 8
 mpl.rcParams['ytick.labelsize'] = 8
 mpl.rcParams['legend.fontsize'] = 8
 
-if conf['stormDomain'] == 'grid02':
+if conf['stormDomain'] == 'storm':
     mpl.rcParams['figure.figsize'] = [6, 6]
     fig_name = fig_prefix+'.storm.'+'precip_mslp_thk.'+conf['fhhh'].lower()+'.png'
     cbshrink = 1.0
@@ -184,9 +184,9 @@ cfcolors = ['white',                                       # white
 cm = matplotlib.colors.ListedColormap(cfcolors)
 norm = matplotlib.colors.BoundaryNorm(cflevels, cm.N)
 
-if conf['stormDomain'] == 'grid01':
+if conf['stormDomain'] == 'parent':
     cf = ax.contourf(lon, lat, apcp, cflevels, cmap=cm, norm=norm, transform=transform)
-elif conf['stormDomain'] == 'grid02':
+elif conf['stormDomain'] == 'storm':
     cf = ax.contourf(lon_apcp, lat_apcp, apcp, cflevels, cmap=cm, norm=norm, transform=transform)
 
 cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,

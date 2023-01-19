@@ -106,7 +106,8 @@ cp -p ${adeckdir}/${adeckfile} ./adeckfile_tmp0
 cp -p ${bdeckdir}/${bdeckfile} ./bdeckfile
 
 #atcffile=${storm}${stormid}.${yyyymmddhh}.trak.hwrf.atcfunix
-atcffile=${stormid}.${yyyymmddhh}.hafs.trak.atcfunix
+#atcffile=${stormid}.${yyyymmddhh}.hafs.trak.atcfunix
+atcffile=${stormid}.${yyyymmddhh}.${MC_MODEL,,}.trak.atcfunix
 
 echo 'atcffile=' ${atcffile}
 if [ -s ${atcfdir}/${atcffile} ]; then

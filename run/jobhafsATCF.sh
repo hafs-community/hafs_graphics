@@ -1,11 +1,11 @@
 #!/bin/sh
 #
-#  echo "Usage:     sh $0 2019082900 HAFS Dorian 05L COMhafs"
+#  echo "Usage:     sh $0 2019082900 HFSA Dorian 05L COMhafs"
 #
 set -x
 
 ymdh=${1:-2019082900}
-stormModel=${2:-HAFS}
+stormModel=${2:-HFSA}
 stormname=${3:-NATL}
 stormid=${4:-00L}
 
