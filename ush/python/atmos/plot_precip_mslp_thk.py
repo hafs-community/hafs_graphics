@@ -162,10 +162,13 @@ cs = ax.contour(lon, lat,slp, levels=cslevels, colors='black', linewidths=0.6, t
 lblevels = np.arange(900,1050,8)
 lb = plt.clabel(cs, levels=lblevels, inline_spacing=1, fmt='%d', fontsize=6)
 
-cslevels = np.arange(540,600,4)
-cs = ax.contour(lon, lat,thk1000_500, levels=cslevels, colors='red', linewidths=0.6, transform=transform)
-lblevels = np.arange(540,600,8)
-lb = plt.clabel(cs, levels=lblevels, inline_spacing=1, fmt='%d', fontsize=6)
+try:
+    cslevels = np.arange(540,600,4)
+    cs = ax.contour(lon, lat,thk1000_500, levels=cslevels, colors='red', linewidths=0.6, transform=transform)
+    lblevels = np.arange(540,600,8)
+    lb = plt.clabel(cs, levels=lblevels, inline_spacing=1, fmt='%d', fontsize=6)
+except:
+    print('ax.contour failed, continue anyway')
 
 cflevels = [0,                   # white
             0.01,0.1,0.25,       # blue
