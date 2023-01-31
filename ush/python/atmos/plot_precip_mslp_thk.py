@@ -186,14 +186,16 @@ cfcolors = ['white',                                       # white
 cm = matplotlib.colors.ListedColormap(cfcolors)
 norm = matplotlib.colors.BoundaryNorm(cflevels, cm.N)
 
-if conf['stormDomain'] == 'parent':
-    cf = ax.contourf(lon, lat, apcp, cflevels, cmap=cm, norm=norm, transform=transform)
-elif conf['stormDomain'] == 'storm':
-    cf = ax.contourf(lon_apcp, lat_apcp, apcp, cflevels, cmap=cm, norm=norm, transform=transform)
-
-cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,
-                  ticks=[0.01,0.1,0.25,0.5,0.75,1,1.5,2,2.5,3,4,5,6,8,10])
-cb.ax.set_yticklabels(['0.01','0.1','0.25','0.5','0.75','1','1.5','2.0','2.5','3.0','4.0','5.0','6.0','8.0','10.0'])
+try:
+    if conf['stormDomain'] == 'parent':
+        cf = ax.contourf(lon, lat, apcp, cflevels, cmap=cm, norm=norm, transform=transform)
+    elif conf['stormDomain'] == 'storm':
+        cf = ax.contourf(lon_apcp, lat_apcp, apcp, cflevels, cmap=cm, norm=norm, transform=transform)
+    cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,
+                      ticks=[0.01,0.1,0.25,0.5,0.75,1,1.5,2,2.5,3,4,5,6,8,10])
+    cb.ax.set_yticklabels(['0.01','0.1','0.25','0.5','0.75','1','1.5','2.0','2.5','3.0','4.0','5.0','6.0','8.0','10.0'])
+except:
+    print('ax.contourf failed, continue anyway')
 
 # Add borders and coastlines
 #ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')
