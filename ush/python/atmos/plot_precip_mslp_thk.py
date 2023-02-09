@@ -222,6 +222,6 @@ ax.set_title(title_left, loc='left')
 title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
 ax.set_title(title_right, loc='right')
 
-plt.show()
+#plt.show()
 plt.savefig(fig_name, bbox_inches='tight')
 #plt.close(fig)

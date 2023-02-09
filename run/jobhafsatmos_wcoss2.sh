@@ -11,10 +11,13 @@ set -x
 
 date
 
-export TOTAL_TASKS=240
+cd $PBS_O_WORKDIR
+
+export TOTAL_TASKS=${TOTAL_TASKS:-${SLURM_NTASKS:-240}}
 export NCTSK=${NCTSK:-120}
 export NCNODE=${NCNODE:-2}
 export OMP_NUM_THREADS=${OMP_NUM_THREADS:-1}
+
 export MPLBACKEND=agg
 
 YMDH=${1:-2022092000}
@@ -49,11 +52,6 @@ elif [ ${machine} = wcoss2 ]; then
 else
   export cartopyDataDir=${cartopyDataDir:-/your/local/share/cartopy}
 fi
-
-export TOTAL_TASKS=${TOTAL_TASKS:-${SLURM_NTASKS:-480}}
-export NCTSK=${NCTSK:-10}
-export NCNODE=${NCNODE:-10}
-export OMP_NUM_THREADS=${OMP_NUM_THREADS:-1}
 
 source ${USHgraph}/graph_runcmd.sh.inc
 
