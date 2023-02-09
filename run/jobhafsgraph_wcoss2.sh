@@ -62,7 +62,7 @@ yyyy=`echo ${ymdh} | cut -c1-4`
 
 export HOMEgraph=${HOMEgraph:-$(pwd)/../}
 export USHgraph=${USHgraph:-${HOMEgraph}/ush}
-export DRIVERATOMS=${USHgraph}/driverAtmos.sh
+export DRIVERATMOS=${USHgraph}/driverAtmos.sh
 export DRIVEROCEAN=${USHgraph}/driverOcean.sh
 
 export COMhafs=${COMhafs:-/hafs/com/${YMDH}/${STORMID}}
