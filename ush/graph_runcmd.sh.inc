@@ -25,6 +25,7 @@ if [ "$machine" = wcoss2 ]; then
   export APRUNO=${APRUNO:-"time"}
   export APRUNC=${APRUNC:-"mpiexec -n ${TOTAL_TASKS} --cpu-bind core --depth ${OMP_NUM_THREADS}"}
   export APRUNF=${APRUNF:-"mpiexec -n ${TOTAL_TASKS} cfp"}
+  export APRUNCFP="mpiexec"
   export APRUNO=${APRUNO:-"time"}
   export BACKGROUND=${BACKGROUND:-""}
 elif [ "$machine" = jet ] || [ "$machine" = hera ] || [ "$machine" = orion ]; then

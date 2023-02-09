@@ -1,28 +1,25 @@
 #!/bin/sh
-#SBATCH --job-name=jobhafsgraph
-#SBATCH --account=hurricane
-#SBATCH --qos=batch
-##SBATCH --qos=debug
-#SBATCH --nodes=12
-#SBATCH --tasks-per-node=10
-#SBATCH --cpus-per-task=1
-#SBATCH -t 01:00:00
-##SBATCH -t 00:30:00
-##SBATCH --partition=xjet
-#SBATCH --partition=orion
-#SBATCH -o jobhafsgraph.log.%j
-#SBATCH -e jobhafsgraph.log.%j
-#SBATCH --mem=0
-#SBATCH --exclusive
-#SBATCH -D.
+#PBS -N jobhafsgraph
+#PBS -A HAFS-DEV
+#PBS -q dev
+#PBS -l select=2:mpiprocs=120:ompthreads=1:ncpus=120:mem=500G
+#PBS -l walltime=01:00:00
+#PBS -j oe
+#PBS -o jobhafsgraph.log
 
 set -x
 
 date
 
-YMDH=${1:-${YMDH:-2021082800}}
-STORM=${STORM:-IDA}
-STORMID=${STORMID:-09L}
+export TOTAL_TASKS=240
+export NCTSK=${NCTSK:-120}
+export NCNODE=${NCNODE:-2}
+export OMP_NUM_THREADS=${OMP_NUM_THREADS:-1}
+export MPLBACKEND=agg
+
+YMDH=${1:-2022092000}
+STORM=${STORM:-FIONA}
+STORMID=${STORMID:-07L}
 stormModel=${stormModel:-HFSA}
 fhhhAll=$(seq -f "f%03g" 0 3 126)
 
@@ -205,7 +202,13 @@ done
 #==============================================================================
 
 chmod u+x ./$cmdfile
-${APRUNC} ${MPISERIAL} -m ./$cmdfile
+if [ ${machine} = "wcoss2" ]; then
+  ncmd=$(cat ./$cmdfile | wc -l)
+  ncmd_max=$((ncmd < TOTAL_TASKS ? ncmd : TOTAL_TASKS))
+  $APRUNCFP -n $ncmd_max cfp ./$cmdfile
+else
+  ${APRUNC} ${MPISERIAL} ./$cmdfile
+fi
 
 date
 

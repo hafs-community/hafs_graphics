@@ -1,11 +1,11 @@
 # yaml configure file
 stormModel: HFSA
-stormName: IDA
-stormID: 09L
+stormName: FIONA
+stormID: 07L
 stormBasin: AL
 stormDomain: storm
-ymdh: '2021082800'
+ymdh: '2022092000'
 fhhh: f036
 standardLayer: 850
-COMhafs: /work2/noaa/hwrf/scrub/bliu/hafs_20220603_v0p3a_hfab/com/2021082800/09L
-cartopyDataDir: /work/noaa/hwrf/local/share/cartopy
+COMhafs: /lfs/h2/emc/hur/noscrub/emc.hur/HFSA_sample/hafs/v1.0/hfsa.20220920/00
+cartopyDataDir: /lfs/h2/emc/hur/noscrub/local/share/cartopy

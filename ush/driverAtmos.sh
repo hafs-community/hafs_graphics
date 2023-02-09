@@ -2,7 +2,7 @@
 
 set -xe
 
-if [ $# -lt 12 ]; then
+if [ $# -lt 8 ]; then
   echo "sample usage: ./driverAtmos.sh stormModel stormName stormID startDate stormDomain figScript standardLayer fhhh"
   echo "./driverDomain.sh HAFS IDA 09L 2019082800 grid01 plot_reflectivity.py 1003 f036"
 fi

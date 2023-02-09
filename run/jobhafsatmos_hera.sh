@@ -1,5 +1,5 @@
 #!/bin/sh
-#BATCH --job-name=jobhafsgraph
+#SBATCH --job-name=jobhafsgraph
 #SBATCH --account=hurricane
 #SBATCH --qos=batch
 ##SBATCH --qos=debug
@@ -70,9 +70,9 @@ touch $cmdfile
 
 for fhhh in ${fhhhAll}; do
 
-for stormDomain in grid01 grid02; do
+for stormDomain in parent storm; do
 
-if [ ${stormDomain} = "grid01" ]; then
+if [ ${stormDomain} = "parent" ]; then
   figScriptAll=( \
     plot_mslp_wind10m.py \
     plot_tsfc_mslp_wind10m.py \
@@ -82,6 +82,10 @@ if [ ${stormDomain} = "grid01" ]; then
     plot_lhtflux_wind10m.py \
     plot_precip_mslp_thk.py \
     plot_reflectivity.py \
+    plot_goes_ir13.py \
+    plot_goes_wv9.py \
+    plot_ssmisf17_mw37ghz.py \
+    plot_ssmisf17_mw91ghz.py \
     plot_850mb_200mb_vws.py \
     plot_rhmidlev_hgt_wind.py \
     plot_temp_hgt_wind.py \
@@ -109,6 +113,10 @@ if [ ${stormDomain} = "grid01" ]; then
     1003 \
     1003 \
     1003 \
+    1003 \
+    1003 \
+    1003 \
+    1003 \
     850 \
     700 \
     500 \
@@ -123,7 +131,7 @@ if [ ${stormDomain} = "grid01" ]; then
     200 \
     850 \
     )
-elif [ ${stormDomain} = "grid02" ]; then
+elif [ ${stormDomain} = "storm" ]; then
   figScriptAll=( \
     plot_mslp_wind10m.py \
     plot_tsfc_mslp_wind10m.py \
@@ -133,6 +141,10 @@ elif [ ${stormDomain} = "grid02" ]; then
     plot_lhtflux_wind10m.py \
     plot_precip_mslp_thk.py \
     plot_reflectivity.py \
+    plot_goes_ir13.py \
+    plot_goes_wv9.py \
+    plot_ssmisf17_mw37ghz.py \
+    plot_ssmisf17_mw91ghz.py \
     plot_rhmidlev_hgt_wind.py \
     plot_temp_hgt_wind.py \
     plot_temp_hgt_wind.py \
@@ -150,6 +162,10 @@ elif [ ${stormDomain} = "grid02" ]; then
     plot_tempanomaly_hgt_wind.py \
     )
   levAll=( \
+    1003 \
+    1003 \
+    1003 \
+    1003 \
     1003 \
     1003 \
     1003 \

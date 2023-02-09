@@ -7,19 +7,19 @@ set -xue
 # eparse function
 eparse() { set -eux; eval "set -eux; cat<<_EOF"$'\n'"$(< "$1")"$'\n'"_EOF"; }
 
-HOMEgraph=/work/noaa/hwrf/save/maristiz/hafs_graphics/
+HOMEgraph=${HOMEgraph:-$(pwd)/../../../}
 module use ${HOMEgraph}/modulefiles
-module load modulefile.graphics.run.orion
+module load graphics.run.wcoss2
 module list
 
 stormModel=HFSA
-stormName=IDA
-stormID=09L
+stormName=FIONA
+stormID=07L
 stormBasin=AL
-ymdh=2021082800
+ymdh=2022092000
 fhhh=f036
-COMhafs=/work2/noaa/hwrf/scrub/bliu/hafs_20220603_v0p3a_hfab/com/2021082800/09L
-cartopyDataDir=/work/noaa/hwrf/local/share/cartopy
+COMhafs=/lfs/h2/emc/hur/noscrub/emc.hur/HFSA_sample/hafs/v1.0/hfsa.20220920/00
+cartopyDataDir=/lfs/h2/emc/hur/noscrub/local/share/cartopy
 
 for domain in parent storm; do
   stormDomain=${domain}
@@ -33,8 +33,12 @@ for domain in parent storm; do
   ./plot_850mb_200mb_vws.py
   ./plot_rhmidlev_hgt_wind.py
   ./plot_heatflux_wind10m.py
-  ./plot_LHTflux_wind10m.py
-  ./plot_SHTflux_wind10m.py
+  ./plot_lhtflux_wind10m.py
+  ./plot_shtflux_wind10m.py
+  ./plot_goes_ir13.py
+  ./plot_goes_wv9.py
+  ./plot_ssmisf17_mw37ghz.py
+  ./plot_ssmisf17_mw91ghz.py
 
   #for level in 850 700 500 200; do
   for level in 850; do
