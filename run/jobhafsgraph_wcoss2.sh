@@ -309,7 +309,7 @@ if [ ${machine} = "wcoss2" ]; then
   ncmd_max=$((ncmd < TOTAL_TASKS ? ncmd : TOTAL_TASKS))
   $APRUNCFP -n $ncmd_max cfp ./$cmdfile
 else
-  ${APRUNC} ${MPISERIAL} ./$cmdfile
+  ${APRUNC} ${MPISERIAL} -m ./$cmdfile
 fi
 
 date
