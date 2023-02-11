@@ -67,6 +67,7 @@ if elon > blon:
     lon1d = np.linspace(blon, elon, nlon)
 else:
     lon1d = np.linspace(blon, 360.+elon, nlon)
+    lon1d = np.mod(lon1d, 360.)
 
 [lon, lat] = np.meshgrid(lon1d, lat1d)
 
