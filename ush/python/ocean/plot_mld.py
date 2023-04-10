@@ -77,19 +77,30 @@ var0 = ncfile0['mixed_layer_thickness']
 lon = np.asarray(ncfile0.Longitude)
 lat = np.asarray(ncfile0.Latitude)
 
+lonmin_raw = np.min(lon)
+lonmax_raw = np.max(lon)
+print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
+# Constrain lon limits between -180 and 180 so it does not conflict with the cartopy projection PlateCarree
+lon[lon>180] = lon[lon>180] - 360
+sort_lon = np.argsort(lon)
+lon = lon[sort_lon]
+
 # define grid boundaries
 lonmin = np.min(lon)
 lonmax = np.max(lon)
 latmin = np.min(lat)
 latmax = np.max(lat)
+print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
+
 var_name = 'mld'
 units = '(m)'
 
-# Shift central longitude so the Southern Hemisphere and North Indin Ocean domains are plotted continuously 
-if lonmin > 180:
-    central_longitude = 0
+# Shift central longitude so the Southern Hemisphere and North Indin Ocean domains are plotted continuously
+if np.logical_and(lonmax >= 90, lonmax <=180):
+    central_longitude = 90
 else:
-    central_longitude = 200
+    central_longitude = -90
+print('central longitude: ',central_longitude)
 
 count = len(afiles)        
 for k in range(count):
@@ -98,6 +109,8 @@ for k in range(count):
 
    varr = ncfile['mixed_layer_thickness']
    var = np.asarray(varr[0])
+   # sort var according to the new longitude
+   var = var[:,sort_lon]
 
    # define forecast hour
    fhr=k*6
@@ -122,7 +135,7 @@ for k in range(count):
          ax.plot(aln,alt,'-ok',markersize=2,alpha=0.4,transform=ccrs.PlateCarree(central_longitude=0))
          if k < len(aln):
             plt.plot(aln[k],alt[k],'ok',markersize=6,alpha=0.4,markerfacecolor='None',transform=ccrs.PlateCarree(central_longitude=0))
-   ax.set_extent([lonmin, lonmax, latmin, latmax], crs=ccrs.PlateCarree())
+   ax.set_extent([lonmin_raw, lonmax_raw, latmin, latmax], crs=ccrs.PlateCarree())
 
    # Add gridlines and labels
 #  gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
