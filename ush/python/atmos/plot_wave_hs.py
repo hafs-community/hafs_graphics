@@ -113,7 +113,7 @@ if abs(np.max(lon) - 360.) < 10.:
 else:
     lon_offset = 180.
 '''
-# The lon range coming from the ww3 netcdf files seems to be -180 to 180. Need to test with other domains to make sure of this always true 
+# The lon range coming from the ww3 netcdf files seems to be -180 to 180. Need to test with other domains to make sure this always true 
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 lon_offset = 0
 lon = lon - lon_offset
@@ -173,26 +173,6 @@ fig = plt.figure()
 ax = plt.axes(projection=myproj)
 ax.axis('scaled')
 
-# v1
-'''
-cslevels = np.arange(0,15.1,0.5)
-cclevels = np.arange(0,15.1,1.0)
-
-cflevels = [0.0,0.5,1.0,1.5,2.0,2.5,               # blue
-            3.0,3.5,4.0,4.5,5.0,5.5,6.0,6.5,       # green
-            7.0,7.5,8.0,8.5,9.0,                   # yellow
-            9.5,10.0,10.5,                         # orange
-            11.0,11.5,12.0,                        # red
-            12.5,13.0,13.5,14.0,14.5,15.0,15.5]    # purple 
-
-cfcolors = ['midnightblue','mediumblue','royalblue','cornflowerblue','skyblue','cyan',   # blue
-            'aquamarine','palegreen','lightgreen','lawngreen','greenyellow','yellowgreen','springgreen','khaki', # green
-            'yellow','gold','goldenrod','darkgoldenrod','orange',                                      # yellow
-            'darkorange','orangered','tomato',                                         # orange
-            'red','firebrick','darkred',                                               # red
-            'mediumvioletred','orchid','darkorchid','darkmagenta','indigo','magenta']  # purple
-'''
-
 # v4 truncated jet
 '''
 cflevels = [0.0,0.5,1.0,1.5,2.0,  # blue
@@ -216,7 +196,7 @@ cflevels = [0.0,0.5,              # blue
             3.0,4.0,5.0,          # green
             6.0,7.0,8.0,9.0,      # yellow
             10.0,11.0,12.0,       # orange
-            13.0,14.0,15.0]       # red
+            14.0,16.0,18.0,20.0]  # red
 
 cslevels = cflevels
 cclevels = cflevels
@@ -228,7 +208,7 @@ cfcolors = [cmap(20),cmap(80),                         # blue
             cmap(130),cmap(140),cmap(150),             # green
             cmap(160),cmap(170),cmap(180),cmap(190),   # yellow
             cmap(200),cmap(210),cmap(220),             # orange
-            cmap(230),cmap(240),cmap(250)]             # red
+            cmap(230),cmap(240),cmap(250),cmap(255)]   # red
 
 try:
     #cf = ax.contourf(lon, lat, swh, levels=cflevels, cmap=newcmp, extend='max',transform=transform)
