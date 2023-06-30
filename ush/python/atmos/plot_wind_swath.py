@@ -161,8 +161,8 @@ if abs(np.max(lon) - 360.) < 10.:
     lon[lon>180] = lon[lon>180] - 360.
     lon_offset = 0.
 else:
-    lon_offset = 180.
-    #lon_offset = 360.
+    #lon_offset = 180.
+    lon_offset = 360.
 lon = lon - lon_offset
 print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 [nlat, nlon] = np.shape(lon)
