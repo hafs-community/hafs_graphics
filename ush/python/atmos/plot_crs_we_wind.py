@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""This script is to plot out HAFS atmospheric South-North cross section from 1000-100mb at model's storm center (ATCF)."""
+"""This script is to plot out HAFS atmospheric East-West cross section from 1000-100mb at model's storm center (ATCF)."""
 
 import os
 import sys
@@ -29,7 +29,7 @@ import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
+from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LongitudeLocator, LongitudeFormatter)
 
 import metpy.calc as mpcalc
 import metpy
@@ -127,7 +127,7 @@ print(idx[0],idx[1])
 fig, (ax1) = plt.subplots(nrows=1, ncols=1,figsize=(10,5))
 
 fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']
-fig_name = fig_prefix+'.storm.'+'crs_sn_wind.'+conf['fhhh'].lower()+'.png'
+fig_name = fig_prefix+'.storm.'+'crs_we_wind.'+conf['fhhh'].lower()+'.png'
 cbshrink = 1.0
 skip = 20
 wblength = 5
@@ -152,38 +152,39 @@ cm = matplotlib.colors.ListedColormap(cfcolors)
 
 idx = find_nearest(clon, clat, lon, lat)
 
-newlats, levs = np.meshgrid(lat[200:600, idx[1]], grblevs)
-
-cs0 = ax1.contourf(newlats, levs, ( np.abs(ugrdtmp[:, 200:600 , idx[1]] ) ), cflevels, cmap=cm )
+newlons, levs = np.meshgrid(lon[idx[0], 300:700], grblevs)
+cs0 = ax1.contourf(newlons, levs, ( np.abs(vgrdtmp[:, idx[0], 300:700] ) ), cflevels, cmap=cm )
 
 ##############Modify axis tick
 plt.savefig('for_axis_tmp', bbox_inches='tight')
 locs=ax1.get_xticks()
 labels = ax1.get_xticklabels()
-latlab=[]
+lonlab=[]
 for j in range(len(labels)):
   str1=str(labels[j])
   for i in str1.split():
     if i.startswith("Text(") :
-      lattmp=float(i.strip('Text(,'))
+      lontmp=float(i.strip('Text(,'))
+      if lontmp > 180:
+        lontmp=lontmp-360
 
-      if lattmp > 0:
-        str2=str(int(lattmp))+'N'
+      if lontmp > 0:
+        str2=str(int(lontmp))+'E'
       else :
-        str2=str(int(lattmp))+'S'
+        str2=str(int(lontmp))+'W'
         str2=str2.strip('-')
-      latlab.append(str2)
+      lonlab.append(str2)
 
 plt.cla()
 fig, (ax1) = plt.subplots(nrows=1, ncols=1,figsize=(10,5))
 ax1.set_xticks(locs)
-ax1.set_xticklabels(latlab)
+ax1.set_xticklabels(lonlab)
 #####################
-cs0 = ax1.contourf(newlats, levs, ( np.abs(ugrdtmp[:, 200:600 , idx[1]] ) ), cflevels, cmap=cm )
+cs0 = ax1.contourf(newlons, levs, ( np.abs(vgrdtmp[:, idx[0], 300:700] ) ), cflevels, cmap=cm )
 cb0 = plt.colorbar(cs0, ax=ax1, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,ticks=[10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160])
 
 cs1levels = np.arange(-160, 0 , 10) 
-cs1 = ax1.contour(newlats, levs, ( ugrdtmp[:, 200:600, idx[1] ] ), cs1levels, colors='k',linewidths=0.9, linestyles='dotted')
+cs1 = ax1.contour(newlons, levs, ( vgrdtmp[:, idx[0], 300:700] ), cs1levels, colors='k',linewidths=0.9, linestyles='dotted')
 
 ax1.set_yscale('log')
 ax1.set_ylim(1000,100)
@@ -191,14 +192,14 @@ ax1.set_yticks(range(1000, 99, -100))
 ax1.set_yticklabels(range(1000, 99, -100))
 
 ax1.set_ylabel('Pressure (hPa)')
-ax1.set_xlabel('Latitude')
+ax1.set_xlabel('Longitude')
 
-if clon > 180.:
-  clonpr=str(round( (clon-360.),2) ).strip('-')+'W'
-else:   
-  clonpr=str(round(clon,2))+'E'
+if clat < 0:
+  clatpr=str(round(clat,2)).strip('-')+'S'
+else:
+  clatpr=str(round(clat,2))+'N'
 
-title_center = 'U Wind (kt, shaded; dotted: <0) X-section at '+ str(clonpr)
+title_center = 'V Wind (kt, shaded; dotted: <0) X-section at '+ str(clatpr)
 ax1.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax1.set_title(title_left, loc='left')

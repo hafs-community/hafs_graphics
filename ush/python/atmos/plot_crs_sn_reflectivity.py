@@ -104,21 +104,13 @@ print('extract levs='+str(grblevs))
 for ind, lv in enumerate(grblevs):
   levstr= str(lv)+' mb'
   print('Extracting data at '+levstr)
-  ugrd = grb.select(shortName='UGRD', level=levstr)[0].data()
-  ugrd.data[ugrd.mask] = np.nan
-  ugrd = np.asarray(ugrd)*1.94384
+  refd = grb.select(shortName='REFD', level=levstr)[0].data()
+#  refd.data[refd.mask] = np.nan
+  refd = np.asarray(refd)
   if ind == 0:
-    ugrdtmp=np.zeros((len(grblevs),ugrd.shape[0],ugrd.shape[1]))
-    ugrdtmp[ind,:,:]=ugrd
-  ugrdtmp[ind,:,:]=ugrd
-  
-  vgrd = grb.select(shortName='VGRD', level=levstr)[0].data()
-  vgrd.data[vgrd.mask] = np.nan
-  vgrd = np.asarray(vgrd)*1.94384
-  if ind == 0:
-    vgrdtmp=np.zeros((len(grblevs),vgrd.shape[0],vgrd.shape[1]))
-    vgrdtmp[ind,:,:]=vgrd
-  vgrdtmp[ind,:,:]=vgrd
+    refdtmp=np.zeros((len(grblevs),refd.shape[0],refd.shape[1]))
+    refdtmp[ind,:,:]=refd
+  refdtmp[ind,:,:]=refd
 
 ########    PLOTTING SETTING
 idx = find_nearest(clon, clat, lon, lat)
@@ -127,36 +119,22 @@ print(idx[0],idx[1])
 fig, (ax1) = plt.subplots(nrows=1, ncols=1,figsize=(10,5))
 
 fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']
-fig_name = fig_prefix+'.storm.'+'crs_sn_wind.'+conf['fhhh'].lower()+'.png'
+fig_name = fig_prefix+'.storm.'+'crs_sn_reflectivity.'+conf['fhhh'].lower()+'.png'
 cbshrink = 1.0
 skip = 20
 wblength = 5
 
-cflevels = [0,5,10,15,20,25,30,         # TD
-            35,40,45,50,55,60,          # TS
-            65,70,75,80,                # H1
-            85,90,95,                   # H2
-            100,105,110,115,            # H3
-            120,125,130,135,            # H4
-            140,145,150,155,160,165]    # H5
-
-cfcolors = ['white','white','#e0ffff','#80ffff','#00e0e0','#00c0c0','#00a0a0',                # TD: Cyan
-            '#a0ffa0','#00ff00','#00e000','#00c000','#00a000','#008000',                      # TS: Green
-            '#ffff80','#e0e000','#c0c000','#a0a000',                                          # H1: Yellow
-            '#ffc000','#ffa000','#ff8000',                                                    # H2: Orange
-            '#ff8080','#ff6060','#ff4040','#ff0000',                                          # H3: Red
-            '#e00000','#c00000','#a00000','#800000',                                          # H4: Darkred
-            '#ffa0ff','#ff60ff','#ff00ff','#c000c0','#a000a0','#800080']                      # H5: Magenta
-
-cm = matplotlib.colors.ListedColormap(cfcolors)
-
 idx = find_nearest(clon, clat, lon, lat)
 
+######### RH vort Ta wind plot
+cflevels = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75]
+cfcolors = ['white','cyan','deepskyblue','blue','lime','limegreen','green',
+                        'yellow','gold','orange','red','firebrick','darkred','magenta','darkorchid','purple']
+
 newlats, levs = np.meshgrid(lat[200:600, idx[1]], grblevs)
+cs2 = ax1.contourf(newlats, levs, ( refdtmp[:, 200:600 , idx[1]] ), colors=cfcolors, levels=cflevels, extend='max')
 
-cs0 = ax1.contourf(newlats, levs, ( np.abs(ugrdtmp[:, 200:600 , idx[1]] ) ), cflevels, cmap=cm )
-
-##############Modify axis tick
+##############Modify axis tick label
 plt.savefig('for_axis_tmp', bbox_inches='tight')
 locs=ax1.get_xticks()
 labels = ax1.get_xticklabels()
@@ -176,29 +154,26 @@ for j in range(len(labels)):
 
 plt.cla()
 fig, (ax1) = plt.subplots(nrows=1, ncols=1,figsize=(10,5))
+
 ax1.set_xticks(locs)
 ax1.set_xticklabels(latlab)
 #####################
-cs0 = ax1.contourf(newlats, levs, ( np.abs(ugrdtmp[:, 200:600 , idx[1]] ) ), cflevels, cmap=cm )
-cb0 = plt.colorbar(cs0, ax=ax1, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,ticks=[10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160])
-
-cs1levels = np.arange(-160, 0 , 10) 
-cs1 = ax1.contour(newlats, levs, ( ugrdtmp[:, 200:600, idx[1] ] ), cs1levels, colors='k',linewidths=0.9, linestyles='dotted')
+cs2 = ax1.contourf(newlats, levs, ( refdtmp[:, 200:600 , idx[1]] ), colors=cfcolors, levels=cflevels, extend='max')
+cb2 = plt.colorbar(cs2, ax=ax1, orientation='vertical', pad=0.02, aspect=50, extendfrac='auto', shrink=cbshrink, extendrect=True, ticks=cflevels)
 
 ax1.set_yscale('log')
 ax1.set_ylim(1000,100)
 ax1.set_yticks(range(1000, 99, -100))
 ax1.set_yticklabels(range(1000, 99, -100))
-
 ax1.set_ylabel('Pressure (hPa)')
 ax1.set_xlabel('Latitude')
 
 if clon > 180.:
   clonpr=str(round( (clon-360.),2) ).strip('-')+'W'
-else:   
+else:
   clonpr=str(round(clon,2))+'E'
 
-title_center = 'U Wind (kt, shaded; dotted: <0) X-section at '+ str(clonpr)
+title_center = 'Simulated Radar Reflectivity (dBZ) X-section at '+str(clonpr)
 ax1.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
 ax1.set_title(title_left, loc='left')
