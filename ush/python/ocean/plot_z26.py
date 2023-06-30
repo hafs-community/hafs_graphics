@@ -109,7 +109,7 @@ var_name = 'z26'
 units = '(m)'
 
 # Shift central longitude so the Southern Hemisphere and North Indin Ocean domains are plotted continuously
-if np.logical_and(lonmax >= 0, lonmax <=180):
+if np.logical_and(lonmax >= 90, lonmax <=180):
         central_longitude = 90
 else:    
     central_longitude = -90
