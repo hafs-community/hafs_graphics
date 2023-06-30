@@ -118,9 +118,11 @@ for k in range(count):
         # land mask
         var = np.reshape(np.asarray(var),(ind[0]*ind[1],1))
         var[np.argwhere(np.isnan(temp))] = np.nan
+        var[var<0] = np.nan
         var = np.reshape(var,(ind[0],ind[1]))
         dvar = np.reshape(np.asarray(dvar),(ind[0]*ind[1],1))
         dvar[np.argwhere(np.isnan(temp))] = np.nan
+        dvar[np.logical_or(dvar<-10000,dvar>10000)] = np.nan
         dvar = np.reshape(dvar,(ind[0],ind[1]))
         
         # define forecast hour
