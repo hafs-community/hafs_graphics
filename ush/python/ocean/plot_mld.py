@@ -58,8 +58,8 @@ if not os.path.isdir(graphdir):
 print("code:   plot_mld.py")
 
 if trackon[0].lower()=='y':
-   gatcf = glob.glob(COMOUT+'/*.atcfunix')
-   if gatcf:
+   atcf = COMOUT+'/' + tcid + '.' + cycle + '.' + model + '.trak.atcfunix'
+   if atcf:
       trackon = 'yes'
    else:
       trackon = 'no'
@@ -69,17 +69,17 @@ cartopy.config['data_dir'] = os.getenv('cartopyDataDir')
 
 #   ------------------------------------------------------------------------------------
 # - get SST  *_3z_*.[nc] files
-afiles = sorted(glob.glob(os.path.join(COMOUT,'*3z*.nc')))
+afiles = sorted(glob.glob(os.path.join(COMOUT,tcid+'*3z*.nc')))
 
 ncfile0 = xr.open_dataset(afiles[0])
 
 var0 = ncfile0['mixed_layer_thickness']
 lon = np.asarray(ncfile0.Longitude)
 lat = np.asarray(ncfile0.Latitude)
-
 lonmin_raw = np.min(lon)
 lonmax_raw = np.max(lon)
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
+
 # Constrain lon limits between -180 and 180 so it does not conflict with the cartopy projection PlateCarree
 lon[lon>180] = lon[lon>180] - 360
 sort_lon = np.argsort(lon)
@@ -125,16 +125,13 @@ for k in range(count):
    cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='max', transform=ccrs.PlateCarree())
    cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::4])
    cb.ax.tick_params(labelsize=8)
+
    if trackon[0].lower()=='y':
-      for m,G in enumerate(gatcf):
-         adt,aln,alt,pmn,vmx=readTrack6hrly(G)
+       adt,aln,alt,pmn,vmx=readTrack6hrly(atcf)
+       ax.plot(aln,alt,'-ok',markersize=2,alpha=0.4,transform=ccrs.PlateCarree(central_longitude=0))
+       if k < len(aln):
+           ax.plot(aln[k],alt[k],'ok',markersize=6,alpha=0.4,markerfacecolor='None',transform=ccrs.PlateCarree(central_longitude=0))
 
-         #if np.logical_or(np.min(lon) > 0,np.max(lon) > 360):
-         #    aln = np.asarray([ln+360 if ln<74.16 else ln for ln in aln])
-
-         ax.plot(aln,alt,'-ok',markersize=2,alpha=0.4,transform=ccrs.PlateCarree(central_longitude=0))
-         if k < len(aln):
-            plt.plot(aln[k],alt[k],'ok',markersize=6,alpha=0.4,markerfacecolor='None',transform=ccrs.PlateCarree(central_longitude=0))
    ax.set_extent([lonmin_raw, lonmax_raw, latmin, latmax], crs=ccrs.PlateCarree())
 
    # Add gridlines and labels
