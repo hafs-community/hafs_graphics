@@ -82,16 +82,17 @@ print(f'grib2 file: {grib2file}')
 
 if conf['fhour'] == 0:
     tmp_file_sh = 'tmp_HTSGW_f000.nc'
-    os.system('wgrib2 -v '+ fname + ' -match "(HTSGW):(surface:anl)" -netcdf ' + tmp_file_sh)
+    os.system('wgrib2 -v '+ grib2file + ' -match "(HTSGW):(surface:anl)" -netcdf ' + tmp_file_sh)
     tmp_file_dir = 'tmp_WWSDIR_f000.nc'
-    os.system('wgrib2 -v '+ fname + ' -match "(WWSDIR):(surface:anl)" -netcdf ' + tmp_file_dir)
+    os.system('wgrib2 -v '+ grib2file + ' -match "(WWSDIR):(surface:anl)" -netcdf ' + tmp_file_dir)
 else:
     tmp_file_sh = 'tmp_HTSGW_f' + conf['fhhh'][1:] + '.nc'
-    os.system('wgrib2 -v '+ fname + ' -match "(HTSGW):(surface:' + str(conf['fhour']) + ')" ' + '-netcdf ' + tmp_file_sh)
+    os.system('wgrib2 -v '+ grib2file + ' -match "(HTSGW):(surface:' + str(conf['fhour']) + ')" ' + '-netcdf ' + tmp_file_sh)
     tmp_file_dir = 'tmp_WWSDIR_f' + conf['fhhh'][1:] + '.nc'
-    os.system('wgrib2 -v '+ fname + ' -match "(WWSDIR):(surface:' + str(conf['fhour']) + ')" ' + '-netcdf ' + tmp_file_dir)
+    os.system('wgrib2 -v '+ grib2file + ' -match "(WWSDIR):(surface:' + str(conf['fhour']) + ')" ' + '-netcdf ' + tmp_file_dir)
 
-ncfile_sh = os.path.join(conf['COMhafs'], tmp_file_sh)
+#ncfile_sh = os.path.join(conf['COMhafs'], tmp_file_sh)
+ncfile_sh = tmp_file_sh
 print(f'netcdf file: {ncfile_sh}')
 nc_sh = xr.open_dataset(ncfile_sh)
 
@@ -99,7 +100,8 @@ print('Extracting lat, lon')
 lat = nc_sh['latitude'].values
 lon = nc_sh['longitude'].values
 
-ncfile_dir = os.path.join(conf['COMhafs'], tmp_file_dir)
+#ncfile_dir = os.path.join(conf['COMhafs'], tmp_file_dir)
+ncfile_dir = tmp_file_dir
 print(f'netcdf file: {ncfile_dir}')
 nc_dir = xr.open_dataset(ncfile_dir)
 
@@ -185,9 +187,9 @@ cslevels = cflevels
 cclevels = cflevels
 
 cm0 = 'jet'
-cmap = matplotlib.colormaps.get_cmap(cm0)
+cmap = plt.get_cmap(cm0)
 newcolors = cmap(np.arange(40,240))
-newcmp = matplotlib.colors.ListedColormap(newcolors)
+newcmp = mpl.colors.ListedColormap(newcolors)
 '''
 
 # v5 hand picked jet colors
@@ -202,7 +204,7 @@ cslevels = cflevels
 cclevels = cflevels
 
 cm0 = 'jet'
-cmap = matplotlib.colormaps.get_cmap(cm0)
+cmap = plt.get_cmap(cm0)
 cfcolors = [cmap(20),cmap(80),                         # blue
             cmap(90),cmap(100),cmap(110),              # cyan
             cmap(130),cmap(140),cmap(150),             # green
@@ -274,7 +276,7 @@ ax.set_title(title_right, loc='right')
 
 #plt.show()
 plt.savefig(fig_name, bbox_inches='tight')
-#plt.close(fig)
+plt.close(fig)
 
 os.system('rm ' + tmp_file_sh)
 os.system('rm ' + tmp_file_dir)
