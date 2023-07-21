@@ -10,6 +10,7 @@ import pandas as pd
 from scipy.ndimage import gaussian_filter
 
 import xarray as xr
+import grib2io 
 
 import matplotlib
 import matplotlib as mpl
@@ -80,52 +81,30 @@ fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+
 grib2file = os.path.join(conf['COMhafs'], fname)
 print(f'grib2 file: {grib2file}')
 
-if conf['fhour'] == 0:
-    tmp_file_sh = 'tmp_HTSGW_f000.nc'
-    os.system('wgrib2 -v '+ grib2file + ' -match "(HTSGW):(surface:anl)" -netcdf ' + tmp_file_sh)
-    tmp_file_dir = 'tmp_WWSDIR_f000.nc'
-    os.system('wgrib2 -v '+ grib2file + ' -match "(WWSDIR):(surface:anl)" -netcdf ' + tmp_file_dir)
-else:
-    tmp_file_sh = 'tmp_HTSGW_f' + conf['fhhh'][1:] + '.nc'
-    os.system('wgrib2 -v '+ grib2file + ' -match "(HTSGW):(surface:' + str(conf['fhour']) + ')" ' + '-netcdf ' + tmp_file_sh)
-    tmp_file_dir = 'tmp_WWSDIR_f' + conf['fhhh'][1:] + '.nc'
-    os.system('wgrib2 -v '+ grib2file + ' -match "(WWSDIR):(surface:' + str(conf['fhour']) + ')" ' + '-netcdf ' + tmp_file_dir)
-
-#ncfile_sh = os.path.join(conf['COMhafs'], tmp_file_sh)
-ncfile_sh = tmp_file_sh
-print(f'netcdf file: {ncfile_sh}')
-nc_sh = xr.open_dataset(ncfile_sh)
+grb_ww3 = grib2io.open(grib2file,mode='r')
 
 print('Extracting lat, lon')
-lat = nc_sh['latitude'].values
-lon = nc_sh['longitude'].values
-
-#ncfile_dir = os.path.join(conf['COMhafs'], tmp_file_dir)
-ncfile_dir = tmp_file_dir
-print(f'netcdf file: {ncfile_dir}')
-nc_dir = xr.open_dataset(ncfile_dir)
+#lat,lon = grb_ww3.select(shortName='HTSGW')[int(conf['fhour']/3)].latlons()
+lat,lon = grb_ww3.select(shortName='HTSGW')[int(conf['fhour']/3)].grid()
 
 # The lon range in grib2 is typically between 0 and 360
 # Cartopy's PlateCarree projection typically uses the lon range of -180 to 180
-'''
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 if abs(np.max(lon) - 360.) < 10.:
     lon[lon>180] = lon[lon>180] - 360.
     lon_offset = 0.
 else:
     lon_offset = 180.
-'''
-# The lon range coming from the ww3 netcdf files seems to be -180 to 180. Need to test with other domains to make sure this always true 
-print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
-lon_offset = 0
 lon = lon - lon_offset
 print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 
+lon_adeckk = np.hstack([lon_adeck[lon_adeck<0]+lon_offset,lon_adeck[lon_adeck>0]-lon_offset])
+
 print('Extracting significant wave height')
-swh = nc_sh['HTSGW_surface'].values[0,:,:]
+swh = grb_ww3.select(shortName='HTSGW')[int(conf['fhour']/3)].data()
 
 print('Extracting wave mean direction')
-wmd = nc_dir['WWSDIR_surface'].values[0,:,:]
+wmd = grb_ww3.select(shortName='WWSDIR')[int(conf['fhour']/3)].data()
 
 #hgt = gaussian_filter(hgt, 5)
 
@@ -146,11 +125,12 @@ if conf['stormDomain'] == 'storm':
     mpl.rcParams['figure.figsize'] = [6, 6]
     fig_name = fig_prefix+'.storm.'+'wave_hs.'+conf['fhhh'].lower()+'.png'
     cbshrink = 0.9
-    lonmin = lon_adeck[int(conf['fhour']/3)]-5 + lon_offset
-    lonmax = lon_adeck[int(conf['fhour']/3)]+5 + lon_offset
+    #lon_adeckk = np.hstack([lon_adeck[lon_adeck<0]+lon_offset,lon_adeck[lon_adeck>0]-lon_offset])
+    lonmin = np.min(lon_adeckk[int(conf['fhour']/3)]) - 5
+    lonmax = np.max(lon_adeckk[int(conf['fhour']/3)]) + 5
+    latmin = np.min(lat_adeck[int(conf['fhour']/3)]) - 5
+    latmax = np.max(lat_adeck[int(conf['fhour']/3)]) + 5
     lonint = 2.0
-    latmin = lat_adeck[int(conf['fhour']/3)]-5
-    latmax = lat_adeck[int(conf['fhour']/3)]+5
     latint = 2.0
     skip = 20
     wblength = 4.5
@@ -175,23 +155,6 @@ fig = plt.figure()
 ax = plt.axes(projection=myproj)
 ax.axis('scaled')
 
-# v4 truncated jet
-'''
-cflevels = [0.0,0.5,1.0,1.5,2.0,  # blue
-            3.0,4.0,5.0,          # green
-            6.0,7.0,8.0,9.0,      # yellow
-            10.0,11.0,12.0,       # orange
-            13.0,14.0,15.0]       # red
-
-cslevels = cflevels
-cclevels = cflevels
-
-cm0 = 'jet'
-cmap = plt.get_cmap(cm0)
-newcolors = cmap(np.arange(40,240))
-newcmp = mpl.colors.ListedColormap(newcolors)
-'''
-
 # v5 hand picked jet colors
 cflevels = [0.0,0.5,              # blue
             1.0,1.5,2.0,          # cyan
@@ -214,7 +177,7 @@ cfcolors = [cmap(20),cmap(80),                         # blue
 
 try:
     #cf = ax.contourf(lon, lat, swh, levels=cflevels, cmap=newcmp, extend='max',transform=transform)
-    cf = ax.contourf(lon, lat, swh, levels=cflevels, colors=cfcolors, extend='max', transform=transform)
+    cf = ax.contourf(lon[:,0:-1], lat[:,0:-1], swh, levels=cflevels, colors=cfcolors, extend='max', transform=transform)
     cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=30, shrink=cbshrink, extendrect=True,
                   ticks=cclevels)
     #cf = ax.contourf(lon, lat, swh, levels=np.arange(256), cmap=cm0, extend='max',transform=transform)
@@ -226,7 +189,7 @@ print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
 try:
-    cs = ax.contour(lon, lat, swh, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
+    cs = ax.contour(lon[:,0:-1], lat[:,0:-1], swh, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
     #lb = plt.clabel(cs, levels=cslevels, inline_spacing=1, fontsize=8)
 except:
     print('ax.contour failed, continue anyway')
@@ -241,14 +204,10 @@ else:
     ykey = -0.2
 
 try:
-    q = ax.quiver(lon[::ns], lat[::ns], swh[::ns,::ns]*np.cos(wmd[::ns,::ns]*np.pi/180), swh[::ns,::ns]*np.sin(wmd[::ns,::ns]*np.pi/180), scale=80)
+    q = ax.quiver(lon[0,0:-1][::ns], lat[:,0][::ns], swh[::ns,::ns]*np.cos(wmd[::ns,::ns]*np.pi/180), swh[::ns,::ns]*np.sin(wmd[::ns,::ns]*np.pi/180), scale=80)
     ax.quiverkey(q,xkey,ykey,5,label='Direction of Combined Wind Waves and Swell\n Scaled by the Significant Height. Length = 5 m',labelpos = 'E')
 except:
-    print('ax.contour failed, continue anyway')
-
-#ax.plot(lon_adeck+lon_offset, lat_adeck, '.-k', markersize=1, linewidth=0.5)
-#if conf['stormDomain'] == 'storm':
-#    ax.plot(lon_adeck[int(conf['fhour']/3)]+lon_offset, lat_adeck[int(conf['fhour']/3)], 'o', markersize=6, linewidth=0.5,markeredgecolor='k',color='red')
+    print('ax.quiver failed, continue anyway')
 
 # Add borders and coastlines
 #ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')
@@ -256,7 +215,8 @@ ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='non
 ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
+#gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
+gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
 gl.top_labels = False
 gl.right_labels = False
 gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, lonint))
@@ -264,9 +224,13 @@ gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, latint))
 gl.xlabel_style = {'size': 8, 'color': 'black'}
 gl.ylabel_style = {'size': 8, 'color': 'black'}
 
-oklon = np.logical_and(lon >= lonmin,lon <= lonmax)
-oklat = np.logical_and(lat >= latmin,lat <= latmax)
-max_swh = np.nanmax(swh[oklat,:][:,oklon])
+oklon = np.logical_and(lon[0,0:-1] >= lonmin,lon[0,0:-1] <= lonmax)
+oklat = np.logical_and(lat[:,0] >= latmin,lat[:,0] <= latmax)
+if np.logical_and(len(np.where(oklon)[0])!=0,len(np.where(oklat)[0])!=0):
+    max_swh = np.nanmax(swh[oklat,:][:,oklon])
+else:
+    max_swh = np.nan
+
 title_center = 'Significant Height of Combined Wind Waves and Swell (m), Max = '+str(max_swh)+' m'
 ax.set_title(title_center, loc='center', y=1.05)
 title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
@@ -275,8 +239,6 @@ title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()
 ax.set_title(title_right, loc='right')
 
 #plt.show()
-plt.savefig(fig_name, bbox_inches='tight')
+plt.savefig(fig_name, bbox_inches='tight',pad_inches=0.5)
 plt.close(fig)
 
-os.system('rm ' + tmp_file_sh)
-os.system('rm ' + tmp_file_dir)
