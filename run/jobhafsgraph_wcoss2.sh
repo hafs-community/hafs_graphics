@@ -277,6 +277,10 @@ elif [ ${stormDomain} = "storm" ]; then
 	plot_crs_we_wind.py \
     plot_crs_we_rh_tempanomaly.py \
     plot_crs_we_reflectivity.py \
+    plot_azimuth_wind.py \
+    plot_azimuth_tempanomaly.py \
+    plot_azimuth_rh_q.py \
+    plot_azimuth_reflectivity.py \
     )
   levAll=( \
     1003 \
@@ -306,6 +310,10 @@ elif [ ${stormDomain} = "storm" ]; then
     200 \
     850 \
     200 \
+    1003 \
+    1003 \
+    1003 \
+    1003 \
     1003 \
     1003 \
     1003 \

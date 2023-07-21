@@ -285,6 +285,6 @@ title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+' for ' + str(accumu
 ax.set_title(title_right, loc='right',x=1.05)
 
 #plt.show() 
-fig_name = fig_prefix+'.storm.'+'wind.swath'.lower()+'.png'
+fig_name = fig_prefix+'.'+'wind_swath'.lower()+'.png'
 plt.savefig(fig_name, bbox_inches='tight')
 #plt.close(fig)
