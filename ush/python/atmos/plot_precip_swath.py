@@ -297,6 +297,6 @@ title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()
 ax.set_title(title_right, loc='right',x=1.05)
 
 #plt.show() 
-fig_name = fig_prefix+'.storm.'+'precip.swath.'.lower()+conf['fhhh']+'.png'
+fig_name = fig_prefix+'.'+'precip_swath.'.lower()+conf['fhhh']+'.png'
 plt.savefig(fig_name, bbox_inches='tight')
 plt.close(fig)
