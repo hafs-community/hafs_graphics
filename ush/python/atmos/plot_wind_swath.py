@@ -136,6 +136,9 @@ adeck_file = os.path.join(conf['COMhafs'],adeck_name)
 
 fhour,lat_adeck,lon_adeck,init_time,valid_time = get_adeck_track(adeck_file)
 
+print('lon_adeck = ',lon_adeck)
+print('lat_adeck = ',lat_adeck)
+
 #===================================================================================================
 # Set Cartopy data_dir location
 cartopy.config['data_dir'] = conf['cartopyDataDir']
@@ -154,24 +157,25 @@ grbf00 = grib2io.open(grib2file,mode='r')
 print('Extracting lat, lon')
 lat = np.asarray(grbf00.select(shortName='NLAT')[0].data())
 lon = np.asarray(grbf00.select(shortName='ELON')[0].data())
+
 # The lon range in grib2 is typically between 0 and 360
 # Cartopy's PlateCarree projection typically uses the lon range of -180 to 180
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
-if abs(np.max(lon) - 360.) < 10.:
-    lon[lon>180] = lon[lon>180] - 360.
-    lon_offset = 0.
-else:
-    #lon_offset = 180.
-    lon_offset = 360.
-lon = lon - lon_offset
-print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
-[nlat, nlon] = np.shape(lon)
+
+# first coordinate transformation to geographic -180 to 180 coordinates
+lon[lon>180] = lon[lon>180] - 360.
+#sort_lon = np.ravel(np.argsort(lon))
+sort_lon = np.argsort(lon[0,:])
+#lon = np.reshape(np.ravel(lon)[sort_lon],(lon.shape[0],lon.shape[1]))
+lon = lon[:,sort_lon]
+print('new lonlat limit to -180 to 180 convention: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 
 print('Extracting WIND')
 accumulation_time = grbswath.select(shortName='WIND')[-1].timeRangeOfStatisticalProcess
 wind = grbswath.select(shortName='WIND')[-1].data()
 wind.data[wind.mask] = np.nan
-wind = np.asarray(wind) * 1.94384 # wind in knots 
+wind_raw = np.asarray(wind) * 1.94384 # wind in knots 
+wind = wind_raw[:,sort_lon]
 #wind = gaussian_filter(wind, 5)
 
 #===================================================================================================
@@ -189,6 +193,8 @@ for i,r in enumerate(freq):
     okR_matrix = np.reshape(okR,(lat.shape[0],lat.shape[1]))
     wind_mask = wind*okR_matrix
     wind_mask[wind_mask == 0] = np.nan
+    print(np.nanmin(wind_mask))
+    print(np.nanmax(wind_mask))
     wind_masked0[i,:,:] = wind_mask
 
 wind_masked = np.nanmean(wind_masked0,axis=0)
@@ -207,10 +213,17 @@ mpl.rcParams['ytick.labelsize'] = 8
 mpl.rcParams['legend.fontsize'] = 8
 
 mpl.rcParams['figure.figsize'] = [6, 6]
-lonmin = np.min(lon_adeck) - 10 
-lonmax = np.max(lon_adeck) + 10 
-latmin = np.min(lat_adeck) - 10 
-latmax = np.max(lat_adeck) + 10 
+
+# second coordinate transformation to plot
+lon = np.asarray(grbf00.select(shortName='ELON')[0].data())
+lonn = lon
+if abs(np.max(lonn) - 360.) < 10.:
+    lonn[lonn>180] = lonn[lonn>180] - 360.
+    lon_offset = 0.
+else:
+    lon_offset = 180.
+lonn = lonn - lon_offset
+print('lon_offset = ',lon_offset)
 
 myproj = ccrs.PlateCarree(lon_offset)
 transform = ccrs.PlateCarree(lon_offset)
@@ -245,7 +258,7 @@ norm = matplotlib.colors.BoundaryNorm(cflevels, cm.N)
 
 try:
     #cf = ax.contourf(lon, lat, wind, cflevels, cmap=cm, norm=norm, transform=transform,extend='both')
-    cf = ax.contourf(lon, lat, wind_masked, cflevels, cmap=cm, norm=norm, transform=transform,extend='both')
+    cf = ax.contourf(lonn[:,sort_lon], lat, wind_masked, cflevels, cmap=cm, norm=norm, transform=transform,extend='both')
     cbshrink = 1.0
     cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True, 
                   ticks=[30,34,50,64,83,96,114,135])
@@ -255,24 +268,33 @@ except:
 
 try:
     #ax.contour(lon, lat, wind,['30','34','50','64','83','96','114','135'],colors='grey',linewidths=0.7)
-    ax.contour(lon, lat, wind_masked,['30','34','50','64','83','96','114','135'],colors='grey',linewidths=0.7)
+    ax.contour(lonn[:,sort_lon], lat, wind_masked,['30','34','50','64','83','96','114','135'],colors='grey',linewidths=0.7,transform=transform)
 except:
     print('ax.contour failed, continue anyway')
 
-ax.plot(lon_adeck, lat_adeck, '.-k', markersize=1, linewidth=0.5)
+lon_adeckk = np.hstack([lon_adeck[lon_adeck<0]+lon_offset,lon_adeck[lon_adeck>0]-lon_offset])
+ax.plot(lon_adeckk, lat_adeck, '.-k',markersize=1,linewidth=0.5)
 
 # Add borders and coastlines
 ax.add_feature(cfeature.BORDERS, linewidth=0.5, facecolor='none', edgecolor='gray')
 ax.add_feature(cfeature.STATES, linewidth=0.5, facecolor='none', edgecolor='gray')
 ax.add_feature(cfeature.COASTLINE, linewidth=1.0, facecolor='none', edgecolor='dimgray')
 
-gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.6, color='lightgray', alpha=0.6, linestyle=(0, (5, 10)))
+#gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.6, color='lightgray', alpha=0.6, linestyle=(0, (5, 10)))
+gl = ax.gridlines(draw_labels=True, linewidth=0.6, color='lightgray', alpha=0.6, linestyle=(0, (5, 10)))
 gl.top_labels = False
 gl.right_labels = False
+lonint = 5
+latint = 5
+gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, lonint))
+gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, latint))
 gl.xlabel_style = {'size': 8, 'color': 'black'}
 gl.ylabel_style = {'size': 8, 'color': 'black'}
 
-
+lonmin = np.min(lon_adeckk) - 10
+lonmax = np.max(lon_adeckk) + 10
+latmin = np.min(lat_adeck) - 10
+latmax = np.max(lat_adeck) + 10
 print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
@@ -285,6 +307,6 @@ title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+' for ' + str(accumu
 ax.set_title(title_right, loc='right',x=1.05)
 
 #plt.show() 
-fig_name = fig_prefix+'.'+'wind_swath'.lower()+'.png'
+fig_name = fig_prefix+'.storm.'+'wind.swath'.lower()+'.png'
 plt.savefig(fig_name, bbox_inches='tight')
-#plt.close(fig)
+plt.close(fig)
