@@ -128,6 +128,7 @@ for k in range(count):
 
    if trackon[0].lower()=='y':
        adt,aln,alt,pmn,vmx=readTrack6hrly(atcf)
+       aln[np.logical_or(aln<lonmin,aln>lonmax)] = np.nan
        ax.plot(aln,alt,'-ok',markersize=2,alpha=0.4,transform=ccrs.PlateCarree(central_longitude=0))
        if k < len(aln):
            ax.plot(aln[k],alt[k],'ok',markersize=6,alpha=0.4,markerfacecolor='None',transform=ccrs.PlateCarree(central_longitude=0))

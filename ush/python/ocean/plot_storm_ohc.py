@@ -61,8 +61,6 @@ print("code:   plot_storm_ohc.py")
 atcf = COMOUT+'/' + tcid + '.' + cycle + '.' + model + '.trak.atcfunix'
 
 adt,aln,alt,pmn,vmx = readTrack6hrly(atcf)
-#aln_hycom = np.asarray([ln+360 if ln<74.16 else ln for ln in aln])
-#alt_hycom = alt
 
 # Set Cartopy data_dir location
 cartopy.config['data_dir'] = os.getenv('cartopyDataDir')
@@ -71,7 +69,7 @@ cartopy.config['data_dir'] = os.getenv('cartopyDataDir')
 Rkm=500    # search radius [km]
 
 # - get SST  *_3z_*.[nc] files
-afiles = sorted(glob.glob(os.path.join(COMOUT,'*3z*.nc')))
+afiles = sorted(glob.glob(os.path.join(COMOUT,tcid+'*3z*.nc')))
 
 ncfile0 = xr.open_dataset(afiles[0])
 
@@ -79,6 +77,28 @@ temp = ncfile0['temperature'].isel(Z=0)
 var0 = ncfile0['ocean_heat_content']
 lon = np.asarray(ncfile0.Longitude)
 lat = np.asarray(ncfile0.Latitude)
+lonmin_raw = np.min(lon)
+lonmax_raw = np.max(lon)
+print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
+
+# Constrain lon limits between -180 and 180 so it does not conflict with the cartopy projection PlateCarree
+lon[lon>180] = lon[lon>180] - 360
+sort_lon = np.argsort(lon)
+lon = lon[sort_lon]
+
+# Sort var0 according to new longitude
+temp = temp[0,:, sort_lon]
+var0 = var0[0,:,sort_lon]
+
+# define grid boundaries
+lonmin_new = np.min(lon)
+lonmax_new = np.max(lon)
+latmin = np.min(lat)
+latmax = np.max(lat)
+print('new lonlat limit: ', lonmin_new, lonmax_new, latmin, latmax)
+
+# Set new longitude track (aln) according with the ocean domain limits
+aln[np.logical_or(aln<lonmin_new,aln>lonmax_new)] = np.nan
 
 # reduce array size to 2D
 temp = np.squeeze(temp)
@@ -94,14 +114,17 @@ var0 = np.reshape(var0,(ind[0],ind[1]))
 var_name = 'ohc'
 units = '($kJ/cm^2$)'
 
+# Shift central longitude so the Southern Hemisphere and North Indin Ocean domains are plotted continuously
+if np.logical_and(lonmax_new >= 90, lonmax_new <=180):
+    central_longitude = 90
+else:
+    central_longitude = -90
+print('central longitude: ',central_longitude)
+
 lns,lts = np.meshgrid(lon,lat)
 dummy = np.ones(lns.shape)
 
-#if np.logical_or(np.min(lon) > 0,np.max(lon) > 360):
-#    aln = aln_hycom
-#    alt = alt_hycom
-
-count = len(adt)        
+count = len(aln[np.isfinite(aln)])
 for k in range(count):
 
     if alt[k] < (np.max(lat)+5.0):
@@ -112,8 +135,11 @@ for k in range(count):
         ncfile = xr.open_dataset(afiles[k])
      
         varr = ncfile['ocean_heat_content']
-        var = np.asarray(varr[0])*dumb
-        dvar = np.asarray(varr[0]-np.squeeze(var0))*dumb
+        # Sort varr according to new longitude
+        varr = np.asarray(varr[0,:,sort_lon])
+        var = varr*dumb
+
+        dvar = np.asarray(var - var0)*dumb
      
         # land mask
         var = np.reshape(np.asarray(var),(ind[0]*ind[1],1))
@@ -130,7 +156,7 @@ for k in range(count):
         
         # create figure and axes instances
         fig = plt.figure(figsize=(6,6))
-        ax = plt.axes(projection=ccrs.PlateCarree())
+        ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=central_longitude))
         ax.axis('scaled')
         
         cflevels = np.linspace(0, 180, 37)
@@ -139,12 +165,19 @@ for k in range(count):
         ax.contour(lon, lat, var, levels=[60], colors='k',alpha=0.3, transform=ccrs.PlateCarree())
         cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=30, shrink=0.75, extendrect=True, ticks=cflevels[::4])
         cb.ax.tick_params(labelsize=8)
+
         if trackon[0].lower()=='y':
-              plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
-              plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
+            plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2,transform=ccrs.PlateCarree(central_longitude=0))
+            plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6,transform=ccrs.PlateCarree(central_longitude=0))
+
         mnmx="(min,max)="+"(%6.1f"%np.nanmin(var)+","+"%6.1f)"%np.nanmax(var)
-        plt.text(aln[k]-2.15,alt[k]-4.75,mnmx,fontsize=8,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
-        plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
+
+        if np.logical_and(aln[k]-5.5 > lonmin_new,aln[k]+5.5 < lonmax_new):
+            plt.text(aln[k]-2.15-central_longitude,alt[k]-4.75,mnmx,fontsize=8,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
+            ax.set_extent([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5],crs=ccrs.PlateCarree())
+        else:
+            print('Longitude track limits are out of the ocean domain')
+            continue
      
         # Add gridlines and labels
         #gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
@@ -175,7 +208,7 @@ for k in range(count):
      
         # create figure and axes instances for change plot
         fig = plt.figure(figsize=(6,6))
-        ax = plt.axes(projection=ccrs.PlateCarree())
+        ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=central_longitude))
         ax.axis('scaled')
      
         cflevels = np.linspace(-50, 50, 21)
@@ -184,15 +217,21 @@ for k in range(count):
         ax.contour(lon, lat, dvar, cflevels, colors='grey',alpha=0.5, transform=ccrs.PlateCarree())
         cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=30, shrink=0.75, extendrect=True, ticks=cflevels[::4])
         cb.ax.tick_params(labelsize=8)
+
         if trackon[0].lower()=='y':
-              plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2)
-              plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6)
+              plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2,transform=ccrs.PlateCarree(central_longitude=0))
+              plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6,transform=ccrs.PlateCarree(central_longitude=0))
         mnmx="(min,max)="+"(%6.1f"%np.nanmin(dvar)+","+"%6.1f)"%np.nanmax(dvar)
-        plt.text(aln[k]-2.15,alt[k]-4.75,mnmx,fontsize=8,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
-        plt.axis([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5])
+
+        if np.logical_and(aln[k]-5.5 > lonmin_new,aln[k]+5.5 < lonmax_new):                    
+            plt.text(aln[k]-2.15-central_longitude,alt[k]-4.75,mnmx,fontsize=8,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))            
+            ax.set_extent([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5],crs=ccrs.PlateCarree())        
+        else:
+            print('Longitude track limits are out of the ocean domain')
+            continue
      
         # Add gridlines and labels
-     #  gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
+        #gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
         gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
         gl.top_labels = False
         gl.right_labels = False

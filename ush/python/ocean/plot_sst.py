@@ -104,7 +104,6 @@ print('central longitude: ',central_longitude)
 
 count = len(afiles)        
 for k in range(count):
-
    ncfile = xr.open_dataset(afiles[k])
    varr = ncfile['temperature'].isel(Z=0)
    var = np.asarray(varr[0])
@@ -129,6 +128,7 @@ for k in range(count):
 
    if trackon[0].lower()=='y':
        adt,aln,alt,pmn,vmx=readTrack6hrly(atcf)
+       aln[np.logical_or(aln<lonmin,aln>lonmax)] = np.nan
        ax.plot(aln,alt,'-ok',markersize=2,alpha=0.4,transform=ccrs.PlateCarree(central_longitude=0))
        if k < len(aln):
            ax.plot(aln[k],alt[k],'ok',markersize=6,alpha=0.4,markerfacecolor='None',transform=ccrs.PlateCarree(central_longitude=0))
@@ -162,5 +162,5 @@ for k in range(count):
    plt.close("all")
 
 # --- successful exit
-sys.exit(0)
+#sys.exit(0)
 
