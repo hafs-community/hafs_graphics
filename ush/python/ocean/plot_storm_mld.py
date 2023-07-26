@@ -52,30 +52,6 @@ trackon = sys.argv[5]
 COMOUT = sys.argv[6]
 graphdir = sys.argv[7]
 
-#model = 'hfsa'
-#storm = 'DOKSURI'
-#tcid = '05w'
-#cycle = '2023072118'
-#trackon = 'yes'
-#COMOUT = '/lfs/h1/ops/prod/com/hafs/v1.0/hfsa.20230721/18'
-#graphdir = './'
-
-#model = 'hfsa'
-#storm = 'CALVIN'
-#tcid = '03e'
-#cycle = '2023071906'
-#trackon = 'yes'
-#COMOUT = '/lfs/h1/ops/prod/com/hafs/v1.0/hfsa.20230719/06'
-#graphdir = './'
-
-#model = 'hfsa'
-#storm = 'DON'
-#tcid = '05l'
-#cycle = '2023072318'
-#trackon = 'yes'
-#COMOUT = '/lfs/h1/ops/prod/com/hafs/v1.0/hfsa.20230723/18'
-#graphdir = './'
-
 if not os.path.isdir(graphdir):
       p=Path(graphdir)
       p.mkdir(parents=True)
