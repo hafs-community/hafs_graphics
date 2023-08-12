@@ -31,9 +31,6 @@ import cartopy.feature as cfeature
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LongitudeLocator, LongitudeFormatter)
 
-import metpy.calc as mpcalc
-import metpy
-
 # Parse the yaml config file
 print('Parse the config file: plot_atmos.yml:')
 with open('plot_atmos.yml', 'rt') as f:
@@ -98,7 +95,6 @@ lon = np.asarray(grb.select(shortName='ELON')[0].data())
 [nlat, nlon] = np.shape(lon)
 
 grblevs=np.arange(100,1001,25)
-fcor=metpy.calc.coriolis_parameter(np.deg2rad(lat))
 
 print('extract levs='+str(grblevs))
 for ind, lv in enumerate(grblevs):
