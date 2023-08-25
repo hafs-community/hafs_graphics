@@ -127,7 +127,9 @@ with open('plot_atmos.yml', 'rt') as f:
     conf = yaml.safe_load(f)
 conf['stormNumber'] = conf['stormID'][0:2]
 conf['initTime'] = pd.to_datetime(conf['ymdh'], format='%Y%m%d%H', errors='coerce')
-#conf['validTime'] = conf['initTime'] + conf['fcstTime']
+conf['fhour'] = int(conf['fhhh'][1:])
+conf['fcstTime'] = pd.to_timedelta(conf['fhour'], unit='h')
+conf['validTime'] = conf['initTime'] + conf['fcstTime']
 
 #===================================================================================================
 # Get lat and lon from adeck file
