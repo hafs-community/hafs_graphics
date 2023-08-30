@@ -274,8 +274,24 @@ try:
 except:
     print('ax.contour failed, continue anyway')
 
-lon_adeckk = np.hstack([lon_adeck[lon_adeck<0]+lon_offset,lon_adeck[lon_adeck>0]-lon_offset])
+# solution 1 to plot the track correctly when crosses the 180 line
+lon_adeckk = np.empty((len(lon_adeck)))
+lon_adeckk[:] = np.nan
+for n,lon in enumerate(lon_adeck):
+    if lon <= 0:
+        lon_adeckk[n] = lon + lon_offset
+    else:
+        lon_adeckk[n] = lon - lon_offset
+
 ax.plot(lon_adeckk, lat_adeck, '.-k',markersize=1,linewidth=0.5)
+
+# solution 2 to plot the track correctly when crosses the 180 line
+#lon_adeck_pos = lon_adeck[lon_adeck>0]
+#lon_adeck_neg = lon_adeck[lon_adeck<0]
+#lat_adeck_pos = lat_adeck[lon_adeck>0]
+#lat_adeck_neg = lat_adeck[lon_adeck<0]
+#ax.plot(lon_adeck_pos, lat_adeck_pos, '.-k',markersize=1,linewidth=0.5,transform=ccrs.PlateCarree(central_longitude=0))
+#ax.plot(lon_adeck_neg, lat_adeck_neg, '.-k',markersize=1,linewidth=0.5,transform=ccrs.PlateCarree(central_longitude=0))
 
 # Add borders and coastlines
 ax.add_feature(cfeature.BORDERS, linewidth=0.5, facecolor='none', edgecolor='gray')
