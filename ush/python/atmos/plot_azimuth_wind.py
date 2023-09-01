@@ -226,12 +226,20 @@ except:
 
 ax = axes_radpres(ax, rmax, 0)
 
-title_center = 'Tangential Wind (kt), Radial Wind (kt, shaded)'
-ax.set_title(title_center, loc='center', y=1.05)
-title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
-ax.set_title(title_left, loc='left')
+model_info = os.environ.get('TITLEgraph','').strip()
+var_info = 'Tangential Wind (kt), Radial Wind (kt, shaded)'
+storm_info = conf['stormName']+conf['stormID']
+title_left = """
+{0}
+{1}
+{2}
+""".format(model_info,var_info,storm_info)
+ax.set_title(title_left, loc='left', y=0.96)
 title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
-ax.set_title(title_right, loc='right')
+ax.set_title(title_right, loc='right', y=0.99)
+footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
+ax.text(1.0,-0.1, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
+
 #plt.show()
 plt.savefig(fig_name, bbox_inches='tight')
 plt.close(fig)

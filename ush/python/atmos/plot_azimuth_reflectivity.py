@@ -272,14 +272,22 @@ wb = ax.quiver(r1[::skipz,::skipr], z1[::skipz,::skipr],
                np.flipud(np.rot90(w_p_mean*5.0,1))[::skipz,::skipr],
                headlength=5, headwidth=3, scale=300, linewidth=0.0, pivot = 'middle', color='black')
 ax = axes_radpres(ax, rmax, 0)
-ax.quiverkey(wb, 5.5, 0.25, 20, r'20 m/s', labelpos='S', labelsep=0.05, coordinates='inches')
+ax.quiverkey(wb, 0.03, -0.1, 20, r'20 m/s', labelpos='S', labelsep=0.05, coordinates='axes')
 
-title_center = 'Reflectivity (dBZ, shaded), Secondary Circulation (vertical velocity multiplied by 5)'
-ax.set_title(title_center, loc='center', y=1.05)
-title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
-ax.set_title(title_left, loc='left')
+model_info = os.environ.get('TITLEgraph','').strip()
+var_info = 'Reflectivity (dBZ, shaded), Secondary Circulation (vertical velocity multiplied by 5)'
+storm_info = conf['stormName']+conf['stormID']
+title_left = """
+{0}
+{1}
+{2}
+""".format(model_info,var_info,storm_info)
+ax.set_title(title_left, loc='left', y=0.96)
 title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
-ax.set_title(title_right, loc='right')
+ax.set_title(title_right, loc='right', y=0.99)
+footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
+ax.text(1.0,-0.1, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
+
 #plt.show()
 plt.savefig(fig_name, bbox_inches='tight')
 plt.close(fig)
