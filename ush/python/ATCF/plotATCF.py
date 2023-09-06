@@ -249,8 +249,13 @@ def main():
         ax.legend(handles, labels, bbox_to_anchor=(0., 1.02, 1., .100),
                   loc='lower left', ncol=8, mode='expand', borderaxespad=0., frameon=False)
     #ax.set_title('Storm Track', loc='center', y=1.15)
-    ax.set_title(conf['stormModel']+' '+conf['stormName']+conf['stormID'], loc='left', y=1.08)
+    #ax.set_title(conf['stormModel']+' '+conf['stormName']+conf['stormID'], loc='left', y=1.08)
+    title_left = os.environ.get('TITLEgraph','')+' '+conf['stormName']+conf['stormID'] 
+    ax.set_title(title_left.strip(), loc='left', y=1.08) 
     ax.set_title('Init: '+conf['ymdh']+'Z', loc='right', y=1.08)
+    footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip() 
+    ax.text(1.0,-0.04, footer, fontsize=12, va="top", ha="right", transform=ax.transAxes)
+    #ax.text(0.98,0.04, footer, fontsize=12, va="top", ha="right", transform=ax.transAxes)
 
     figname = conf['stormName']+conf['stormID']+'.'+conf['ymdh']+'.track.png'
     plt.savefig(figname)
@@ -293,7 +298,13 @@ def main():
         ax.legend(handles, labels, bbox_to_anchor=(0., 1.02, 1., .100),
                   loc='lower left', ncol=8, mode='expand', borderaxespad=0., frameon=False)
     #ax.set_title('Storm Intensity Vmax (kt)', loc='center', y=1.15)
-    ax.set_title(conf['stormModel']+' '+conf['stormName']+conf['stormID'], loc='left', y=1.08)
+    #ax.set_title(conf['stormModel']+' '+conf['stormName']+conf['stormID'], loc='left', y=1.08)
+    title_left = os.environ.get('TITLEgraph','')+' '+conf['stormName']+conf['stormID'] 
+    ax.set_title(title_left.strip(), loc='left', y=1.08) 
+    ax.set_title('Init: '+conf['ymdh']+'Z', loc='right', y=1.08)
+    footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip() 
+    ax.text(1.0,-0.22, footer, fontsize=12, va="top", ha="right", transform=ax.transAxes)
+    #ax.text(0.98,0.07, footer, fontsize=12, va="top", ha="right", transform=ax.transAxes)
     ax.set_title('Init: '+conf['ymdh']+'Z', loc='right', y=1.08)
     ax.set_xlabel('Forecast Hour and Valid Time (MM/DD/HH in UTC)')
     ax.set_ylabel('Maximum 10-m Wind (kt)')
@@ -347,7 +358,13 @@ def main():
         ax.legend(handles, labels, bbox_to_anchor=(0., 1.02, 1., .100),
                   loc='lower left', ncol=8, mode='expand', borderaxespad=0., frameon=False)
     #ax.set_title('Storm Intensity Pmin (hPa)', loc='center', y=1.15)
-    ax.set_title(conf['stormModel']+' '+conf['stormName']+conf['stormID'], loc='left', y=1.08)
+    #ax.set_title(conf['stormModel']+' '+conf['stormName']+conf['stormID'], loc='left', y=1.08)
+    title_left = os.environ.get('TITLEgraph','')+' '+conf['stormName']+conf['stormID'] 
+    ax.set_title(title_left.strip(), loc='left', y=1.08) 
+    ax.set_title('Init: '+conf['ymdh']+'Z', loc='right', y=1.08)
+    footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip() 
+    ax.text(1.0,-0.22, footer, fontsize=12, va="top", ha="right", transform=ax.transAxes)
+    #ax.text(0.98,0.07, footer, fontsize=12, va="top", ha="right", transform=ax.transAxes)
     ax.set_title('Init: '+conf['ymdh']+'Z', loc='right', y=1.08)
     ax.set_xlabel('Forecast Hour and Valid Time (MM/DD/HH in UTC)')
     ax.set_ylabel('Minimum Sea Level Pressure (hPa)')

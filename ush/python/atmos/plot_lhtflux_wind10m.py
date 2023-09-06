@@ -162,12 +162,10 @@ ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 model_info = os.environ.get('TITLEgraph','').strip()
 var_info = 'Latent Heat Flux (W/m$^2$, shaded), 10 m Wind (kt)'
 storm_info = conf['stormName']+conf['stormID']
-title_left = """
-{0}
+title_left = """{0}
 {1}
-{2}
-""".format(model_info,var_info,storm_info)
-ax.set_title(title_left, loc='left', y=0.96)
+{2}""".format(model_info,var_info,storm_info)
+ax.set_title(title_left, loc='left', y=0.99)
 title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
 ax.set_title(title_right, loc='right', y=0.99)
 footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
