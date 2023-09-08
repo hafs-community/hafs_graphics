@@ -10,6 +10,7 @@ import pandas as pd
 from scipy.ndimage import gaussian_filter
 
 import xarray as xr
+import grib2io
 
 import matplotlib
 import matplotlib as mpl
@@ -193,17 +194,19 @@ except:
 if conf['stormDomain'] == 'storm':
     ns = 7
     xkey = 0.06
-    ykey = -0.13
+    ykey = -0.07
+    ytext = -0.1
     sc = 30
 else:
     ns = 30
     xkey = 0.2
-    ykey = -0.2
+    ykey = -0.11
+    ytext = -0.17
     sc = 40
 
 try:
     q = ax.quiver(lon[0,0:-1][::ns], lat[:,0][::ns], np.cos(wmd[::ns,::ns]*np.pi/180), np.sin(wmd[::ns,::ns]*np.pi/180), scale=sc)
-    ax.quiverkey(q,xkey,ykey,3,label='Direction of Combined Wind Waves and Swell Unscaled ',labelpos = 'E')
+    ax.quiverkey(q,xkey,ykey,3,label='Direction of Combined Wind Waves and Swell Unscaled ',labelpos = 'E',fontproperties = matplotlib.font_manager.FontProperties(size=8))
 except:
     print('ax.contour failed, continue anyway')
 
@@ -229,14 +232,20 @@ if np.logical_and(len(np.where(oklon)[0])!=0,len(np.where(oklat)[0])!=0):
 else:    
     max_mwp = np.nan
 
-title_center = 'Primary Wave Mean Period (s), Max = '+str(max_mwp)+' s'
-ax.set_title(title_center, loc='center', y=1.05)
-title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
-ax.set_title(title_left, loc='left')
+model_info = os.environ.get('TITLEgraph','').strip()
+var_info = 'Primary Wave Mean Period (s), Max = '+str(np.round(max_mwp,2))+' s'
+storm_info = conf['stormName']+conf['stormID']
+title_left = """{0}
+{1}
+{2}""".format(model_info,var_info,storm_info)
+ax.set_title(title_left, loc='left', y=0.99)
 title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
-ax.set_title(title_right, loc='right')
+ax.set_title(title_right, loc='right', y=0.99)
+footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
+ax.text(1.0,ytext, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
 
 #plt.show()
-plt.savefig(fig_name, bbox_inches='tight',pad_inches=0.5)
+#plt.savefig(fig_name, bbox_inches='tight',pad_inches=0.5)
+plt.savefig(fig_name, bbox_inches='tight')
 plt.close(fig)
 

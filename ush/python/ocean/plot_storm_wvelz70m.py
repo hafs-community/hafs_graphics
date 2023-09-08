@@ -73,7 +73,7 @@ afiles = sorted(glob.glob(os.path.join(COMOUT,tcid+'*3z*.nc')))
 
 ncfile0 = xr.open_dataset(afiles[0])
 
-var0 = ncfile0['w_velocity'].isel(Z=14)
+var0 = ncfile0['w_velocity'].isel(Z=12)
 lon = np.asarray(ncfile0.Longitude)
 lat = np.asarray(ncfile0.Latitude)
 lonmin_raw = np.min(lon)
@@ -185,12 +185,15 @@ for k in range(count):
         ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
         ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
      
-        title_center = '70 m Vertical Velocity (m/day), Currents'
-        ax.set_title(title_center, loc='center', y=1.05, fontsize=8)
-        title_left = model.upper()+' '+storm.upper()+tcid.upper()
-        ax.set_title(title_left, loc='left', fontsize=8)
+        model_info = os.environ.get('TITLEgraph','').strip()
+        var_info = '70 m Vertical Velocity (m/day), Currents'
+        storm_info = storm.upper()+tcid.upper()
+        title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
+        ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
         title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
-        ax.set_title(title_right, loc='right', fontsize=8)
+        ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
+        footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
+        ax.text(1.0,-0.08, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
       
         pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.ocean.storm.'+var_name+'.f'+"%03d"%(fhr)+'.png')
         plt.savefig(pngFile,bbox_inches='tight',dpi=150)
@@ -236,12 +239,15 @@ for k in range(count):
         ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
         ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
      
-        title_center = '70 m Vertical Velocity Change (m/day)'
-        ax.set_title(title_center, loc='center', y=1.05, fontsize=8)
-        title_left = model.upper()+' '+storm.upper()+tcid.upper()
-        ax.set_title(title_left, loc='left', fontsize=8)
+        model_info = os.environ.get('TITLEgraph','').strip()
+        var_info = '70 m Vertical Velocity change (m/day)'
+        storm_info = storm.upper()+tcid.upper()
+        title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
+        ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
         title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
-        ax.set_title(title_right, loc='right', fontsize=8)
+        ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
+        footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
+        ax.text(1.0,-0.08, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
      
         pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.ocean.storm.'+var_name+'.change.f'+"%03d"%(fhr)+'.png')
         plt.savefig(pngFile,bbox_inches='tight',dpi=150)

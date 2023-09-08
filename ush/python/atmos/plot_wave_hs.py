@@ -197,15 +197,17 @@ except:
 if conf['stormDomain'] == 'storm':
     ns = 7
     xkey = 0.08
-    ykey = -0.13
+    ykey = -0.09
+    ytext = -0.14
 else:
     ns = 30
     xkey = 0.2
-    ykey = -0.2
+    ykey = -0.15
+    ytext = -0.24
 
 try:
     q = ax.quiver(lon[0,0:-1][::ns], lat[:,0][::ns], swh[::ns,::ns]*np.cos(wmd[::ns,::ns]*np.pi/180), swh[::ns,::ns]*np.sin(wmd[::ns,::ns]*np.pi/180), scale=80)
-    ax.quiverkey(q,xkey,ykey,5,label='Direction of Combined Wind Waves and Swell\n Scaled by the Significant Height. Length = 5 m',labelpos = 'E')
+    ax.quiverkey(q,xkey,ykey,5,label='Direction of Combined Wind Waves and Swell\n Scaled by the Significant Height. Length = 5 m',labelpos = 'E',fontproperties = matplotlib.font_manager.FontProperties(size=8))
 except:
     print('ax.quiver failed, continue anyway')
 
@@ -231,14 +233,19 @@ if np.logical_and(len(np.where(oklon)[0])!=0,len(np.where(oklat)[0])!=0):
 else:
     max_swh = np.nan
 
-title_center = 'Significant Height of Combined Wind Waves and Swell (m), Max = '+str(max_swh)+' m'
-ax.set_title(title_center, loc='center', y=1.05)
-title_left = conf['stormModel']+' '+conf['stormName']+conf['stormID']
-ax.set_title(title_left, loc='left')
+model_info = os.environ.get('TITLEgraph','').strip()
+var_info = 'Significant Height of Combined Wind Waves and Swell (m), Max = '+str(np.round(max_swh,2))+' m'
+storm_info = conf['stormName']+conf['stormID']
+title_left = """{0}
+{1}
+{2}""".format(model_info,var_info,storm_info)
+ax.set_title(title_left, loc='left', y=0.99)
 title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
-ax.set_title(title_right, loc='right')
+ax.set_title(title_right, loc='right', y=0.99)
+footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
+ax.text(1.0,ytext, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
 
 #plt.show()
-plt.savefig(fig_name, bbox_inches='tight',pad_inches=0.5)
+plt.savefig(fig_name, bbox_inches='tight')
 plt.close(fig)
 

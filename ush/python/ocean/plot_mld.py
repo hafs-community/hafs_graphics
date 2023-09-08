@@ -43,6 +43,7 @@ import cartopy.feature as cfeature
 plt.switch_backend('agg')
 
 #================================================================
+'''
 model = sys.argv[1]
 storm = sys.argv[2]
 tcid = sys.argv[3]
@@ -50,6 +51,15 @@ cycle = sys.argv[4]
 trackon = sys.argv[5]
 COMOUT = sys.argv[6]
 graphdir = sys.argv[7]
+'''
+
+model = 'hfsa'
+storm = 'fiona'
+tcid = '07l'
+cycle = '2022092000'
+trackon = 'yes'
+COMOUT = '/lfs/h2/emc/hur/noscrub/emc.hur/HFSA_sample/hafs/v1.0/hfsa.20220920/00'
+graphdir = './'
 
 if not os.path.isdir(graphdir):
       p=Path(graphdir)
@@ -151,12 +161,15 @@ for k in range(count):
    ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
    ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
 
-   title_center = 'Mixed Layer Depth (m)'
-   ax.set_title(title_center, loc='center', y=1.05, fontsize=8)
-   title_left = model.upper()+' '+storm.upper()+tcid.upper()
-   ax.set_title(title_left, loc='left', fontsize=8)
+   model_info = os.environ.get('TITLEgraph','').strip()
+   var_info = 'Mixed Layer Depth (m)'
+   storm_info = storm.upper()+tcid.upper()
+   title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
+   ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
    title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
-   ax.set_title(title_right, loc='right', fontsize=8)
+   ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
+   footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
+   ax.text(1.0,-0.1, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
  
    pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.ocean.'+var_name+'.f'+"%03d"%(fhr)+'.png')
    plt.savefig(pngFile,bbox_inches='tight',dpi=150)
