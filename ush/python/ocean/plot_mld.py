@@ -43,7 +43,6 @@ import cartopy.feature as cfeature
 plt.switch_backend('agg')
 
 #================================================================
-'''
 model = sys.argv[1]
 storm = sys.argv[2]
 tcid = sys.argv[3]
@@ -51,15 +50,6 @@ cycle = sys.argv[4]
 trackon = sys.argv[5]
 COMOUT = sys.argv[6]
 graphdir = sys.argv[7]
-'''
-
-model = 'hfsa'
-storm = 'fiona'
-tcid = '07l'
-cycle = '2022092000'
-trackon = 'yes'
-COMOUT = '/lfs/h2/emc/hur/noscrub/emc.hur/HFSA_sample/hafs/v1.0/hfsa.20220920/00'
-graphdir = './'
 
 if not os.path.isdir(graphdir):
       p=Path(graphdir)
