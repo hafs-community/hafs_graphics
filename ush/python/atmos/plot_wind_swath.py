@@ -183,7 +183,7 @@ wind = wind_raw[:,sort_lon]
 #===================================================================================================
 print('Obtaining the mask along the forecast track, around 500 km from the storm center')
 N = 8 # 8 degrees around track
-freq = np.arange(0,43,3)
+freq = np.arange(0,len(lon_adeck),3)
 wind_masked0 = np.empty((len(freq),wind.shape[0],wind.shape[1]))
 wind_masked0[:] = np.nan
 for i,r in enumerate(freq):

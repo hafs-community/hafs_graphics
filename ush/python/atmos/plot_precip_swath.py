@@ -179,7 +179,7 @@ apcp = apcp_raw[:,sort_lon]
 #===================================================================================================
 print('Obtaining the mask along the forecast track, around 500 km from the storm center')
 N = 8 # 8 degrees around track
-freq = np.arange(0,43,3)
+freq = np.arange(0,len(lon_adeck),3)
 apcp_masked0 = np.empty((len(freq),apcp.shape[0],apcp.shape[1]))
 apcp_masked0[:] = np.nan
 for i,r in enumerate(freq):
