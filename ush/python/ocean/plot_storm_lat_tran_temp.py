@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""This scrip plots the ocean mixed layer depth for the entire ocean domain. """ 
+"""This scrip plots a latitudinal transect of temperature. """
 
 import os
 import sys
@@ -13,10 +13,6 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
-  
-import cartopy
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
 
 #================================================================
 def latlon_str2num(string):
@@ -62,10 +58,6 @@ conf['fhour'] = int(conf['fhhh'][1:])
 conf['fcstTime'] = pd.to_timedelta(conf['fhour'], unit='h')
 conf['validTime'] = conf['initTime'] + conf['fcstTime']
 
-# Set Cartopy data_dir location
-cartopy.config['data_dir'] = conf['cartopyDataDir']
-print(conf)
-
 #================================================================
 # Get lat and lon from adeck file
 
@@ -81,12 +73,13 @@ if conf['trackon']=='yes':
 #================================================================
 # Read MOM6 file
 
-fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc' 
+fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f003.nc'
+fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
 
-ncfile = os.path.join(conf['COMhafs'], fname) 
+ncfile003 = os.path.join(conf['COMhafs'], fname003)
+nc003 = xr.open_dataset(ncfile003)
+ncfile = os.path.join(conf['COMhafs'], fname)
 nc = xr.open_dataset(ncfile)
-
-var = np.asarray(nc['MLD_0125'][0,:,:])
 
 lon = np.asarray(nc.xh)
 lat = np.asarray(nc.yh)
@@ -94,69 +87,35 @@ lonmin_raw = np.min(lon)
 lonmax_raw = np.max(lon)
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 
-#================================================================
-# Constrain lon limits between -180 and 180 so it does not conflict with the cartopy projection PlateCarree
-lon[lon>180] = lon[lon>180] - 360
-sort_lon = np.argsort(lon)
-lon = lon[sort_lon]
+#%% Longitudinal transect
+xlim = [np.nanmean(lon_adeck),np.nanmean(lon_adeck)]
+ylim = [np.nanmin(lat_adeck),np.nanmax(lat_adeck)]
+xmin = int(np.round(np.interp(xlim[0],lon,np.arange(len(lon)))))
+xmax = int(np.round(np.interp(xlim[1],lon,np.arange(len(lon)))))
+ymin = int(np.round(np.interp(ylim[0],lat,np.arange(len(lat)))))
+ymax = int(np.round(np.interp(ylim[1],lat,np.arange(len(lat)))))
 
-# define grid boundaries
-lonmin = np.min(lon)
-lonmax = np.max(lon)
-latmin = np.min(lat)
-latmax = np.max(lat)
-print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
+xmax = xmax + 1
+latt = lat[ymin:ymax]
 
-# Shift central longitude so the Southern Hemisphere and North Indin Ocean domains are plotted continuously
-if np.logical_and(lonmax >= 90, lonmax <=180):
-    central_longitude = 90
-else:
-    central_longitude = -90
-print('central longitude: ',central_longitude)
+varr = np.asarray(nc['temp'][0,:,ymin:ymax,:][:,:,xmin:xmax])[:,:,0]
+zl = np.asarray(nc['z_l'])
 
-# sort var according to the new longitude
-var = var[:,sort_lon]
+#############################################################
+# Temp
+kw = dict(levels=np.arange(15,31.1,0.5))
+fig,ax = plt.subplots(figsize=(8,4))
+ctr = ax.contourf(latt,-zl,varr,cmap='Spectral_r',**kw,extend='both')
+cbar = fig.colorbar(ctr,extendrect=True)
+cbar.set_label('$^oC$',fontsize=14)
+cs = ax.contour(latt,-zl,varr,[26],colors='k')
+ax.clabel(cs,cs.levels,inline=True,fmt='%1.1f',fontsize=10)
+ax.set_ylim([-300,0])
+ax.set_ylabel('Depth (m)')
+ax.set_xlabel('Latitude')
 
-#================================================================
-var_name= 'mld'
-units = '(m)'
-
-# create figure and axes instances
-fig = plt.figure(figsize=(8,4))
-ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=central_longitude))
-ax.axis('scaled')
-
-cflevels = np.linspace(0, 100, 21)
-cmap = plt.get_cmap('RdYlBu_r')
-cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='max', transform=ccrs.PlateCarree())
-cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::4])
-cb.ax.tick_params(labelsize=8)
-
-if conf['trackon']=='yes':
-    lon_adeck[np.logical_or(lon_adeck<lonmin,lon_adeck>lonmax)] = np.nan
-    ax.plot(lon_adeck,lat_adeck,'-ok',markersize=2,alpha=0.4,transform=ccrs.PlateCarree(central_longitude=0))
-    nhour = int((int(conf['fhhh'][1:])/3))
-    if nhour <= len(fhour):
-        ax.plot(lon_adeck[nhour],lat_adeck[nhour],'ok',markersize=6,alpha=0.4,markerfacecolor='None',transform=ccrs.PlateCarree(central_longitude=0))
-   
-ax.set_extent([lonmin_raw, lonmax_raw, latmin, latmax], crs=ccrs.PlateCarree())
-
-# Add gridlines and labels
-gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
-gl.top_labels = False
-gl.right_labels = False
-gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, 20))
-gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, 10))
-gl.xlabel_style = {'size': 8, 'color': 'black'}
-gl.ylabel_style = {'size': 8, 'color': 'black'}
-
-# Add borders and coastlines
-ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
-ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
-ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
-   
 model_info = os.environ.get('TITLEgraph','').strip()
-var_info = 'Mixed Layer Depth (m)'
+var_info = 'Latitudinal transect Temperature ($^oC$)'
 storm_info = conf['stormName']+conf['stormID']
 title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
 ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
@@ -165,7 +124,7 @@ ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
 footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
 ax.text(1.0,-0.1, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
 
-pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.'+var_name+'.'+conf['fhhh'].lower()+'.png'
+pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm.lat_transect_temp'+'.'+conf['fhhh'].lower()+'.png'
 plt.savefig(pngFile,bbox_inches='tight',dpi=150)
-plt.close("all")
+plt.close()
 

@@ -1,0 +1,10 @@
+# yaml configure file
+stormModel: ${stormModel:-HFSA}
+stormName: ${stormName:-IDA}
+stormID: ${stormID:-09L}
+stormBasin: ${stormBasin:-AL}
+ymdh: '${ymdh:-2021082800}'
+fhhh: ${fhhh:-f036}
+trackon: '${trackon:-yes}'
+COMhafs: ${COMhafs:-/lfs/h2/emc/hur/noscrub/bin.liu/save/hafs_com_2021082800_09L}
+cartopyDataDir: ${cartopyDataDir:-/lfs/h2/emc/hur/noscrub/local/share/cartopy}
