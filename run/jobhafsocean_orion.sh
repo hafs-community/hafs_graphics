@@ -21,9 +21,12 @@ set -x
 
 date
 
-YMDH=${1:-${YMDH:-2019082900}}
-STORM=${STORM:-NATL}
-STORMID=${STORMID:-00L}
+YMDH=${1:-${YMDH:-2023090706}}
+STORM=${STORM:-LEE}
+STORMID=${STORMID:-13L}
+stormModel=${stormModel:-HFSA}
+TRACKON=${TRACKON:-yes}
+fhhhAll=$(seq -f "f%03g" 3 3 126)
 
 #HOMEgraph=/your/graph/home/dir
 #WORKgraph=/your/graph/work/dir # if not specified, a default location relative to COMhafs will be used
@@ -38,13 +41,6 @@ export DRIVEROCEAN=${USHgraph}/driverOcean.sh
 export COMhafs=${COMhafs:-/hafs/com/${YMDH}/${STORMID}}
 export WORKgraph=${WORKgraph:-${COMhafs}/../../../${YMDH}/${STORMID}/emc_graphics}
 export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
-
-stormModel=${stormModel:-HFSA}
-is6Hr=${is6Hr:-False}
-trackOn=${trackOn:-True}
-figTimeLevels=$(seq 0 42)
-#is6Hr=${is6Hr:-True}
-#figTimeLevels=$(seq 0 20)
 
 source ${USHgraph}/graph_pre_job.sh.inc
 export machine=${WHERE_AM_I:-wcoss2} # platforms: wcoss2, hera, orion, jet
@@ -79,37 +75,39 @@ touch $cmdfile
 # For the ocean figures
 #==============================================================================
 
+for fhhh in ${fhhhAll}; do
+
 figScriptAll=( \
-  "plot_sst.py" \
-  "plot_sss.py" \
-  "plot_mld.py" \
-  "plot_ohc.py" \
-  "plot_z20.py" \
-  "plot_z26.py" \
-  "plot_storm_sst.py" \
-  "plot_storm_sss.py" \
-  "plot_storm_mld.py" \
-  "plot_storm_ohc.py" \
-  "plot_storm_z20.py" \
-  "plot_storm_z26.py" \
-  "plot_storm_tempz40m.py" \
-  "plot_storm_tempz70m.py" \
-  "plot_storm_tempz100m.py" \
-  "plot_storm_wvelz40m.py" \
-  "plot_storm_wvelz70m.py" \
-  "plot_storm_wvelz100m.py" \
+  plot_sst.py \
+  plot_sss.py \
+  plot_mld.py \
+  plot_ohc.py \
+  plot_z20.py \
+  plot_z26.py \
+  plot_storm_sst.py \
+  plot_storm_sss.py \
+  plot_storm_mld.py \
+  plot_storm_ohc.py \
+  plot_storm_z20.py \
+  plot_storm_z26.py \
+  plot_storm_tempz40m.py \
+  plot_storm_tempz70m.py \
+  plot_storm_tempz100m.py \
+  plot_storm_forec_track_tran_temp.py \
+  plot_storm_lat_tran_temp.py \
   )
 
 nscripts=${#figScriptAll[*]}
 
-for((i=0;i<${nscripts};i++));
-do
-
+for((i=0;i<${nscripts};i++)); do
   echo ${figScriptAll[$i]}
 # echo "${APRUNS} ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.log 2>&1 ${BACKGROUND}" >> $cmdfile
   echo "time ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.log 2>&1" >> $cmdfile
 
 done
+
+done
+
 #==============================================================================
 
 chmod u+x ./$cmdfile
