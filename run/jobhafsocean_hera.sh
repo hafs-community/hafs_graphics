@@ -25,8 +25,8 @@ STORM=${STORM:-LEE}
 STORMID=${STORMID:-13L}
 stormModel=${stormModel:-HFSA}
 TRACKON=${TRACKON:-yes}
-#fhhhAll=$(seq -f "f%03g" 3 3 126)
-fhhhAll=$(seq -f "f%03g" 3 3 12)
+fhhhAll=$(seq -f "f%03g" 3 3 126)
+#fhhhAll=$(seq -f "f%03g" 3 3 12)
 
 #HOMEgraph=/your/graph/home/dir
 #WORKgraph=/your/graph/work/dir # if not specified, a default location relative to COMhafs will be used
