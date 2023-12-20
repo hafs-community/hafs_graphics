@@ -137,7 +137,7 @@ ssu = ssu[:,sort_lon]
 ssv = ssv[:,sort_lon]
 
 #================================================================
-var_name= 'tempz70'
+var_name= 'tempz70m'
 units = '($^oC$)'
 
 Rkm=500    # search radius [km]
@@ -212,7 +212,7 @@ if lat_adeck[nhour] < (latmax+5.0):
     footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
     ax.text(1.0,-0.08, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
     
-    pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm.'+var_name+'.'+conf['fhhh'].lower()+'.png'
+    pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm_'+var_name+'.'+conf['fhhh'].lower()+'.png'
     plt.savefig(pngFile,bbox_inches='tight',dpi=150)
     plt.close("all")
     
@@ -266,6 +266,6 @@ if lat_adeck[nhour] < (latmax+5.0):
     footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
     ax.text(1.0,-0.08, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
     
-    pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm.'+var_name+'.change.'+conf['fhhh'].lower()+'.png'
+    pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm_'+var_name+'.change.'+conf['fhhh'].lower()+'.png'
     plt.savefig(pngFile,bbox_inches='tight',dpi=150)
     plt.close("all")

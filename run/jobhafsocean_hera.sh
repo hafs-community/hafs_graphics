@@ -1,14 +1,13 @@
 #!/bin/sh
 #SBATCH --job-name=jobhafsocean
 #SBATCH --account=hurricane
-##SBATCH -A hwrf
-#SBATCH --qos=batch
-##SBATCH --qos=debug
+##SBATCH --qos=batch
+#SBATCH --qos=debug
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=20
 #SBATCH --cpus-per-task=1
-#SBATCH -t 01:00:00
-##SBATCH -t 00:30:00
+##SBATCH -t 01:00:00
+#SBATCH -t 00:30:00
 ##SBATCH --partition=xjet
 ##SBATCH --partition=orion
 #SBATCH -o jobhafsocean.log.%j
@@ -26,7 +25,8 @@ STORM=${STORM:-LEE}
 STORMID=${STORMID:-13L}
 stormModel=${stormModel:-HFSA}
 TRACKON=${TRACKON:-yes}
-fhhhAll=$(seq -f "f%03g" 3 3 126)
+#fhhhAll=$(seq -f "f%03g" 3 3 126)
+fhhhAll=$(seq -f "f%03g" 3 3 12)
 
 #HOMEgraph=/your/graph/home/dir
 #WORKgraph=/your/graph/work/dir # if not specified, a default location relative to COMhafs will be used
@@ -56,9 +56,9 @@ else
   export cartopyDataDir=${cartopyDataDir:-/your/local/share/cartopy}
 fi
 
-export TOTAL_TASKS=${TOTAL_TASKS:-${SLURM_NTASKS:-20}}
-export NCTSK=${NCTSK:-20}
-export NCNODE=${NCNODE:-1}
+export TOTAL_TASKS=${TOTAL_TASKS:-${SLURM_NTASKS:-480}}
+export NCTSK=${NCTSK:-10}
+export NCNODE=${NCNODE:-10}
 export OMP_NUM_THREADS=${OMP_NUM_THREADS:-1}
 
 source ${USHgraph}/graph_runcmd.sh.inc
