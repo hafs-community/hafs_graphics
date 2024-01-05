@@ -214,5 +214,5 @@ ax.text(1.0,-0.1, footer, fontsize=8, va="top", ha="right", transform=ax.transAx
 
 pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.'+var_name+'.'+conf['fhhh'].lower()+'.png'
 plt.savefig(pngFile,bbox_inches='tight',dpi=150)
-#plt.close("all")
+plt.close("all")
 
