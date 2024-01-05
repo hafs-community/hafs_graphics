@@ -54,6 +54,25 @@ def get_adeck_track(adeck_file):
     return fhour,lat_adeck,lon_adeck,init_time,valid_time
 
 #================================================================
+# Calculate ocean heat content
+def ohc(temp,salt,zl):
+    cp = 3985 #Heat capacity in J/(kg K)
+    zl_array = np.reshape(np.tile(zl,(temp.shape[1]*temp.shape[2],1)).T,(temp.shape[0],temp.shape[1],temp.shape[2]))
+    no26 = temp < 26
+    temp[no26] = np.nan
+    salt[no26] = np.nan
+    density = dens(salt,temp,zl_array)
+    rho0 = np.nanmean(density,axis=0)
+    zl_array_fac = (zl_array[0:-1,:,:] + zl_array[1:,:,:])/2
+    zero_array = np.zeros((1,temp.shape[1],temp.shape[2]))
+    bott_array = np.ones((1,temp.shape[1],temp.shape[2]))* zl_array_fac[-1,0,0] + (zl[-1] - zl[-2])
+    zl_array_face = np.vstack((zero_array,zl_array_fac,bott_array))
+    dz_array = np.diff(zl_array_face,axis=0)
+    ohc = np.abs(cp * rho0 * np.nansum((temp-26)*dz_array,axis=0)) * 10**(-7) # in kJ/cm^2
+
+    return ohc
+
+#================================================================
 # Parse the yaml config file
 print('Parse the config file: plot_ocean.yml:')
 with open('plot_ocean.yml', 'rt') as f:
@@ -143,20 +162,7 @@ if ocean == 'hycom':
 #================================================================
 # Calculate ocean heat content
 if ocean == 'mom6':
-    zl_array = np.reshape(np.tile(zl,(temp.shape[1]*temp.shape[2],1)).T,(temp.shape[0],temp.shape[1],temp.shape[2]))
-    cp = 3985 #Heat capacity in J/(kg K)
-    no26 = temp < 26
-    temp[no26] = np.nan
-    salt[no26] = np.nan
-    density = dens(salt,temp,zl_array)
-    rho0 = np.nanmean(density,axis=0)
-    zl_array_fac = (zl_array[0:-1,:,:] + zl_array[1:,:,:])/2
-    zero_array = np.zeros((1,temp.shape[1],temp.shape[2]))
-    bott_array = np.ones((1,temp.shape[1],temp.shape[2]))* zl_array_fac[-1,0,0] + (zl[-1] - zl[-2])
-    zl_array_face = np.vstack((zero_array,zl_array_fac,bott_array))
-    dz_array = np.diff(zl_array_face,axis=0)
-    ohc = np.abs(cp * rho0 * np.nansum((temp-26)*dz_array,axis=0)) * 10**(-7) # in kJ/cm^2
-    var = ohc 
+    var = ohc(temp,salt,zl)
 
 #================================================================
 var_name= 'ohc'
@@ -208,5 +214,5 @@ ax.text(1.0,-0.1, footer, fontsize=8, va="top", ha="right", transform=ax.transAx
 
 pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.'+var_name+'.'+conf['fhhh'].lower()+'.png'
 plt.savefig(pngFile,bbox_inches='tight',dpi=150)
-plt.close("all")
+#plt.close("all")
 
