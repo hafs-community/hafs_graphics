@@ -52,6 +52,20 @@ def get_adeck_track(adeck_file):
     return fhour,lat_adeck,lon_adeck,init_time,valid_time
 
 #================================================================
+# Calculate z26
+def z26_depth(temp,zl):
+    z26 = np.empty((temp.shape[1],temp.shape[2]))
+    z26[:] = np.nan
+    for j in np.arange(temp.shape[1]):
+        for i in np.arange(temp.shape[2]):
+            if len(np.where(temp[:,j,i] >= 26)[0])!=0:
+                ok26 = np.where(temp[:,j,i] >= 26)[0][-1]
+                z26[j,i] = zl[ok26]
+            else:
+                z26[j,i] = np.nan
+    return z26
+
+#================================================================
 # Parse the yaml config file
 print('Parse the config file: plot_ocean.yml:')
 with open('plot_ocean.yml', 'rt') as f:
@@ -139,17 +153,7 @@ if ocean == 'hycom':
 # Calculate z26
 
 if ocean == 'mom6':
-    z26 = np.empty((temp.shape[1],temp.shape[2]))
-    z26[:] = np.nan
-    for j in np.arange(temp.shape[1]):
-        for i in np.arange(temp.shape[2]):
-            if len(np.where(temp[:,j,i] >= 26)[0])!=0:
-                ok26 = np.where(temp[:,j,i] >= 26)[0][-1]
-                z26[j,i] = zl[ok26]
-
-            else:
-                z26[j,i] = np.nan
-    var = z26
+    var = z26_depth(temp,zl)
 
 #================================================================
 var_name= 'z26'
@@ -201,5 +205,5 @@ ax.text(1.0,-0.1, footer, fontsize=8, va="top", ha="right", transform=ax.transAx
 
 pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.'+var_name+'.'+conf['fhhh'].lower()+'.png'
 plt.savefig(pngFile,bbox_inches='tight',dpi=150)
-#plt.close("all")
+plt.close("all")
 

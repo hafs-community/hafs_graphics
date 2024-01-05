@@ -52,6 +52,20 @@ def get_adeck_track(adeck_file):
     return fhour,lat_adeck,lon_adeck,init_time,valid_time
 
 #================================================================
+# Calculate z20
+def z20_depth(temp,zl):
+    z20 = np.empty((temp.shape[1],temp.shape[2]))
+    z20[:] = np.nan
+    for j in np.arange(temp.shape[1]):
+        for i in np.arange(temp.shape[2]):
+            if len(np.where(temp[:,j,i] >= 20)[0])!=0:
+                ok20 = np.where(temp[:,j,i] >= 20)[0][-1]
+                z20[j,i] = zl[ok20]
+            else:
+                z20[j,i] = np.nan
+    return z20
+
+#================================================================
 # Parse the yaml config file
 print('Parse the config file: plot_ocean.yml:')
 with open('plot_ocean.yml', 'rt') as f:
@@ -139,17 +153,7 @@ if ocean == 'hycom':
 # Calculate z20
 
 if ocean == 'mom6':
-    z20 = np.empty((temp.shape[1],temp.shape[2]))
-    z20[:] = np.nan
-    for j in np.arange(temp.shape[1]): 
-        for i in np.arange(temp.shape[2]):
-            if len(np.where(temp[:,j,i] >= 20)[0])!=0:
-                ok20 = np.where(temp[:,j,i] >= 20)[0][-1]
-                z20[j,i] = zl[ok20]
-
-            else:
-                z20[j,i] = np.nan
-    var = z20
+    var = z20_depth(temp,zl)
 
 #================================================================
 var_name= 'z20'
