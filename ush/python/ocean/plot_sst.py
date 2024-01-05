@@ -79,17 +79,31 @@ if conf['trackon']=='yes':
     print('lat_adeck = ',lat_adeck)
 
 #================================================================
-# Read MOM6 file
+# Read ocean files
 
-fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc' 
+oceanf = glob.glob(os.path.join(conf['COMhafs'],'*f006.nc'))[0].split('/')[-1].split('.')
+
+ocean = [f for f in oceanf if f == 'hycom' or f == 'mom6'][0]
+
+if ocean == 'mom6':
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
+
+if ocean == 'hycom':
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+conf['fhhh']+'.nc'
 
 ncfile = os.path.join(conf['COMhafs'], fname) 
 nc = xr.open_dataset(ncfile)
 
-var = np.asarray(nc['SST'][0,:,:])
+if ocean == 'mom6':
+    var = np.asarray(nc['SST'][0,:,:])
+    lon = np.asarray(nc.xh)
+    lat = np.asarray(nc.yh)
 
-lon = np.asarray(nc.xh)
-lat = np.asarray(nc.yh)
+if ocean == 'hycom':
+    var = np.asarray(nc['temperature'][0,0,:,:])
+    lon = np.asarray(nc.Longitude)
+    lat = np.asarray(nc.Latitude)
+
 lonmin_raw = np.min(lon)
 lonmax_raw = np.max(lon)
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))

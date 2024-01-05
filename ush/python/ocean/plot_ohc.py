@@ -81,19 +81,33 @@ if conf['trackon']=='yes':
     print('lat_adeck = ',lat_adeck)
 
 #================================================================
-# Read MOM6 file
+# Read ocean files
 
-fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc' 
+oceanf = glob.glob(os.path.join(conf['COMhafs'],'*f006.nc'))[0].split('/')[-1].split('.')
 
-ncfile = os.path.join(conf['COMhafs'], fname) 
+ocean = [f for f in oceanf if f == 'hycom' or f == 'mom6'][0]
+
+if ocean == 'mom6':
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
+
+if ocean == 'hycom':
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+conf['fhhh']+'.nc'
+
+ncfile = os.path.join(conf['COMhafs'], fname)
 nc = xr.open_dataset(ncfile)
 
-temp = np.asarray(nc['temp'][0,:,:,:])
-salt = np.asarray(nc['so'][0,:,:,:])
-zl = np.asarray(nc['z_l'])
+if ocean == 'mom6':
+    temp = np.asarray(nc['temp'][0,:,:,:])
+    salt = np.asarray(nc['so'][0,:,:,:])
+    zl = np.asarray(nc['z_l'])
+    lon = np.asarray(nc.xh)
+    lat = np.asarray(nc.yh)
 
-lon = np.asarray(nc.xh)
-lat = np.asarray(nc.yh)
+if ocean == 'hycom':
+    var = np.asarray(nc['ocean_heat_content'][0,:,:])
+    lon = np.asarray(nc.Longitude)
+    lat = np.asarray(nc.Latitude)
+
 lonmin_raw = np.min(lon)
 lonmax_raw = np.max(lon)
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
@@ -119,25 +133,30 @@ else:
 print('central longitude: ',central_longitude)
 
 # sort var according to the new longitude
-temp = temp[:,:,sort_lon]
-salt = salt[:,:,sort_lon]
+if ocean == 'mom6':
+    temp = temp[:,:,sort_lon]
+    salt = salt[:,:,sort_lon]
+
+if ocean == 'hycom':
+    var = var[:,sort_lon]
 
 #================================================================
 # Calculate ocean heat content
-zl_array = np.reshape(np.tile(zl,(temp.shape[1]*temp.shape[2],1)).T,(temp.shape[0],temp.shape[1],temp.shape[2]))
-cp = 3985 #Heat capacity in J/(kg K)
-no26 = temp < 26
-temp[no26] = np.nan
-salt[no26] = np.nan
-density = dens(salt,temp,zl_array)
-rho0 = np.nanmean(density,axis=0)
-zl_array_fac = (zl_array[0:-1,:,:] + zl_array[1:,:,:])/2
-zero_array = np.zeros((1,temp.shape[1],temp.shape[2]))
-bott_array = np.ones((1,temp.shape[1],temp.shape[2]))* zl_array_fac[-1,0,0] + (zl[-1] - zl[-2])
-zl_array_face = np.vstack((zero_array,zl_array_fac,bott_array))
-dz_array = np.diff(zl_array_face,axis=0)
-ohc = np.abs(cp * rho0 * np.nansum((temp-26)*dz_array,axis=0)) * 10**(-7) # in kJ/cm^2
-var = ohc 
+if ocean == 'mom6':
+    zl_array = np.reshape(np.tile(zl,(temp.shape[1]*temp.shape[2],1)).T,(temp.shape[0],temp.shape[1],temp.shape[2]))
+    cp = 3985 #Heat capacity in J/(kg K)
+    no26 = temp < 26
+    temp[no26] = np.nan
+    salt[no26] = np.nan
+    density = dens(salt,temp,zl_array)
+    rho0 = np.nanmean(density,axis=0)
+    zl_array_fac = (zl_array[0:-1,:,:] + zl_array[1:,:,:])/2
+    zero_array = np.zeros((1,temp.shape[1],temp.shape[2]))
+    bott_array = np.ones((1,temp.shape[1],temp.shape[2]))* zl_array_fac[-1,0,0] + (zl[-1] - zl[-2])
+    zl_array_face = np.vstack((zero_array,zl_array_fac,bott_array))
+    dz_array = np.diff(zl_array_face,axis=0)
+    ohc = np.abs(cp * rho0 * np.nansum((temp-26)*dz_array,axis=0)) * 10**(-7) # in kJ/cm^2
+    var = ohc 
 
 #================================================================
 var_name= 'ohc'

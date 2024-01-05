@@ -79,18 +79,32 @@ if conf['trackon']=='yes':
     print('lat_adeck = ',lat_adeck)
 
 #================================================================
-# Read MOM6 file
+# Read ocean files
 
-fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc' 
+oceanf = glob.glob(os.path.join(conf['COMhafs'],'*f006.nc'))[0].split('/')[-1].split('.')
 
-ncfile = os.path.join(conf['COMhafs'], fname) 
+ocean = [f for f in oceanf if f == 'hycom' or f == 'mom6'][0]
+
+if ocean == 'mom6':
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
+
+if ocean == 'hycom':
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+conf['fhhh']+'.nc'
+
+ncfile = os.path.join(conf['COMhafs'], fname)
 nc = xr.open_dataset(ncfile)
 
-temp = np.asarray(nc['temp'][0,:,:,:])
-zl = np.asarray(nc['z_l'])
+if ocean == 'mom6':
+    temp = np.asarray(nc['temp'][0,:,:,:])
+    zl = np.asarray(nc['z_l'])
+    lon = np.asarray(nc.xh)
+    lat = np.asarray(nc.yh)
 
-lon = np.asarray(nc.xh)
-lat = np.asarray(nc.yh)
+if ocean == 'hycom':
+    var = np.asarray(nc['depth of 26C isotherm'][0,:,:])
+    lon = np.asarray(nc.Longitude)
+    lat = np.asarray(nc.Latitude)
+
 lonmin_raw = np.min(lon)
 lonmax_raw = np.max(lon)
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
@@ -116,23 +130,26 @@ else:
 print('central longitude: ',central_longitude)
 
 # sort var according to the new longitude
-temp = temp[:,:,sort_lon]
+if ocean == 'mom6':
+    temp = temp[:,:,sort_lon]
+if ocean == 'hycom':
+    var = var[:,sort_lon]
 
 #================================================================
-# Calculate z20
+# Calculate z26
 
-z26 = np.empty((temp.shape[1],temp.shape[2]))
-z26[:] = np.nan
-for j in np.arange(temp.shape[1]): 
-    for i in np.arange(temp.shape[2]):
-        if len(np.where(temp[:,j,i] >= 26)[0])!=0:
-            ok26 = np.where(temp[:,j,i] >= 26)[0][-1]
-            z26[j,i] = zl[ok26]
+if ocean == 'mom6':
+    z26 = np.empty((temp.shape[1],temp.shape[2]))
+    z26[:] = np.nan
+    for j in np.arange(temp.shape[1]):
+        for i in np.arange(temp.shape[2]):
+            if len(np.where(temp[:,j,i] >= 26)[0])!=0:
+                ok26 = np.where(temp[:,j,i] >= 26)[0][-1]
+                z26[j,i] = zl[ok26]
 
-        else:
-            z26[j,i] = np.nan
-
-var = z26
+            else:
+                z26[j,i] = np.nan
+    var = z26
 
 #================================================================
 var_name= 'z26'
@@ -184,5 +201,5 @@ ax.text(1.0,-0.1, footer, fontsize=8, va="top", ha="right", transform=ax.transAx
 
 pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.'+var_name+'.'+conf['fhhh'].lower()+'.png'
 plt.savefig(pngFile,bbox_inches='tight',dpi=150)
-plt.close("all")
+#plt.close("all")
 
