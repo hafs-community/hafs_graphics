@@ -24,7 +24,6 @@ def latlon_str2num(string):
         return -value
 
 #================================================================
-#================================================================
 def get_adeck_track(adeck_file):
 
     cols = ['basin', 'number', 'ymdh', 'technum', 'tech', 'tau', 'lat', 'lon', 'vmax', 'mslp', 'type','rad', 'windcode', 'rad1', 'rad2', 'rad3', 'rad4', 'pouter', 'router', 'rmw', 'gusts', 'eye','subregion', 'maxseas', 'initials', 'dir', 'speed', 'stormname', 'depth','seas', 'seascode', 'seas1', 'seas2', 'seas3', 'seas4', 'userdefined','userdata1', 'userdata2', 'userdata3', 'userdata4', 'userdata5', 'userdata6', 'userdata7', 'userdata8','userdata9', 'userdata10', 'userdata11', 'userdata12', 'userdata13', 'userdata14', 'userdata15', 'userdata16']
@@ -49,6 +48,17 @@ def get_adeck_track(adeck_file):
     return fhour,lat_adeck,lon_adeck,init_time,valid_time
 
 #================================================================
+# Conversion from geographic longitude and latitude to HYCOM convention
+def HYCOM_coord_to_geo_coord(lonh,lath):
+    lonh = np.asarray(lonh)
+    if np.ndim(lonh) > 0:
+        long = [ln-360 if ln>=180 else ln for ln in lonh]
+    else:
+        long = [lonh-360 if lonh>=180 else lonh][0]
+    latg = lath
+    return long, latg
+
+#================================================================
 # Parse the yaml config file
 print('Parse the config file: plot_ocean.yml:')
 with open('plot_ocean.yml', 'rt') as f:
@@ -71,18 +81,40 @@ if conf['trackon']=='yes':
     print('lon_adeck = ',lon_adeck)
     print('lat_adeck = ',lat_adeck)
 #================================================================
-# Read MOM6 file
+# Read ocean files
 
-fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f003.nc'
-fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
+oceanf = glob.glob(os.path.join(conf['COMhafs'],'*f006.nc'))[0].split('/')[-1].split('.')
+
+ocean = [f for f in oceanf if f == 'hycom' or f == 'mom6'][0]
+
+if ocean == 'mom6':
+    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f003.nc'
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
+
+if ocean == 'hycom':
+    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+'f000.nc'
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+conf['fhhh']+'.nc'
 
 ncfile003 = os.path.join(conf['COMhafs'], fname003)
 nc003 = xr.open_dataset(ncfile003)
 ncfile = os.path.join(conf['COMhafs'], fname)
 nc = xr.open_dataset(ncfile)
 
-lon = np.asarray(nc.xh)
-lat = np.asarray(nc.yh)
+if ocean == 'mom6':
+    varr003 = np.asarray(nc003['temp'][0,:,:,:])
+    varr = np.asarray(nc['temp'][0,:,:,:])
+    zl = np.asarray(nc['z_l'])
+    lon = np.asarray(nc.xh)
+    lat = np.asarray(nc.yh)
+
+if ocean == 'hycom':
+    varr003 = np.asarray(nc003['temperature'][0,:,:,:])
+    varr = np.asarray(nc['temperature'][0,:,:,:])
+    zl = np.asarray(nc['Z'])
+    lonh = np.asarray(nc.Longitude)
+    lath = np.asarray(nc.Latitude)
+    lon, lat = HYCOM_coord_to_geo_coord(lonh,lath)
+
 lonmin_raw = np.min(lon)
 lonmax_raw = np.max(lon)
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
@@ -101,14 +133,13 @@ lat_adeck_int[0:len(lat_adeck_int)] = lat_adeck_int
 oklon = np.round(np.interp(lon_adeck_int,lon,np.arange(len(lon)))).astype(int)
 oklat = np.round(np.interp(lat_adeck_int,lat,np.arange(len(lat)))).astype(int)
 
-zl = np.asarray(nc['z_l'])
 var003 = np.empty((len(zl),len(lon_adeck_int)))
 var003[:] = np.nan 
 var = np.empty((len(zl),len(lon_adeck_int)))
 var[:] = np.nan 
 for x in np.arange(len(lon_adeck_int)):
-    var003[:,x] = np.asarray(nc003['temp'][0,:,oklat[x],oklon[x]])
-    var[:,x] = np.asarray(nc['temp'][0,:,oklat[x],oklon[x]])
+    var003[:,x] = varr003[:,oklat[x],oklon[x]]
+    var[:,x] = varr[:,oklat[x],oklon[x]]
 
 diff = var - var003
 

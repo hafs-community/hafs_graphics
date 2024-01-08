@@ -81,23 +81,41 @@ if conf['trackon']=='yes':
     print('lat_adeck = ',lat_adeck)
 
 #================================================================
-# Read MOM6 file
+# Read ocean files
 
-fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f003.nc' 
-fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc' 
+oceanf = glob.glob(os.path.join(conf['COMhafs'],'*f006.nc'))[0].split('/')[-1].split('.')
+
+ocean = [f for f in oceanf if f == 'hycom' or f == 'mom6'][0]
+
+if ocean == 'mom6':
+    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f003.nc'
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
+
+if ocean == 'hycom':
+    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+'f000.nc'
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+conf['fhhh']+'.nc'
 
 ncfile003 = os.path.join(conf['COMhafs'], fname003)
 nc003 = xr.open_dataset(ncfile003)
-ncfile = os.path.join(conf['COMhafs'], fname) 
+ncfile = os.path.join(conf['COMhafs'], fname)
 nc = xr.open_dataset(ncfile)
 
-varr003 = np.asarray(nc003['SSS'][0,:,:])
-varr = np.asarray(nc['SSS'][0,:,:])
-ssu = np.asarray(nc['SSU'][0,:,:])
-ssv = np.asarray(nc['SSV'][0,:,:])
+if ocean == 'mom6':
+    varr003 = np.asarray(nc003['SSS'][0,:,:])
+    varr = np.asarray(nc['SSS'][0,:,:])
+    ssu = np.asarray(nc['SSU'][0,:,:])
+    ssv = np.asarray(nc['SSV'][0,:,:])
+    lon = np.asarray(nc.xh)
+    lat = np.asarray(nc.yh)
 
-lon = np.asarray(nc.xh)
-lat = np.asarray(nc.yh)
+if ocean == 'hycom':
+    varr003 = np.asarray(nc003['salinity'][0,0,:,:])
+    varr = np.asarray(nc['salinity'][0,0,:,:])
+    ssu = np.asarray(nc['u_velocity'][0,0,:,:])/100
+    ssv = np.asarray(nc['v_velocity'][0,0,:,:])/100
+    lon = np.asarray(nc.Longitude)
+    lat = np.asarray(nc.Latitude)
+
 lonmin_raw = np.min(lon)
 lonmax_raw = np.max(lon)
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))

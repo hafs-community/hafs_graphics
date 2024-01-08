@@ -1,38 +1,15 @@
-"""
+#!/usr/bin/env python3
 
- plot_storm_wvelz40m.py
- -------------
-    read a HYCOM 3z .nc file,
-    extract footprint WvelZ40m and plot in time series (R<=500km)
-
-
- ************************************************************************
- usage: python plot_storm_wvelz40m.py stormModel stormName stormID YMDH trackon COMhafs graphdir
- -----
- ************************************************************************
-
-
- HISTORY
- -------
-    modified to implement new filenames and hycom domains, as well as
-        improve graphics -JS & MA 06/2022
-    modified to comply the convention of number of input argument and 
-       graphic filename. -hsk 8/2020
-    modified to take global varibles from kick_graphics.py -hsk 9/20/2018
-    modified to fit for RT run by Hyun-Sook Kim 5/17/2017
-    edited by Hyun-Sook Kim 9/18/2015
-    modified by Hyun-Sook Kim 11/18/2016
----------------------------------------------------------------
-"""
-
-from utils4HWRF import readTrack6hrly
-from geo4HYCOM import haversine
+"""This scrip plots the vertical velocity at 40 meters for an area 500 km around the storm eye. """
 
 import os
 import sys
 import glob
+import yaml
+
 import xarray as xr
 import numpy as np
+import pandas as pd
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
@@ -41,65 +18,123 @@ import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
-plt.switch_backend('agg')
+from geo4HYCOM import haversine
 
 #================================================================
-model = sys.argv[1]
-storm = sys.argv[2]
-tcid = sys.argv[3]
-cycle = sys.argv[4]
-trackon = sys.argv[5]
-COMOUT = sys.argv[6]
-graphdir = sys.argv[7]
+def latlon_str2num(string):
+    """Convert lat/lon string into numbers."""
+    value = pd.to_numeric(string[:-1], errors='coerce') / 10
+    if string.endswith(('N', 'E')):
+        return value
+    else:
+        return -value
 
-if not os.path.isdir(graphdir):
-      p=Path(graphdir)
-      p.mkdir(parents=True)
+#================================================================
+def get_adeck_track(adeck_file):
 
-print("code:   plot_storm_wvelz40m.py")
+    cols = ['basin', 'number', 'ymdh', 'technum', 'tech', 'tau', 'lat', 'lon', 'vmax', 'mslp', 'type','rad', 'windcode', 'rad1', 'rad2', 'rad3', 'rad4', 'pouter', 'router', 'rmw', 'gusts', 'eye','subregion', 'maxseas', 'initials', 'dir', 'speed', 'stormname', 'depth','seas', 'seascode', 'seas1', 'seas2', 'seas3', 'seas4', 'userdefined','userdata1', 'userdata2', 'userdata3', 'userdata4', 'userdata5', 'userdata6', 'userdata7', 'userdata8','userdata9', 'userdata10', 'userdata11', 'userdata12', 'userdata13', 'userdata14', 'userdata15', 'userdata16']
 
-atcf = COMOUT+'/' + tcid + '.' + cycle + '.' + model + '.trak.atcfunix'
+    # Read in adeckFile as pandas dataFrame
+    print('Read in adeckFile ...')
+    adeck = pd.read_csv(adeck_file, index_col=False, names=cols, dtype=str, header=None, skipinitialspace=True)
 
-adt,aln,alt,pmn,vmx = readTrack6hrly(atcf)
+    adeck['lat'] = adeck['lat'].apply(latlon_str2num)
+    adeck['lon'] = adeck['lon'].apply(latlon_str2num)
+    #adeck['vmax'] = adeck['vmax'].apply(lambda x: x if x>0 else np.nan)
+    #adeck['mslp'] = adeck['mslp'].apply(lambda x: x if x>800 else np.nan)
+    adeck['init_time'] = pd.to_datetime(adeck['ymdh'], format='%Y%m%d%H', errors='coerce')
+    adeck['valid_time'] = pd.to_timedelta(adeck['tau'].apply(pd.to_numeric, errors='coerce'), unit='h') + adeck['init_time']
+
+    fhour, ind = np.unique(adeck['tau'],return_index=True)
+    lat_adeck = np.asarray(adeck['lat'][ind])
+    lon_adeck = np.asarray(adeck['lon'][ind])
+    init_time = np.asarray(adeck['init_time'][ind])
+    valid_time = np.asarray(adeck['valid_time'][ind])
+
+    return fhour,lat_adeck,lon_adeck,init_time,valid_time
+
+#================================================================
+# Parse the yaml config file
+print('Parse the config file: plot_ocean.yml:')
+with open('plot_ocean.yml', 'rt') as f:
+    conf = yaml.safe_load(f)
+conf['stormNumber'] = conf['stormID'][0:2]
+conf['initTime'] = pd.to_datetime(conf['ymdh'], format='%Y%m%d%H', errors='coerce')
+conf['fhour'] = int(conf['fhhh'][1:])
+conf['fcstTime'] = pd.to_timedelta(conf['fhour'], unit='h')
+conf['validTime'] = conf['initTime'] + conf['fcstTime']
 
 # Set Cartopy data_dir location
-cartopy.config['data_dir'] = os.getenv('cartopyDataDir')
+cartopy.config['data_dir'] = conf['cartopyDataDir']
+print(conf)
 
-#   ------------------------------------------------------------------------------------
-Rkm=500    # search radius [km]
+#================================================================
+# Get lat and lon from adeck file
 
-# - get SST  *_3z_*.[nc] files
-afiles = sorted(glob.glob(os.path.join(COMOUT,tcid+'*3z*.nc')))
+if conf['trackon']=='yes':
+    adeck_name = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.trak.atcfunix'
+    adeck_file = os.path.join(conf['COMhafs'],adeck_name)
 
-ncfile0 = xr.open_dataset(afiles[0])
+    fhour,lat_adeck,lon_adeck,init_time,valid_time = get_adeck_track(adeck_file)
 
-var0 = ncfile0['w_velocity'].isel(Z=9)
-lon = np.asarray(ncfile0.Longitude)
-lat = np.asarray(ncfile0.Latitude)
+    print('lon_adeck = ',lon_adeck)
+    print('lat_adeck = ',lat_adeck)
+
+#================================================================
+# Read ocean files
+
+oceanf = glob.glob(os.path.join(conf['COMhafs'],'*f006.nc'))[0].split('/')[-1].split('.')
+
+ocean = [f for f in oceanf if f == 'hycom' or f == 'mom6'][0]
+
+if ocean == 'mom6':
+    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f003.nc'
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
+
+if ocean == 'hycom':
+    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+'f000.nc'
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+conf['fhhh']+'.nc'
+
+ncfile003 = os.path.join(conf['COMhafs'], fname003)
+nc003 = xr.open_dataset(ncfile003)
+ncfile = os.path.join(conf['COMhafs'], fname)
+nc = xr.open_dataset(ncfile)
+
+if ocean == 'mom6':
+    #varr003 = np.asarray(nc003['SST'][0,:,:])
+    #varr = np.asarray(nc['SST'][0,:,:])
+    #ssu = np.asarray(nc['SSU'][0,:,:])
+    #ssv = np.asarray(nc['SSV'][0,:,:])
+    #zl = np.asarray(nc['z_l'])
+    #lon = np.asarray(nc.xh)
+    #lat = np.asarray(nc.yh)
+    sys.exit()
+
+if ocean == 'hycom':
+    varr003 = np.asarray(nc003['w_velocity'][0,:,:,:])
+    varr = np.asarray(nc['w_velocity'][0,:,:,:])
+    ssu = np.asarray(nc['u_velocity'][0,0,:,:])/100
+    ssv = np.asarray(nc['v_velocity'][0,0,:,:])/100
+    zl = np.asarray(nc['Z'])
+    lon = np.asarray(nc.Longitude)
+    lat = np.asarray(nc.Latitude)
+
 lonmin_raw = np.min(lon)
 lonmax_raw = np.max(lon)
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 
+#================================================================
 # Constrain lon limits between -180 and 180 so it does not conflict with the cartopy projection PlateCarree
 lon[lon>180] = lon[lon>180] - 360
 sort_lon = np.argsort(lon)
 lon = lon[sort_lon]
-
-# Sort var0 according to new longitude
-var0 = var0[0,:,sort_lon]
 
 # define grid boundaries
 lonmin_new = np.min(lon)
 lonmax_new = np.max(lon)
 latmin = np.min(lat)
 latmax = np.max(lat)
-print('new lonlat limit: ', lonmin_new, lonmax_new, latmin, latmax)
-
-# Set new longitude track (aln) according with the ocean domain limits
-aln[np.logical_or(aln<lonmin_new,aln>lonmax_new)] = np.nan
-
-var_name = 'wvelz40m'
-units = '(m/day)'
+print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 
 # Shift central longitude so the Southern Hemisphere and North Indin Ocean domains are plotted continuously
 if np.logical_and(lonmax_new >= 90, lonmax_new <=180):
@@ -108,151 +143,151 @@ else:
     central_longitude = -90
 print('central longitude: ',central_longitude)
 
+#================================================================
+# Calculate wvelz40
+ok40 = np.where(zl <= 40)[0][-1]
+
+varr003 = varr003[ok40,:,:]
+varr = varr[ok40,:,:]
+
+# sort var according to the new longitude
+varr003 = varr003[:,sort_lon]
+varr = varr[:,sort_lon]
+ssu = ssu[:,sort_lon]
+ssv = ssv[:,sort_lon]
+
+#================================================================
+var_name = 'wvelz40m'
+units = '(m/day)'
+
+Rkm=500    # search radius [km]
 lns,lts = np.meshgrid(lon,lat)
+dummy = np.ones(lns.shape)
+
 skip=6
 ln=lns[::skip,::skip]
 lt=lts[::skip,::skip]
-dummy = np.ones(lns.shape)
+ssu = ssu[::skip,::skip]
+ssv = ssv[::skip,::skip]
 
-count = len(aln[np.isfinite(aln)])
-for k in range(count):
+nhour = int((int(conf['fhhh'][1:])/3))
+if lat_adeck[nhour] < (latmax+5.0):
+    dR=haversine(lns,lts,lon_adeck[nhour],lat_adeck[nhour])/1000.
+    dumb=dummy.copy()
+    dumb[dR>Rkm]=np.nan
 
-    if alt[k] < (np.max(lat)+5.0):
-        dR=haversine(lns,lts,aln[k],alt[k])/1000.
-        dumb=dummy.copy()
-        dumb[dR>Rkm]=np.nan
-     
-        ncfile = xr.open_dataset(afiles[k])
-     
-        varr = ncfile['w_velocity'].isel(Z=9)
-        # Sort varr according to new longitude
-        varr = np.asarray(varr[0,:,sort_lon])
-        var = varr*dumb
+    var = varr*dumb
 
-        dvar = np.asarray(var - var0)*dumb
-     
-        u0=ncfile['u_velocity'].isel(Z=9)
-        v0=ncfile['v_velocity'].isel(Z=9)
-        # Sort uo and vo according to new longitude
-        u0 = np.asarray(u0[0,:,sort_lon])
-        v0 = np.asarray(v0[0,:,sort_lon])
-    
-        u0 = np.squeeze(u0)[::skip,::skip]
-        v0 = np.squeeze(v0)[::skip,::skip]
-     
-        # define forecast hour
-        fhr = k*6
-        
-        # create figure and axes instances
-        fig = plt.figure(figsize=(6,6))
-        ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=central_longitude))
-        ax.axis('scaled')
-        
-        cflevels = np.linspace(-60, 60, 49)
-        cmap = plt.get_cmap('RdYlBu_r')
-        cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
-        cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=30, shrink=0.75, extendrect=True, ticks=cflevels[::4])
-        cb.ax.tick_params(labelsize=8)
+    dvar = np.asarray(varr - varr003)*dumb
 
-        if trackon[0].lower()=='y':
-              plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2,transform=ccrs.PlateCarree(central_longitude=0))
-              plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6,transform=ccrs.PlateCarree(central_longitude=0))
+    # create figure and axes instances
+    fig = plt.figure(figsize=(6,6))
+    ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=central_longitude))
+    ax.axis('scaled')
 
-        mnmx="(min,max)="+"(%6.1f"%np.nanmin(var)+","+"%6.1f)"%np.nanmax(var)
+    cflevels = np.arange(-60,60.1,5)
+    cmap = plt.get_cmap('RdYlBu_r')
+    cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
+    ax.contour(lon, lat, var, cflevels, colors='grey',alpha=0.5, linewidths=0.5, transform=ccrs.PlateCarree())
+    cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::4])
+    cb.ax.tick_params(labelsize=8)
 
-        if np.logical_and(aln[k]-5.5 > lonmin_new,aln[k]+5.5 < lonmax_new):
-            plt.text(aln[k]-2.15-central_longitude,alt[k]-4.75,mnmx,fontsize=8,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
-            ax.set_extent([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5],crs=ccrs.PlateCarree())
-        else:            
-            print('Longitude track limits are out of the ocean domain')
-            continue
+    if conf['trackon']=='yes':
+        lon_adeck[np.logical_or(lon_adeck<lonmin_new,lon_adeck>lonmax_new)] = np.nan
+        ax.plot(lon_adeck,lat_adeck,'-ok',markersize=2,alpha=0.4,transform=ccrs.PlateCarree(central_longitude=0))
 
-        q=plt.quiver(ln,lt,u0,v0,scale=2000,transform=ccrs.PlateCarree())
-     
-        # Add gridlines and labels
-        #gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
-        gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
-        gl.top_labels = False
-        gl.right_labels = False
-        gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, 2))
-        gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, 2))
-        gl.xlabel_style = {'size': 8, 'color': 'black'}
-        gl.ylabel_style = {'size': 8, 'color': 'black'}
-        
-        # Add borders and coastlines
-        #ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')
-        ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
-        ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
-        ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
-     
-        model_info = os.environ.get('TITLEgraph','').strip()
-        var_info = '40 m Vertical Velocity (m/day), Currents'
-        storm_info = storm.upper()+tcid.upper()
-        title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
-        ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
-        title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
-        ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
-        footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
-        ax.text(1.0,-0.08, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
-      
-        pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.ocean.storm.'+var_name+'.f'+"%03d"%(fhr)+'.png')
-        plt.savefig(pngFile,bbox_inches='tight',dpi=150)
-        plt.close("all")
-     
-        # create figure and axes instances for change plot
-        fig = plt.figure(figsize=(6,6))
-        ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=central_longitude))
-        ax.axis('scaled')
-     
-        cflevels = np.linspace(-60, 60, 49)
-        cmap = plt.get_cmap('RdBu_r')
-        cf = ax.contourf(lon, lat, dvar, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
-        cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=30, shrink=0.75, extendrect=True, ticks=cflevels[::4])
-        cb.ax.tick_params(labelsize=8)
+        if nhour <= len(fhour):
+            ax.plot(lon_adeck[nhour],lat_adeck[nhour],'ok',markersize=10,alpha=0.6,markerfacecolor='None',transform=ccrs.PlateCarree(central_longitude=0))
 
-        if trackon[0].lower()=='y':
-              plt.plot(aln,alt,'-ok',linewidth=3,alpha=0.6,markersize=2,transform=ccrs.PlateCarree(central_longitude=0))
-              plt.plot(aln[k],alt[k],'ok',markerfacecolor='none',markersize=10,alpha=0.6,transform=ccrs.PlateCarree(central_longitude=0))
+            if np.logical_and(lon_adeck[nhour]-5.5 > lonmin_new,lon_adeck[nhour]+5.5 < lonmax_new):
+                mnmx="(min,max)="+"(%6.1f"%np.nanmin(var)+","+"%6.1f)"%np.nanmax(var)
+                plt.text(lon_adeck[nhour]-2.15-central_longitude,lat_adeck[nhour]-4.75,mnmx,fontsize=8,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
+                ax.set_extent([lon_adeck[nhour]-5.5,lon_adeck[nhour]+5.5,lat_adeck[nhour]-5,lat_adeck[nhour]+5],crs=ccrs.PlateCarree())
+            else:
+                print('Longitude track limits are out of the ocean domain')
 
-        mnmx="(min,max)="+"(%6.1f"%np.nanmin(dvar)+","+"%6.1f)"%np.nanmax(dvar)
+    q = plt.quiver(ln,lt,ssu,ssv,scale=50,transform=ccrs.PlateCarree())
 
-        if np.logical_and(aln[k]-5.5 > lonmin_new,aln[k]+5.5 < lonmax_new):
-            plt.text(aln[k]-2.15-central_longitude,alt[k]-4.75,mnmx,fontsize=8,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
-            ax.set_extent([aln[k]-5.5,aln[k]+5.5,alt[k]-5,alt[k]+5],crs=ccrs.PlateCarree())
-        else:
-            print('Longitude track limits are out of the ocean domain')
-            continue
-     
-        # Add gridlines and labels
-     #  gl = ax.gridlines(crs=transform, draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
-        gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
-        gl.top_labels = False
-        gl.right_labels = False
-        gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, 2))
-        gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, 2))
-        gl.xlabel_style = {'size': 8, 'color': 'black'}
-        gl.ylabel_style = {'size': 8, 'color': 'black'}
-     
-        # Add borders and coastlines
-        #ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')
-        ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
-        ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
-        ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
-     
-        model_info = os.environ.get('TITLEgraph','').strip()
-        var_info = '40 m Vertical Velocity change (m/day)'
-        storm_info = storm.upper()+tcid.upper()
-        title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
-        ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
-        title_right = 'Init: '+cycle+'Z '+'F'+"%03d"%(fhr)
-        ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
-        footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
-        ax.text(1.0,-0.08, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
-     
-        pngFile=os.path.join(graphdir,storm.upper()+tcid.upper()+'.'+cycle+'.'+model.upper()+'.ocean.storm.'+var_name+'.change.f'+"%03d"%(fhr)+'.png')
-        plt.savefig(pngFile,bbox_inches='tight',dpi=150)
-        plt.close("all")
-     
-# --- successful exit
-sys.exit(0)
+    # Add gridlines and labels
+    gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
+    gl.top_labels = False
+    gl.right_labels = False
+    gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, 2))
+    gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, 2))
+    gl.xlabel_style = {'size': 8, 'color': 'black'}
+    gl.ylabel_style = {'size': 8, 'color': 'black'}
+
+    # Add borders and coastlines
+    ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+    ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+    ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+
+    model_info = os.environ.get('TITLEgraph','').strip()
+    var_info = '40 m Vertical Velocity (m/s)'
+    storm_info = conf['stormName']+conf['stormID']
+    title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
+    ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
+    title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
+    ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
+    footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
+    ax.text(1.0,-0.08, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
+
+    pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm_'+var_name+'.'+conf['fhhh'].lower()+'.png'
+    plt.savefig(pngFile,bbox_inches='tight',dpi=150)
+    plt.close("all")
+
+    # create figure and axes instances
+    fig = plt.figure(figsize=(6,6))
+    ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=central_longitude))
+    ax.axis('scaled')
+
+    cflevels = np.arange(-60,60.1,5)
+    cmap = plt.get_cmap('RdBu_r')
+    cf = ax.contourf(lon, lat, dvar, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
+    ax.contour(lon, lat, dvar, cflevels[::4], colors='grey',alpha=0.5, linewidths=0.5, transform=ccrs.PlateCarree())
+    cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::4])
+    cb.ax.tick_params(labelsize=8)
+
+    if conf['trackon']=='yes':
+        lon_adeck[np.logical_or(lon_adeck<lonmin_new,lon_adeck>lonmax_new)] = np.nan
+        ax.plot(lon_adeck,lat_adeck,'-ok',markersize=2,alpha=0.4,transform=ccrs.PlateCarree(central_longitude=0))
+
+        if nhour <= len(fhour):
+            ax.plot(lon_adeck[nhour],lat_adeck[nhour],'ok',markersize=10,alpha=0.6,markerfacecolor='None',transform=ccrs.PlateCarree(central_longitude=0))
+
+            if np.logical_and(lon_adeck[nhour]-5.5 > lonmin_new,lon_adeck[nhour]+5.5 < lonmax_new):
+                mnmx="(min,max)="+"(%6.1f"%np.nanmin(dvar)+","+"%6.1f)"%np.nanmax(dvar)
+                plt.text(lon_adeck[nhour]-2.15-central_longitude,lat_adeck[nhour]-4.75,mnmx,fontsize=8,color='DarkOliveGreen',fontweight='bold',bbox=dict(boxstyle="round",color='w',alpha=0.5))
+                ax.set_extent([lon_adeck[nhour]-5.5,lon_adeck[nhour]+5.5,lat_adeck[nhour]-5,lat_adeck[nhour]+5],crs=ccrs.PlateCarree())
+            else:
+                print('Longitude track limits are out of the ocean domain')
+
+    # Add gridlines and labels
+    gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
+    gl.top_labels = False
+    gl.right_labels = False
+    gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, 2))
+    gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, 2))
+    gl.xlabel_style = {'size': 8, 'color': 'black'}
+    gl.ylabel_style = {'size': 8, 'color': 'black'}
+
+    # Add borders and coastlines
+    ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+    ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+    ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+
+    model_info = os.environ.get('TITLEgraph','').strip()
+    var_info = '40 m Vertical Velocity Change (m/s)'
+    storm_info = conf['stormName']+conf['stormID']
+    title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
+    ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
+    title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
+    ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
+    footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
+    ax.text(1.0,-0.08, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
+
+    pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm_'+var_name+'.change.'+conf['fhhh'].lower()+'.png'
+    plt.savefig(pngFile,bbox_inches='tight',dpi=150)
+    plt.close("all")
+
 

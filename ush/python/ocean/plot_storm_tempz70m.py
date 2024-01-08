@@ -81,24 +81,43 @@ if conf['trackon']=='yes':
     print('lat_adeck = ',lat_adeck)
 
 #================================================================
-# Read MOM6 file
+# Read ocean files
 
-fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f003.nc'
-fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc' 
+oceanf = glob.glob(os.path.join(conf['COMhafs'],'*f006.nc'))[0].split('/')[-1].split('.')
+
+ocean = [f for f in oceanf if f == 'hycom' or f == 'mom6'][0]
+
+if ocean == 'mom6':
+    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f003.nc'
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
+
+if ocean == 'hycom':
+    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+'f000.nc'
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+conf['fhhh']+'.nc'
 
 ncfile003 = os.path.join(conf['COMhafs'], fname003)
 nc003 = xr.open_dataset(ncfile003)
-ncfile = os.path.join(conf['COMhafs'], fname) 
+ncfile = os.path.join(conf['COMhafs'], fname)
 nc = xr.open_dataset(ncfile)
 
-temp003 = np.asarray(nc003['temp'][0,:,:,:])
-temp = np.asarray(nc['temp'][0,:,:,:])
-ssu = np.asarray(nc['SSU'][0,:,:])
-ssv = np.asarray(nc['SSV'][0,:,:])
-zl = np.asarray(nc['z_l'])
+if ocean == 'mom6':
+    varr003 = np.asarray(nc003['temp'][0,:,:,:])
+    varr = np.asarray(nc['temp'][0,:,:,:])
+    ssu = np.asarray(nc['SSU'][0,:,:])
+    ssv = np.asarray(nc['SSV'][0,:,:])
+    zl = np.asarray(nc['z_l'])
+    lon = np.asarray(nc.xh)
+    lat = np.asarray(nc.yh)
 
-lon = np.asarray(nc.xh)
-lat = np.asarray(nc.yh)
+if ocean == 'hycom':
+    varr003 = np.asarray(nc003['temperature'][0,:,:,:])
+    varr = np.asarray(nc['temperature'][0,:,:,:])
+    ssu = np.asarray(nc['u_velocity'][0,0,:,:])/100
+    ssv = np.asarray(nc['v_velocity'][0,0,:,:])/100
+    zl = np.asarray(nc['Z'])
+    lon = np.asarray(nc.Longitude)
+    lat = np.asarray(nc.Latitude)
+
 lonmin_raw = np.min(lon)
 lonmax_raw = np.max(lon)
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
@@ -127,8 +146,8 @@ print('central longitude: ',central_longitude)
 # Calculate temp70
 ok70 = np.where(zl <= 70)[0][-1]
 
-varr003 = temp003[ok70,:,:]
-varr = temp[ok70,:,:]
+varr003 = varr003[ok70,:,:]
+varr = varr[ok70,:,:]
 
 # sort var according to the new longitude
 varr003 = varr003[:,sort_lon]
@@ -204,14 +223,14 @@ if lat_adeck[nhour] < (latmax+5.0):
 
     model_info = os.environ.get('TITLEgraph','').strip()
     var_info = '70 m Temperature (${^o}$C)'
-    storm_info = conf['stormName']+conf['stormID'] 
+    storm_info = conf['stormName']+conf['stormID']
     title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
     ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
     title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
     ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
     footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
     ax.text(1.0,-0.08, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
-    
+
     pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm_'+var_name+'.'+conf['fhhh'].lower()+'.png'
     plt.savefig(pngFile,bbox_inches='tight',dpi=150)
     plt.close("all")

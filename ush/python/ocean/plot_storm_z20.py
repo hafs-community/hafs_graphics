@@ -95,22 +95,38 @@ if conf['trackon']=='yes':
     print('lat_adeck = ',lat_adeck)
 
 #================================================================
-# Read MOM6 file
+# Read ocean files
 
-fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f003.nc'
-fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc' 
+oceanf = glob.glob(os.path.join(conf['COMhafs'],'*f006.nc'))[0].split('/')[-1].split('.')
+
+ocean = [f for f in oceanf if f == 'hycom' or f == 'mom6'][0]
+
+if ocean == 'mom6':
+    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f003.nc'
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
+
+if ocean == 'hycom':
+    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.f000'+'.nc'
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+conf['fhhh']+'.nc'
 
 ncfile003 = os.path.join(conf['COMhafs'], fname003)
 nc003 = xr.open_dataset(ncfile003)
-ncfile = os.path.join(conf['COMhafs'], fname) 
+ncfile = os.path.join(conf['COMhafs'], fname)
 nc = xr.open_dataset(ncfile)
 
-temp003 = np.asarray(nc003['temp'][0,:,:,:])
-temp = np.asarray(nc['temp'][0,:,:,:])
-zl = np.asarray(nc['z_l'])
+if ocean == 'mom6':
+    temp003 = np.asarray(nc003['temp'][0,:,:,:])
+    temp = np.asarray(nc['temp'][0,:,:,:])
+    zl = np.asarray(nc['z_l'])
+    lon = np.asarray(nc.xh)
+    lat = np.asarray(nc.yh)
 
-lon = np.asarray(nc.xh)
-lat = np.asarray(nc.yh)
+if ocean == 'hycom':
+    varr003 = np.asarray(nc003['depth of 20C isotherm'][0,:,:])
+    varr = np.asarray(nc['depth of 20C isotherm'][0,:,:])
+    lon = np.asarray(nc.Longitude)
+    lat = np.asarray(nc.Latitude)
+
 lonmin_raw = np.min(lon)
 lonmax_raw = np.max(lon)
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
@@ -135,14 +151,19 @@ else:
     central_longitude = -90
 print('central longitude: ',central_longitude)
 
+# sort var according to the new longitude
+if ocean == 'mom6':
+    temp003 = temp003[:,:,sort_lon]
+    temp = temp[:,:,sort_lon]
+if ocean == 'hycom':
+    varr003 = varr003[:,sort_lon]
+    varr = varr[:,sort_lon]
+
 #================================================================
 # Calculate z20
-varr003 = z20_depth(temp003,zl)
-varr = z20_depth(temp,zl)
-
-# sort var according to the new longitude
-varr003 = varr003[:,sort_lon]
-varr = varr[:,sort_lon]
+if ocean == 'mom6':
+    varr003 = z20_depth(temp003,zl)
+    varr = z20_depth(temp,zl)
 
 #================================================================
 var_name= 'z20'

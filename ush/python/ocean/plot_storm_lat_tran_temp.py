@@ -48,6 +48,17 @@ def get_adeck_track(adeck_file):
     return fhour,lat_adeck,lon_adeck,init_time,valid_time
 
 #================================================================
+# Conversion from geographic longitude and latitude to HYCOM convention
+def HYCOM_coord_to_geo_coord(lonh,lath):
+    lonh = np.asarray(lonh)
+    if np.ndim(lonh) > 0:
+        long = [ln-360 if ln>=180 else ln for ln in lonh]
+    else:
+        long = [lonh-360 if lonh>=180 else lonh][0]
+    latg = lath
+    return long, latg
+
+#================================================================
 # Parse the yaml config file
 print('Parse the config file: plot_ocean.yml:')
 with open('plot_ocean.yml', 'rt') as f:
@@ -71,22 +82,45 @@ if conf['trackon']=='yes':
     print('lat_adeck = ',lat_adeck)
 
 #================================================================
-# Read MOM6 file
+# Read ocean files
 
-fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f003.nc'
-fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
+oceanf = glob.glob(os.path.join(conf['COMhafs'],'*f006.nc'))[0].split('/')[-1].split('.')
+
+ocean = [f for f in oceanf if f == 'hycom' or f == 'mom6'][0]
+
+if ocean == 'mom6':
+    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f003.nc'
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
+
+if ocean == 'hycom':
+    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+'f000.nc'
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+conf['fhhh']+'.nc'
 
 ncfile003 = os.path.join(conf['COMhafs'], fname003)
 nc003 = xr.open_dataset(ncfile003)
 ncfile = os.path.join(conf['COMhafs'], fname)
 nc = xr.open_dataset(ncfile)
 
-lon = np.asarray(nc.xh)
-lat = np.asarray(nc.yh)
+if ocean == 'mom6':
+    varr003 = np.asarray(nc003['temp'][0,:,:,:])
+    varr = np.asarray(nc['temp'][0,:,:,:])
+    zl = np.asarray(nc['z_l'])
+    lon = np.asarray(nc.xh)
+    lat = np.asarray(nc.yh)
+
+if ocean == 'hycom':
+    varr003 = np.asarray(nc003['temperature'][0,:,:,:])
+    varr = np.asarray(nc['temperature'][0,:,:,:])
+    zl = np.asarray(nc['Z'])
+    lonh = np.asarray(nc.Longitude)
+    lath = np.asarray(nc.Latitude)
+    lon, lat = HYCOM_coord_to_geo_coord(lonh,lath)
+
 lonmin_raw = np.min(lon)
 lonmax_raw = np.max(lon)
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 
+#================================================================
 #%% Longitudinal transect
 xlim = [np.nanmean(lon_adeck),np.nanmean(lon_adeck)]
 ylim = [np.nanmin(lat_adeck),np.nanmax(lat_adeck)]
@@ -98,24 +132,26 @@ ymax = int(np.round(np.interp(ylim[1],lat,np.arange(len(lat)))))
 xmax = xmax + 1
 latt = lat[ymin:ymax]
 
-varr = np.asarray(nc['temp'][0,:,ymin:ymax,:][:,:,xmin:xmax])[:,:,0]
-zl = np.asarray(nc['z_l'])
+var003 = varr003[:,ymin:ymax,:][:,:,xmin:xmax][:,:,0]
+var = varr[:,ymin:ymax,:][:,:,xmin:xmax][:,:,0]
 
-#############################################################
+diff = var - var003
+
+#================================================================
 # Temp
 kw = dict(levels=np.arange(15,31.1,0.5))
 fig,ax = plt.subplots(figsize=(8,4))
-ctr = ax.contourf(latt,-zl,varr,cmap='Spectral_r',**kw,extend='both')
+ctr = ax.contourf(latt,-zl,var,cmap='Spectral_r',**kw,extend='both')
 cbar = fig.colorbar(ctr,extendrect=True)
 cbar.set_label('$^oC$',fontsize=14)
-cs = ax.contour(latt,-zl,varr,[26],colors='k')
+cs = ax.contour(latt,-zl,var,[26],colors='k')
 ax.clabel(cs,cs.levels,inline=True,fmt='%1.1f',fontsize=10)
 ax.set_ylim([-300,0])
 ax.set_ylabel('Depth (m)')
 ax.set_xlabel('Latitude')
 
 model_info = os.environ.get('TITLEgraph','').strip()
-var_info = 'Latitudinal transect Temperature ($^oC$)'
+var_info = 'Latitudinal transect Temperature ($^oC$) at longitude = ' + str(np.round(xlim[0],2))
 storm_info = conf['stormName']+conf['stormID']
 title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
 ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
@@ -128,3 +164,29 @@ pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'
 plt.savefig(pngFile,bbox_inches='tight',dpi=150)
 plt.close()
 
+#================================================================
+# Temp - Temp003
+kw = dict(levels=np.arange(-4,4.1,0.2))
+fig,ax = plt.subplots(figsize=(8,4))
+ctr = ax.contourf(latt,-zl,diff,cmap='seismic',**kw,extend='both')
+cbar = fig.colorbar(ctr,extendrect=True)
+cbar.set_label('$^oC$',fontsize=14)
+cs = ax.contour(latt,-zl,diff,[0],colors='k')
+ax.clabel(cs,cs.levels,inline=True,fmt='%1.1f',fontsize=10)
+ax.set_ylim([-300,0])
+ax.set_ylabel('Depth (m)')
+ax.set_xlabel('Latitude')
+
+model_info = os.environ.get('TITLEgraph','').strip()
+var_info = 'Latitudinal transect Temperature Difference($^oC$) at longitude = ' + str(np.round(xlim[0],2))
+storm_info = conf['stormName']+conf['stormID']
+title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
+ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
+title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
+ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
+footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
+ax.text(1.0,-0.1, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
+
+pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm_lat_tran_temp'+'.change.'+conf['fhhh'].lower()+'.png'
+plt.savefig(pngFile,bbox_inches='tight',dpi=150)
+plt.close()
