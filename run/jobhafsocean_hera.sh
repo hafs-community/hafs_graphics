@@ -12,8 +12,8 @@
 ##SBATCH --partition=orion
 #SBATCH -o jobhafsocean.log.%j
 #SBATCH -e jobhafsocean.log.%j
-##SBATCH --mem=0
-##SBATCH --exclusive
+#SBATCH --mem=0
+#SBATCH --exclusive
 #SBATCH -D.
 
 set -x
@@ -24,9 +24,10 @@ YMDH=${1:-${YMDH:-2023090706}}
 STORM=${STORM:-LEE}
 STORMID=${STORMID:-13L}
 stormModel=${stormModel:-HFSA}
+#stormModel=${stormModel:-HFSB}
 TRACKON=${TRACKON:-yes}
-fhhhAll=$(seq -f "f%03g" 3 3 126)
-#fhhhAll=$(seq -f "f%03g" 3 3 12)
+fhhhAll=$(seq -f "f%03g" 0 3 126)
+#fhhhAll=$(seq -f "f%03g" 0 3 12)
 
 #HOMEgraph=/your/graph/home/dir
 #WORKgraph=/your/graph/work/dir # if not specified, a default location relative to COMhafs will be used
@@ -39,11 +40,11 @@ export DRIVERDOMAIN=${USHgraph}/driverDomain.sh
 export DRIVEROCEAN=${USHgraph}/driverOcean.sh
 
 export COMhafs=${COMhafs:-/scratch1/NCEPDEV/hwrf/scrub/Maria.Aristizabal/HFSAv2a_baseline_latest/com/${YMDH}/${STORMID}}
+#export COMhafs=${COMhafs:-/scratch1/NCEPDEV/hwrf/scrub/Maria.Aristizabal/HFSAv2b_baseline_latest/com/${YMDH}/${STORMID}}
 export WORKgraph=${WORKgraph:-${COMhafs}/../../../${YMDH}/${STORMID}/emc_graphics}
 export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 
-source ${USHgraph}/graph_pre_job.sh.inc
-export machine=${WHERE_AM_I:-wcoss2} # platforms: wcoss2, hera, orion, jet
+export machine=${WHERE_AM_I:-hera} # platforms: wcoss2, hera, orion, jet
 if [ ${machine} = jet ]; then
   export cartopyDataDir=${cartopyDataDir:-/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy}
 elif [ ${machine} = hera ]; then
@@ -56,8 +57,13 @@ else
   export cartopyDataDir=${cartopyDataDir:-/your/local/share/cartopy}
 fi
 
-export TOTAL_TASKS=${TOTAL_TASKS:-${SLURM_NTASKS:-480}}
-export NCTSK=${NCTSK:-10}
+source /apps/lmod/lmod/init/sh
+module purge
+module use ${HOMEgraph}/modulefiles
+module load graphics.run.${machine}
+
+export TOTAL_TASKS=${TOTAL_TASKS:-${SLURM_NTASKS:-20}}
+export NCTSK=${NCTSK:-20}
 export NCNODE=${NCNODE:-10}
 export OMP_NUM_THREADS=${OMP_NUM_THREADS:-1}
 
@@ -93,6 +99,9 @@ figScriptAll=( \
   plot_storm_tempz40m.py \
   plot_storm_tempz70m.py \
   plot_storm_tempz100m.py \
+  plot_storm_wvelz40m.py \
+  plot_storm_wvelz70m.py \
+  plot_storm_wvelz100m.py \
   plot_storm_forec_track_tran_temp.py \
   plot_storm_lat_tran_temp.py \
   )

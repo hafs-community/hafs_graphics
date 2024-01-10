@@ -1,14 +1,14 @@
 #!/bin/sh
 #BATCH --job-name=jobhafsocean
 #SBATCH --account=hurricane
-#SBATCH --qos=batch
-##SBATCH --qos=debug
+##SBATCH --qos=batch
+#SBATCH --qos=debug
 #SBATCH --nodes=1
 ##SBATCH --tasks-per-node=24
 #SBATCH --tasks-per-node=20
 #SBATCH --cpus-per-task=1
-#SBATCH -t 01:00:00
-##SBATCH -t 00:30:00
+##SBATCH -t 01:00:00
+#SBATCH -t 00:30:00
 ##SBATCH --partition=xjet
 #SBATCH --partition=orion
 #SBATCH -o jobhafsocean.log.%j
@@ -26,7 +26,7 @@ STORM=${STORM:-LEE}
 STORMID=${STORMID:-13L}
 stormModel=${stormModel:-HFSA}
 TRACKON=${TRACKON:-yes}
-fhhhAll=$(seq -f "f%03g" 3 3 126)
+fhhhAll=$(seq -f "f%03g" 0 3 126)
 
 #HOMEgraph=/your/graph/home/dir
 #WORKgraph=/your/graph/work/dir # if not specified, a default location relative to COMhafs will be used
@@ -93,6 +93,9 @@ figScriptAll=( \
   plot_storm_tempz40m.py \
   plot_storm_tempz70m.py \
   plot_storm_tempz100m.py \
+  plot_storm_wvelz40m.py \
+  plot_storm_wvelz70m.py \
+  plot_storm_wvelz100m.py \
   plot_storm_forec_track_tran_temp.py \
   plot_storm_lat_tran_temp.py \
   )

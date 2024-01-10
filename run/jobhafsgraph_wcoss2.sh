@@ -436,7 +436,7 @@ cmdfile="cmdfile_ocean.$STORM$STORMID.$YMDH"
 rm -f $cmdfile
 touch $cmdfile
 
-fhhhAll=$(seq -f "f%03g" 3 3 126)
+fhhhAll=$(seq -f "f%03g" 0 3 126)
 
 for fhhh in ${fhhhAll}; do
 
@@ -456,6 +456,9 @@ figScriptAll=( \
   plot_storm_tempz40m.py \
   plot_storm_tempz70m.py \
   plot_storm_tempz100m.py \
+  plot_storm_wvelz40m.py \
+  plot_storm_wvelz70m.py \
+  plot_storm_wvelz100m.py \
   plot_storm_forec_track_tran_temp.py \
   plot_storm_lat_tran_temp.py \
   )
