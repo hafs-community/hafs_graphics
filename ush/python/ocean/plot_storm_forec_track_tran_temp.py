@@ -103,6 +103,7 @@ nc = xr.open_dataset(ncfile)
 if ocean == 'mom6':
     varr003 = np.asarray(nc003['temp'][0,:,:,:])
     varr = np.asarray(nc['temp'][0,:,:,:])
+    mld = np.asarray(nc['MLD_0125'][0,:,:])
     zl = np.asarray(nc['z_l'])
     lon = np.asarray(nc.xh)
     lat = np.asarray(nc.yh)
@@ -110,6 +111,7 @@ if ocean == 'mom6':
 if ocean == 'hycom':
     varr003 = np.asarray(nc003['temperature'][0,:,:,:])
     varr = np.asarray(nc['temperature'][0,:,:,:])
+    mld = np.asarray(nc['mixed_layer_thickness'][0,:,:])
     zl = np.asarray(nc['Z'])
     lonh = np.asarray(nc.Longitude)
     lath = np.asarray(nc.Latitude)
@@ -137,20 +139,28 @@ var003 = np.empty((len(zl),len(lon_adeck_int)))
 var003[:] = np.nan 
 var = np.empty((len(zl),len(lon_adeck_int)))
 var[:] = np.nan 
+mldd = np.empty((len(lon_adeck_int)))
+mldd[:] = np.nan
 for x in np.arange(len(lon_adeck_int)):
     var003[:,x] = varr003[:,oklat[x],oklon[x]]
     var[:,x] = varr[:,oklat[x],oklon[x]]
+    mldd[x] = np.asarray(mld[oklat[x],oklon[x]])
 
 diff = var - var003
 
 #================================================================
 # Temp
+okfhour = conf['fhhh'][1:] == fhour
+lat_eye = lat_adeck[okfhour][0]
+
 kw = dict(levels=np.arange(15,31.1,0.5))
 fig,ax = plt.subplots(figsize=(8,4))
 ctr = ax.contourf(lat[oklat],-zl,var,cmap='Spectral_r',**kw,extend='both')
 cbar = fig.colorbar(ctr,extendrect=True)
 cbar.set_label('$^oC$',fontsize=14)
 cs = ax.contour(lat[oklat],-zl,var,[26],colors='k')
+ax.plot(lat[oklat],-mldd,'.-',color='green')
+ax.plot(np.tile(lat_eye,len(zl)),-zl,'-k')
 ax.clabel(cs,cs.levels,inline=True,fmt='%1.1f',fontsize=10)
 ax.set_ylim([-300,0])
 ax.set_ylabel('Depth (m)')
@@ -168,7 +178,7 @@ ax.text(1.0,-0.1, footer, fontsize=8, va="top", ha="right", transform=ax.transAx
 
 pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm_forec_track_tran_temp'+'.'+conf['fhhh'].lower()+'.png'
 plt.savefig(pngFile,bbox_inches='tight',dpi=150)
-plt.close()
+#plt.close()
 
 #================================================================
 # Temp - Temp003
@@ -178,6 +188,8 @@ ctr = ax.contourf(lat[oklat],-zl,diff,cmap='seismic',**kw,extend='both')
 cbar = fig.colorbar(ctr,extendrect=True)
 cbar.set_label('$^oC$',fontsize=14)
 cs = ax.contour(lat[oklat],-zl,diff,[0],colors='k',alpha=0.3)
+ax.plot(lat[oklat],-mldd,'.-',color='green')
+ax.plot(np.tile(lat_eye,len(zl)),-zl,'-k')
 ax.clabel(cs,cs.levels,inline=True,fmt='%1.1f',fontsize=10)
 ax.set_ylim([-300,0])
 ax.set_ylabel('Depth (m)')
@@ -196,5 +208,5 @@ ax.text(1.0,-0.1, footer, fontsize=8, va="top", ha="right", transform=ax.transAx
 
 pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm_forec_track_tran_temp'+'.change.'+conf['fhhh'].lower()+'.png'
 plt.savefig(pngFile,bbox_inches='tight',dpi=150)
-plt.close()
+#plt.close()
 
