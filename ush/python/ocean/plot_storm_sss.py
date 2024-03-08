@@ -196,8 +196,7 @@ if lat_adeck[nhour] < (latmax+5.0):
             else:
                 print('Longitude track limits are out of the ocean domain')
     
-    #q = plt.quiver(ln,lt,ssu,ssv,scale=2000,transform=ccrs.PlateCarree())
-    q = plt.quiver(ln,lt,ssu,ssv,scale=50,transform=ccrs.PlateCarree())
+    q = plt.quiver(ln,lt,ssu,ssv,scale=20,transform=ccrs.PlateCarree())
 
     # Add gridlines and labels
     gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
