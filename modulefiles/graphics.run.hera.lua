@@ -2,13 +2,13 @@ help([[
 loads HAFS application level modulefile on Hera
 ]])
 
-ncl_ver=os.getenv("ncl") or "6.5.0"
-load(pathJoin("ncl", ncl_ver))
-
 prepend_path("MODULEPATH", "/scratch1/NCEPDEV/nems/role.epic/spack-stack/spack-stack-1.5.0/envs/unified-env-noavx512/install/modulefiles/Core")
 
 stack_intel_ver=os.getenv("stack_intel_ver") or "2021.5.0"
 load(pathJoin("stack-intel", stack_intel_ver))
+
+ncl_ver=os.getenv("ncl") or "6.5.0"
+load(pathJoin("ncl", ncl_ver))
 
 stack_impi_ver=os.getenv("stack_impi_ver") or "2021.5.1"
 load(pathJoin("stack-intel-oneapi-mpi", stack_impi_ver))
