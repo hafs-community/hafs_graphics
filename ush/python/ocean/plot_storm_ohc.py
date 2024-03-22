@@ -109,22 +109,22 @@ oceanf = glob.glob(os.path.join(conf['COMhafs'],'*f006.nc'))[0].split('/')[-1].s
 ocean = [f for f in oceanf if f == 'hycom' or f == 'mom6'][0]
 
 if ocean == 'mom6':
-    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f003.nc'
+    fname000 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f000.nc'
     fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
 
 if ocean == 'hycom':
-    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.f000'+'.nc'
+    fname000 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.f000'+'.nc'
     fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+conf['fhhh']+'.nc'
 
-ncfile003 = os.path.join(conf['COMhafs'], fname003)
-nc003 = xr.open_dataset(ncfile003)
+ncfile000 = os.path.join(conf['COMhafs'], fname000)
+nc000 = xr.open_dataset(ncfile000)
 ncfile = os.path.join(conf['COMhafs'], fname)
 nc = xr.open_dataset(ncfile)
 
 if ocean == 'mom6':
-    temp003 = np.asarray(nc003['temp'][0,:,:,:])
-    salt003 = np.asarray(nc003['so'][0,:,:,:])
-    zl003 = np.asarray(nc003['z_l'])
+    temp000 = np.asarray(nc000['temp'][0,:,:,:])
+    salt000 = np.asarray(nc000['so'][0,:,:,:])
+    zl000 = np.asarray(nc000['z_l'])
     temp = np.asarray(nc['temp'][0,:,:,:])
     salt = np.asarray(nc['so'][0,:,:,:])
     zl = np.asarray(nc['z_l'])
@@ -132,7 +132,7 @@ if ocean == 'mom6':
     lat = np.asarray(nc.yh)
 
 if ocean == 'hycom':
-    varr003 = np.asarray(nc003['ocean_heat_content'][0,:,:])
+    varr000 = np.asarray(nc000['ocean_heat_content'][0,:,:])
     varr = np.asarray(nc['ocean_heat_content'][0,:,:])
     lon = np.asarray(nc.Longitude)
     lat = np.asarray(nc.Latitude)
@@ -163,19 +163,19 @@ print('central longitude: ',central_longitude)
 
 # sort var according to the new longitude
 if ocean == 'mom6':
-    temp003 = temp003[:,:,sort_lon]
-    salt003 = salt003[:,:,sort_lon]
+    temp000 = temp000[:,:,sort_lon]
+    salt000 = salt000[:,:,sort_lon]
     temp = temp[:,:,sort_lon]
     salt = salt[:,:,sort_lon]
 
 if ocean == 'hycom':
-    varr003 = varr003[:,sort_lon]
+    varr000 = varr000[:,sort_lon]
     varr = varr[:,sort_lon]
 
 #================================================================
 # Calculate ocean heat content
 if ocean == 'mom6':
-    varr003 = ohc(temp003,salt003,zl)
+    varr000 = ohc(temp000,salt000,zl)
     varr = ohc(temp,salt,zl)
 
 #================================================================
@@ -194,7 +194,7 @@ if lat_adeck[nhour] < (latmax+5.0):
 
     var = varr*dumb
 
-    dvar = np.asarray(varr - varr003)*dumb
+    dvar = np.asarray(varr - varr000)*dumb
 
     # create figure and axes instances
     fig = plt.figure(figsize=(6,6))

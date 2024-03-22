@@ -102,27 +102,27 @@ oceanf = glob.glob(os.path.join(conf['COMhafs'],'*f006.nc'))[0].split('/')[-1].s
 ocean = [f for f in oceanf if f == 'hycom' or f == 'mom6'][0]
 
 if ocean == 'mom6':
-    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f003.nc'
+    fname000 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f000.nc'
     fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
 
 if ocean == 'hycom':
-    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.f000'+'.nc'
+    fname000 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.f000'+'.nc'
     fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+conf['fhhh']+'.nc'
 
-ncfile003 = os.path.join(conf['COMhafs'], fname003)
-nc003 = xr.open_dataset(ncfile003)
+ncfile000 = os.path.join(conf['COMhafs'], fname000)
+nc000 = xr.open_dataset(ncfile000)
 ncfile = os.path.join(conf['COMhafs'], fname)
 nc = xr.open_dataset(ncfile)
 
 if ocean == 'mom6':
-    temp003 = np.asarray(nc003['temp'][0,:,:,:])
+    temp000 = np.asarray(nc000['temp'][0,:,:,:])
     temp = np.asarray(nc['temp'][0,:,:,:])
     zl = np.asarray(nc['z_l'])
     lon = np.asarray(nc.xh)
     lat = np.asarray(nc.yh)
 
 if ocean == 'hycom':
-    varr003 = np.asarray(nc003['depth of 20C isotherm'][0,:,:])
+    varr000 = np.asarray(nc000['depth of 20C isotherm'][0,:,:])
     varr = np.asarray(nc['depth of 20C isotherm'][0,:,:])
     lon = np.asarray(nc.Longitude)
     lat = np.asarray(nc.Latitude)
@@ -153,16 +153,16 @@ print('central longitude: ',central_longitude)
 
 # sort var according to the new longitude
 if ocean == 'mom6':
-    temp003 = temp003[:,:,sort_lon]
+    temp000 = temp000[:,:,sort_lon]
     temp = temp[:,:,sort_lon]
 if ocean == 'hycom':
-    varr003 = varr003[:,sort_lon]
+    varr000 = varr000[:,sort_lon]
     varr = varr[:,sort_lon]
 
 #================================================================
 # Calculate z20
 if ocean == 'mom6':
-    varr003 = z20_depth(temp003,zl)
+    varr000 = z20_depth(temp000,zl)
     varr = z20_depth(temp,zl)
 
 #================================================================
@@ -181,7 +181,7 @@ if lat_adeck[nhour] < (latmax+5.0):
 
     var = varr*dumb
 
-    dvar = np.asarray(varr - varr003)*dumb
+    dvar = np.asarray(varr - varr000)*dumb
 
     # create figure and axes instances
     fig = plt.figure(figsize=(6,6))
