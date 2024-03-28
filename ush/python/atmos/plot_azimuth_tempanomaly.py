@@ -2,26 +2,17 @@
 
 """ This script is to plot out HAFS atmospheric azimuthally averaged fields figures."""
 import os
-import sys
-import logging
-import math
-import datetime
 
 import yaml
 import numpy as np
 import pandas as pd
-from numpy import newaxis
-from scipy.ndimage import gaussian_filter
 from scipy import interpolate
 
 import grib2io
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
-import matplotlib.colors as colors
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
 
 def axes_radpres(ax, xmax, xmin, ymax=1000, ymin=100):
     """Set up common axes attributes for wavenumber graphics.
@@ -112,15 +103,15 @@ print(f'grib2file: {grib2file}')
 grb = grib2io.open(grib2file,mode='r')
 
 print('Extracting NLAT')
-lat = grb.select(shortName='NLAT')[0].data()
-lat=np.asarray(lat[::-1,:])
+lat = grb.select(shortName='NLAT')[0].data
+lat = np.asarray(lat[::-1,:])
 for i in range(ysize):
     for j in range(xsize):
         latp[(ysize-1)-i]=lat[i,j]
 
 print('Extracting ELON')
-lon = grb.select(shortName='ELON')[0].data()
-lon=np.asarray(lon[::-1,:])
+lon = grb.select(shortName='ELON')[0].data
+lon = np.asarray(lon[::-1,:])
 for i in range(ysize):
     for j in range(xsize):
         if lonc[-1] == "W":
@@ -130,11 +121,8 @@ for i in range(ysize):
 
 # Put variables into 3-d array, index i is for y-dim, index j is for x-dim
 for k in range(zsize):
-    levstr=str(levs[k])+' mb'
-    tmp = grb.select(shortName='TMP', level=levstr)[0].data()
-    tmp.data[tmp.mask] = np.nan
-    tmp[tmp<0.] = np.nan
-    tmp= np.asarray(tmp)
+    levstr = str(levs[k])+' mb'
+    tmp = grb.select(shortName='TMP', level=levstr)[0].data
     print('Reading TMP for level',k,levs[k])
     for i in range(ysize):
         for j in range(xsize):

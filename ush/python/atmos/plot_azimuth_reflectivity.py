@@ -2,26 +2,17 @@
 
 """ This script is to plot out HAFS atmospheric azimuthally averaged fields figures."""
 import os
-import sys
-import logging
-import math
-import datetime
 
 import yaml
 import numpy as np
 import pandas as pd
-from numpy import newaxis
-from scipy.ndimage import gaussian_filter
 from scipy import interpolate
 
 import grib2io
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
-import matplotlib.colors as colors
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
 
 def axes_radpres(ax, xmax, xmin, ymax=1000, ymin=100):
     """Set up common axes attributes for wavenumber graphics.
@@ -116,15 +107,15 @@ print(f'grib2file: {grib2file}')
 grb = grib2io.open(grib2file,mode='r')
 
 print('Extracting NLAT')
-lat = grb.select(shortName='NLAT')[0].data()
-lat=np.asarray(lat[::-1,:])
+lat = grb.select(shortName='NLAT')[0].data
+lat = np.asarray(lat[::-1,:])
 for i in range(ysize):
     for j in range(xsize):
         latp[(ysize-1)-i]=lat[i,j]
 
 print('Extracting ELON')
-lon = grb.select(shortName='ELON')[0].data()
-lon=np.asarray(lon[::-1,:])
+lon = grb.select(shortName='ELON')[0].data
+lon = np.asarray(lon[::-1,:])
 for i in range(ysize):
     for j in range(xsize):
         if lonc[-1] == "W":
@@ -134,30 +125,24 @@ for i in range(ysize):
 
 # Put variables into 3-d array, index i is for y-dim, index j is for x-dim
 for k in range(zsize):
-    levstr=str(levs[k])+' mb'
-    wgrd = grb.select(shortName='DZDT', level=levstr)[0].data()
-    wgrd.data[wgrd.mask] = np.nan
-    wgrd= np.asarray(wgrd)
+    levstr = str(levs[k])+' mb'
+    wgrd = grb.select(shortName='DZDT', level=levstr)[0].data
     for i in range(ysize):
         for j in range(xsize):
             dzdt[i,j,k]=wgrd[i,j]
     print('Reading W for level',k,levs[k])
-    refd = grb.select(shortName='REFD', level=levstr)[0].data()
+    refd = grb.select(shortName='REFD', level=levstr)[0].data
     #refd.data[refd.mask] = np.nan  comment out for radar reflectivity only since it causes issue
     refd = np.asarray(refd)
     for i in range(ysize):
         for j in range(xsize):
             dbz[i,j,k]=refd[i,j]
     print('Reading dBZ for level',k,levs[k])
-    ugrd = grb.select(shortName='UGRD', level=levstr)[0].data()
-    ugrd.data[ugrd.mask] = np.nan
-    ugrd= np.asarray(ugrd)
+    ugrd = grb.select(shortName='UGRD', level=levstr)[0].data
     for i in range(ysize):
         for j in range(xsize):
-            uwind[i,j,k]=ugrd[i,j]
-    vgrd = grb.select(shortName='VGRD', level=levstr)[0].data()
-    vgrd.data[vgrd.mask] = np.nan
-    vgrd = np.asarray(vgrd)
+            uwind[i,j,k] = ugrd[i,j]
+    vgrd = grb.select(shortName='VGRD', level=levstr)[0].data
     for i in range(ysize):
         for j in range(xsize):
             vwind[i,j,k]=vgrd[i,j]
