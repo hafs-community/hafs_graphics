@@ -3,36 +3,22 @@
 """This script is to plot out HAFS atmospheric South-North cross section from 1000-100mb at model's storm center (ATCF)."""
 
 import os
-import sys
-import logging
-import math
-import datetime
 
 import yaml
 import numpy as np
 import pandas as pd
-from scipy.ndimage import gaussian_filter
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import pyproj
 import cartopy
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
-import metpy.calc as mpcalc
 import metpy
+import metpy.calc as mpcalc
 
 # Parse the yaml config file
 print('Parse the config file: plot_atmos.yml:')
@@ -91,8 +77,8 @@ def find_nearest(pointx, pointy, gridx, gridy):
 
 print('Extracting lat, lon')
 
-lat = np.asarray(grb.select(shortName='NLAT')[0].data())
-lon = np.asarray(grb.select(shortName='ELON')[0].data())
+lat = grb.select(shortName='NLAT')[0].data
+lon = grb.select(shortName='ELON')[0].data
 [nlat, nlon] = np.shape(lon)
 
 grblevs=np.arange(100,1001,25)
@@ -102,41 +88,33 @@ print('extract levs='+str(grblevs))
 for ind, lv in enumerate(grblevs):
   levstr= str(lv)+' mb'
   print('Extracting data at '+levstr)
-  rh = grb.select(shortName='RH', level=levstr)[0].data()
-  rh.data[rh.mask] = np.nan
-  rh[rh<0.] = np.nan
-  rh = np.asarray(rh)
+  rh = grb.select(shortName='RH', level=levstr)[0].data
   if ind == 0:
     rhtmp=np.zeros((len(grblevs),rh.shape[0],rh.shape[1]))
     rhtmp[ind,:,:]=rh
   rhtmp[ind,:,:]=rh
 
-  ugrd = grb.select(shortName='UGRD', level=levstr)[0].data()
-  ugrd.data[ugrd.mask] = np.nan
-  ugrd = np.asarray(ugrd)*1.94384
+  ugrd = grb.select(shortName='UGRD', level=levstr)[0].data
+  ugrd = ugrd*1.94384
   if ind == 0:
     ugrdtmp=np.zeros((len(grblevs),ugrd.shape[0],ugrd.shape[1]))
     ugrdtmp[ind,:,:]=ugrd
   ugrdtmp[ind,:,:]=ugrd
   
-  vgrd = grb.select(shortName='VGRD', level=levstr)[0].data()
-  vgrd.data[vgrd.mask] = np.nan
-  vgrd = np.asarray(vgrd)*1.94384
+  vgrd = grb.select(shortName='VGRD', level=levstr)[0].data
+  vgrd = vgrd*1.94384
   if ind == 0:
     vgrdtmp=np.zeros((len(grblevs),vgrd.shape[0],vgrd.shape[1]))
     vgrdtmp[ind,:,:]=vgrd
   vgrdtmp[ind,:,:]=vgrd
 
-  absvor = grb.select(shortName='ABSV', level=levstr)[0].data()
-  absvor.data[absvor.mask] = np.nan
+  absvor = grb.select(shortName='ABSV', level=levstr)[0].data
   if ind == 0:
     vorttmp=np.zeros((len(grblevs),absvor.shape[0],absvor.shape[1]))
-    vorttmp[ind,:,:]=absvor-fcor
-  vorttmp[ind,:,:]=absvor-fcor
+    vorttmp[ind,:,:]=absvor-np.asarray(fcor)
+  vorttmp[ind,:,:]=absvor-np.asarray(fcor)
 
-  tmp = grb.select(shortName='TMP', level=levstr)[0].data()
-  tmp.data[tmp.mask] = np.nan
-  tmp[tmp<0.] = np.nan
+  tmp = grb.select(shortName='TMP', level=levstr)[0].data
   if ind == 0:
     tmp_anomaly=np.zeros((len(grblevs),tmp.shape[0],tmp.shape[1]))
   tmp_mean = np.nanmean(tmp)
