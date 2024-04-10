@@ -3,10 +3,6 @@
 """This script is to plot out HAFS simulated GOES-R water vapor band-9 brightness temperature."""
 
 import os
-import sys
-import logging
-import math
-import datetime
 
 import yaml
 import numpy as np
@@ -14,22 +10,15 @@ import pandas as pd
 from scipy.ndimage import gaussian_filter
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import pyproj
 import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
 # Parse the yaml config file
 print('Parse the config file: plot_atmos.yml:')
@@ -85,9 +74,8 @@ print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 #[nlat, nlon] = np.shape(lon)
 
 print('Extracting SBTAGR9')
-wv = grb.select(shortName='SBTAGR9')[0].data()
-wv.data[wv.mask] = np.nan
-wv = np.asarray(wv)-273.15 # convert K to deg C
+wv = grb.select(shortName='SBTAGR9')[0].data
+wv = wv-273.15 # convert K to deg C
 wv = gaussian_filter(wv, 2)
 
 #===================================================================================================
