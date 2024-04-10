@@ -3,33 +3,21 @@
 """This script is to plot out HAFS atmospheric total heat flux and 10-m wind."""
 
 import os
-import sys
-import logging
-import math
-import datetime
 
 import yaml
 import numpy as np
 import pandas as pd
-from scipy.ndimage import gaussian_filter
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import pyproj
 import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
 # Parse the yaml config file
 print('Parse the config file: plot_atmos.yml:')
@@ -51,8 +39,8 @@ print(f'grib2file: {grib2file}')
 grb = grib2io.open(grib2file,mode='r')
 
 print('Extracting lat, lon')
-lat = np.asarray(grb.select(shortName='NLAT')[0].data())
-lon = np.asarray(grb.select(shortName='ELON')[0].data())
+lat = grb.select(shortName='NLAT')[0].data
+lon = grb.select(shortName='ELON')[0].data
 # The lon range in grib2 is typically between 0 and 360
 # Cartopy's PlateCarree projection typically uses the lon range of -180 to 180
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
@@ -67,14 +55,10 @@ print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 
 
 print('Extracting SHTFL, LHTFL at surface')
-shf = grb.select(shortName='SHTFL')[0].data()
-shf.data[shf.mask] = np.nan
-shf = np.asarray(shf)
+shf = grb.select(shortName='SHTFL')[0].data
 #shf = gaussian_filter(shf, 5)
 
-lhf = grb.select(shortName='LHTFL')[0].data()
-lhf.data[lhf.mask] = np.nan
-lhf = np.asarray(lhf)
+lhf = grb.select(shortName='LHTFL')[0].data
 #lhf = gaussian_filter(lhf, 5)
 
 # Calculate total heat flux
@@ -82,13 +66,11 @@ thf = shf + lhf
 
 print('Extracting UGRD, VGRD at 10 m above ground')
 levstr='10 m above ground'
-ugrd = grb.select(shortName='UGRD', level=levstr)[0].data()
-ugrd.data[ugrd.mask] = np.nan
-ugrd = np.asarray(ugrd) * 1.94384 # convert m/s to kt
+ugrd = grb.select(shortName='UGRD', level=levstr)[0].data
+ugrd = ugrd * 1.94384 # convert m/s to kt
 
-vgrd = grb.select(shortName='VGRD', level=levstr)[0].data()
-vgrd.data[vgrd.mask] = np.nan
-vgrd = np.asarray(vgrd) * 1.94384 # convert m/s to kt
+vgrd = grb.select(shortName='VGRD', level=levstr)[0].data
+vgrd = vgrd * 1.94384 # convert m/s to kt
 
 # Calculate wind speed
 wspd = (ugrd**2+vgrd**2)**.5
