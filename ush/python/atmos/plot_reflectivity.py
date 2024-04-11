@@ -3,10 +3,6 @@
 """This script is to plot out HAFS atmospheric Radar Reflectivity."""
 
 import os
-import sys
-import logging
-import math
-import datetime
 
 import yaml
 import numpy as np
@@ -14,22 +10,15 @@ import pandas as pd
 from scipy.ndimage import gaussian_filter
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import pyproj
 import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
 # Parse the yaml config file
 print('Parse the config file: plot_atmos.yml:')
@@ -51,8 +40,8 @@ print(f'grib2file: {grib2file}')
 grb = grib2io.open(grib2file,mode='r')
 
 print('Extracting lat, lon')
-lat = np.asarray(grb.select(shortName='NLAT')[0].data())
-lon = np.asarray(grb.select(shortName='ELON')[0].data())
+lat = grb.select(shortName='NLAT')[0].data
+lon = grb.select(shortName='ELON')[0].data
 # The lon range in grib2 is typically between 0 and 360
 # Cartopy's PlateCarree projection typically uses the lon range of -180 to 180
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
@@ -66,8 +55,7 @@ print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 [nlat, nlon] = np.shape(lon)
 
 print('Extracting Composite Reflectivity')
-ref = grb.select(shortName='REFC')[0].data()
-ref.data[ref.mask] = np.nan
+ref = grb.select(shortName='REFC')[0].data
 #ref = gaussian_filter(ref, 5)
 
 #===================================================================================================
