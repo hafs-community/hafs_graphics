@@ -101,10 +101,10 @@ print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 lon_adeckk = np.hstack([lon_adeck[lon_adeck<0]+lon_offset,lon_adeck[lon_adeck>0]-lon_offset])
 
 print('Extracting mean period of combined wind waves and swell')
-mwp = grb_ww3.select(shortName='PERPW')[int(conf['fhour']/3)].data()
+mwp = grb_ww3.select(shortName='PERPW')[int(conf['fhour']/3)].data
 
 print('Extracting wave mean direction')
-wmd = grb_ww3.select(shortName='WWSDIR')[int(conf['fhour']/3)].data()
+wmd = grb_ww3.select(shortName='WWSDIR')[int(conf['fhour']/3)].data
 
 #hgt = gaussian_filter(hgt, 5)
 
@@ -176,8 +176,7 @@ cfcolors = [cmap(20),cmap(70),                         # blue
             cmap(230),cmap(240),cmap(250)]             # red
 
 try:
-    #cf = ax.contourf(lon, lat, mwp, levels=cflevels, colors=cfcolors, extend='max', transform=transform)
-    cf = ax.contourf(lon[:,0:-1], lat[:,0:-1], mwp, levels=cflevels, colors=cfcolors, transform=transform)
+    cf = ax.contourf(lon, lat, mwp, levels=cflevels, colors=cfcolors, transform=transform)
     cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=30, shrink=cbshrink, extendrect=True, ticks=cclevels)
 except:
     print('ax.contourf failed, continue anyway')
@@ -186,7 +185,7 @@ print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
 try:
-    cs = ax.contour(lon[:,0:-1], lat[:,0:-1], mwp, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
+    cs = ax.contour(lon, lat, mwp, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
     #lb = plt.clabel(cs, levels=cslevels, inline_spacing=1, fontsize=8)
 except:
     print('ax.contour failed, continue anyway')
@@ -205,7 +204,7 @@ else:
     sc = 40
 
 try:
-    q = ax.quiver(lon[0,0:-1][::ns], lat[:,0][::ns], np.cos(wmd[::ns,::ns]*np.pi/180), np.sin(wmd[::ns,::ns]*np.pi/180), scale=sc)
+    q = ax.quiver(lon[::ns,::ns], lat[::ns,::ns], np.cos(wmd[::ns,::ns]*np.pi/180), np.sin(wmd[::ns,::ns]*np.pi/180), scale=sc)
     ax.quiverkey(q,xkey,ykey,3,label='Direction of Combined Wind Waves and Swell Unscaled ',labelpos = 'E',fontproperties = matplotlib.font_manager.FontProperties(size=8))
 except:
     print('ax.contour failed, continue anyway')
@@ -225,7 +224,7 @@ gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, latint))
 gl.xlabel_style = {'size': 8, 'color': 'black'}
 gl.ylabel_style = {'size': 8, 'color': 'black'}
 
-oklon = np.logical_and(lon[0,0:-1] >= lonmin,lon[0,0:-1] <= lonmax)
+oklon = np.logical_and(lon[0,:] >= lonmin,lon[0,:] <= lonmax)
 oklat = np.logical_and(lat[:,0] >= latmin,lat[:,0] <= latmax)
 if np.logical_and(len(np.where(oklon)[0])!=0,len(np.where(oklat)[0])!=0):
     max_mwp = np.nanmax(mwp[oklat,:][:,oklon])
@@ -247,5 +246,5 @@ ax.text(1.0,ytext, footer, fontsize=8, va="top", ha="right", transform=ax.transA
 #plt.show()
 #plt.savefig(fig_name, bbox_inches='tight',pad_inches=0.5)
 plt.savefig(fig_name, bbox_inches='tight')
-plt.close(fig)
+#plt.close(fig)
 

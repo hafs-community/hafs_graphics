@@ -7,7 +7,6 @@ import os
 import yaml
 import numpy as np
 import pandas as pd
-from scipy.ndimage import gaussian_filter
 
 import xarray as xr
 import grib2io 
@@ -101,12 +100,10 @@ print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 lon_adeckk = np.hstack([lon_adeck[lon_adeck<0]+lon_offset,lon_adeck[lon_adeck>0]-lon_offset])
 
 print('Extracting significant wave height')
-swh = grb_ww3.select(shortName='HTSGW')[int(conf['fhour']/3)].data()
+swh = grb_ww3.select(shortName='HTSGW')[int(conf['fhour']/3)].data
 
 print('Extracting wave mean direction')
-wmd = grb_ww3.select(shortName='WWSDIR')[int(conf['fhour']/3)].data()
-
-#hgt = gaussian_filter(hgt, 5)
+wmd = grb_ww3.select(shortName='WWSDIR')[int(conf['fhour']/3)].data
 
 #===================================================================================================
 print('Plotting significant wave height')
@@ -176,8 +173,7 @@ cfcolors = [cmap(20),cmap(80),                         # blue
             cmap(230),cmap(240),cmap(250),cmap(255)]   # red
 
 try:
-    #cf = ax.contourf(lon, lat, swh, levels=cflevels, cmap=newcmp, extend='max',transform=transform)
-    cf = ax.contourf(lon[:,0:-1], lat[:,0:-1], swh, levels=cflevels, colors=cfcolors, extend='max', transform=transform)
+    cf = ax.contourf(lon, lat, swh, levels=cflevels, colors=cfcolors, extend='max',transform=transform)
     cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=30, shrink=cbshrink, extendrect=True,
                   ticks=cclevels)
     #cf = ax.contourf(lon, lat, swh, levels=np.arange(256), cmap=cm0, extend='max',transform=transform)
@@ -189,7 +185,7 @@ print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
 ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
 try:
-    cs = ax.contour(lon[:,0:-1], lat[:,0:-1], swh, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
+    cs = ax.contour(lon, lat, swh, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
     #lb = plt.clabel(cs, levels=cslevels, inline_spacing=1, fontsize=8)
 except:
     print('ax.contour failed, continue anyway')
@@ -206,7 +202,7 @@ else:
     ytext = -0.24
 
 try:
-    q = ax.quiver(lon[0,0:-1][::ns], lat[:,0][::ns], swh[::ns,::ns]*np.cos(wmd[::ns,::ns]*np.pi/180), swh[::ns,::ns]*np.sin(wmd[::ns,::ns]*np.pi/180), scale=80)
+    q = ax.quiver(lon[::ns,::ns], lat[::ns,::ns], swh[::ns,::ns]*np.cos(wmd[::ns,::ns]*np.pi/180), swh[::ns,::ns]*np.sin(wmd[::ns,::ns]*np.pi/180), scale=80)
     ax.quiverkey(q,xkey,ykey,5,label='Direction of Combined Wind Waves and Swell\n Scaled by the Significant Height. Length = 5 m',labelpos = 'E',fontproperties = matplotlib.font_manager.FontProperties(size=8))
 except:
     print('ax.quiver failed, continue anyway')
@@ -226,7 +222,8 @@ gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, latint))
 gl.xlabel_style = {'size': 8, 'color': 'black'}
 gl.ylabel_style = {'size': 8, 'color': 'black'}
 
-oklon = np.logical_and(lon[0,0:-1] >= lonmin,lon[0,0:-1] <= lonmax)
+#oklon = np.logical_and(lon[0,0:-1] >= lonmin,lon[0,0:-1] <= lonmax)
+oklon = np.logical_and(lon[0,:] >= lonmin,lon[0,:] <= lonmax)
 oklat = np.logical_and(lat[:,0] >= latmin,lat[:,0] <= latmax)
 if np.logical_and(len(np.where(oklon)[0])!=0,len(np.where(oklat)[0])!=0):
     max_swh = np.nanmax(swh[oklat,:][:,oklon])
