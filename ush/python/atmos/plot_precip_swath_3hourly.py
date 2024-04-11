@@ -3,34 +3,21 @@
 """This script plots out the HAFS total rainfall swath for a 126 hours forecast, based on the 3-hours accumulated precipitation from the grid01 files."""
 
 import os
-import sys
-import logging
-import math
-import datetime
-import glob
 
 import yaml
 import numpy as np
 import pandas as pd
-from scipy.ndimage import gaussian_filter
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import pyproj
 import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
 #===================================================================================================
 def latlon_str2num(string):
@@ -154,8 +141,8 @@ print(f'grib2file: {grib2file}')
 grbf00 = grib2io.open(grib2file,mode='r')
 
 print('Extracting lat, lon')
-lat = np.asarray(grbf00.select(shortName='NLAT')[0].data())
-lon = np.asarray(grbf00.select(shortName='ELON')[0].data())
+lat = grbf00.select(shortName='NLAT')[0].data
+lon = grbf00.select(shortName='ELON')[0].data
 # The lon range in grib2 is typically between 0 and 360
 # Cartopy's PlateCarree projection typically uses the lon range of -180 to 180
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
@@ -172,7 +159,7 @@ print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 print('Extracting PRATE')
 varlen=grbswath.select(shortName='PRATE')
 print(len(varlen))
-varshape=grbswath.select(shortName='PRATE')[0].data()
+varshape=grbswath.select(shortName='PRATE')[0].data
 print(varshape.shape)
 
 for ind, frame in enumerate(range(0,len(varlen),2)):
@@ -181,9 +168,8 @@ for ind, frame in enumerate(range(0,len(varlen),2)):
   conf['validTime'] = conf['initTime'] + conf['fcstTime']
 
   #accumulation_time = grb.select(shortName='APCP')[frame].timeRangeOfStatisticalProcess
-  apcp = grbswath.select(shortName='PRATE')[frame].data()
-  apcp.data[apcp.mask] = np.nan
-  apcp = np.asarray(apcp)*0.0393701  # convert kg/m^2 to in 
+  apcp = grbswath.select(shortName='PRATE')[frame].data
+  apcp = apcp*0.0393701  # convert kg/m^2 to in 
   #===================================================================================================
   print('Obtaining the mask along the forecast track, around 500 km from the storm center')
   N = 8 # 8 degrees around track

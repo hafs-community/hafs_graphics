@@ -3,11 +3,6 @@
 """This script plots out the HAFS total rainfall swath for a 126 hours forecast """
 
 import os
-import sys
-import logging
-import math
-import datetime
-import glob
 
 import yaml
 import numpy as np
@@ -15,22 +10,15 @@ import pandas as pd
 from scipy.ndimage import gaussian_filter
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import pyproj
 import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
 #===================================================================================================
 def latlon_str2num(string):
@@ -157,8 +145,8 @@ print(f'grib2file: {grib2file}')
 grbf00 = grib2io.open(grib2file,mode='r')
 
 print('Extracting lat, lon')
-lat = np.asarray(grbf00.select(shortName='NLAT')[0].data())
-lon = np.asarray(grbf00.select(shortName='ELON')[0].data())
+lat = grbf00.select(shortName='NLAT')[0].data
+lon = grbf00.select(shortName='ELON')[0].data
 
 # The lon range in grib2 is typically between 0 and 360
 # Cartopy's PlateCarree projection typically uses the lon range of -180 to 180
@@ -174,9 +162,8 @@ print('new lonlat limit to -180 to 180 convention: ', np.min(lon), np.max(lon), 
 
 print('Extracting WIND')
 accumulation_time = grbswath.select(shortName='WIND')[-1].timeRangeOfStatisticalProcess
-wind = grbswath.select(shortName='WIND')[-1].data()
-wind.data[wind.mask] = np.nan
-wind_raw = np.asarray(wind) * 1.94384 # wind in knots 
+wind = grbswath.select(shortName='WIND')[-1].data
+wind_raw = wind * 1.94384 # wind in knots 
 wind = wind_raw[:,sort_lon]
 #wind = gaussian_filter(wind, 5)
 
@@ -217,7 +204,7 @@ mpl.rcParams['legend.fontsize'] = 8
 mpl.rcParams['figure.figsize'] = [6, 6]
 
 # second coordinate transformation to plot
-lon = np.asarray(grbf00.select(shortName='ELON')[0].data())
+lon = grbf00.select(shortName='ELON')[0].data
 lonn = lon
 if abs(np.max(lonn) - 360.) < 10.:
     lonn[lonn>180] = lonn[lonn>180] - 360.
