@@ -139,11 +139,11 @@ cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, extend='max',
 wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip],
               length=wblength, linewidth=0.2, color='black', transform=transform)
 
-#try:
-#    cs = ax.contour(lon, lat, hgt, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
-#    lb = plt.clabel(cs, levels=cslevels, inline_spacing=1, fmt='%d', fontsize=8)
-#except:
-#    print('ax.contour failed, continue anyway')
+try:
+    cs = ax.contour(lon, lat, hgt, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
+    #lb = plt.clabel(cs, levels=cslevels, inline_spacing=1, fmt='%d', fontsize=8)
+except:
+    print('ax.contour failed, continue anyway')
 
 # Add borders and coastlines
 #ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')
