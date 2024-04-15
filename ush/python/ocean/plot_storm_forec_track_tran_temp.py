@@ -88,20 +88,20 @@ oceanf = glob.glob(os.path.join(conf['COMhafs'],'*f006.nc'))[0].split('/')[-1].s
 ocean = [f for f in oceanf if f == 'hycom' or f == 'mom6'][0]
 
 if ocean == 'mom6':
-    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f003.nc'
+    fname000 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f000.nc'
     fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
 
 if ocean == 'hycom':
-    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+'f000.nc'
+    fname000 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+'f000.nc'
     fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+conf['fhhh']+'.nc'
 
-ncfile003 = os.path.join(conf['COMhafs'], fname003)
-nc003 = xr.open_dataset(ncfile003)
+ncfile000 = os.path.join(conf['COMhafs'], fname000)
+nc000 = xr.open_dataset(ncfile000)
 ncfile = os.path.join(conf['COMhafs'], fname)
 nc = xr.open_dataset(ncfile)
 
 if ocean == 'mom6':
-    varr003 = np.asarray(nc003['temp'][0,:,:,:])
+    varr000 = np.asarray(nc000['temp'][0,:,:,:])
     varr = np.asarray(nc['temp'][0,:,:,:])
     mld = np.asarray(nc['MLD_0125'][0,:,:])
     zl = np.asarray(nc['z_l'])
@@ -109,7 +109,7 @@ if ocean == 'mom6':
     lat = np.asarray(nc.yh)
 
 if ocean == 'hycom':
-    varr003 = np.asarray(nc003['temperature'][0,:,:,:])
+    varr000 = np.asarray(nc000['temperature'][0,:,:,:])
     varr = np.asarray(nc['temperature'][0,:,:,:])
     mld = np.asarray(nc['mixed_layer_thickness'][0,:,:])
     zl = np.asarray(nc['Z'])
@@ -135,18 +135,18 @@ lat_adeck_int[0:len(lat_adeck_int)] = lat_adeck_int
 oklon = np.round(np.interp(lon_adeck_int,lon,np.arange(len(lon)))).astype(int)
 oklat = np.round(np.interp(lat_adeck_int,lat,np.arange(len(lat)))).astype(int)
 
-var003 = np.empty((len(zl),len(lon_adeck_int)))
-var003[:] = np.nan 
+var000 = np.empty((len(zl),len(lon_adeck_int)))
+var000[:] = np.nan 
 var = np.empty((len(zl),len(lon_adeck_int)))
 var[:] = np.nan 
 mldd = np.empty((len(lon_adeck_int)))
 mldd[:] = np.nan
 for x in np.arange(len(lon_adeck_int)):
-    var003[:,x] = varr003[:,oklat[x],oklon[x]]
+    var000[:,x] = varr000[:,oklat[x],oklon[x]]
     var[:,x] = varr[:,oklat[x],oklon[x]]
     mldd[x] = np.asarray(mld[oklat[x],oklon[x]])
 
-diff = var - var003
+diff = var - var000
 
 #================================================================
 # Temp

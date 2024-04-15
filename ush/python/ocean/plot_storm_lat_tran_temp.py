@@ -89,27 +89,27 @@ oceanf = glob.glob(os.path.join(conf['COMhafs'],'*f006.nc'))[0].split('/')[-1].s
 ocean = [f for f in oceanf if f == 'hycom' or f == 'mom6'][0]
 
 if ocean == 'mom6':
-    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f003.nc'
+    fname000 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f000.nc'
     fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
 
 if ocean == 'hycom':
-    fname003 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+'f000.nc'
+    fname000 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+'f000.nc'
     fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+conf['fhhh']+'.nc'
 
-ncfile003 = os.path.join(conf['COMhafs'], fname003)
-nc003 = xr.open_dataset(ncfile003)
+ncfile000 = os.path.join(conf['COMhafs'], fname000)
+nc000 = xr.open_dataset(ncfile000)
 ncfile = os.path.join(conf['COMhafs'], fname)
 nc = xr.open_dataset(ncfile)
 
 if ocean == 'mom6':
-    varr003 = np.asarray(nc003['temp'][0,:,:,:])
+    varr000 = np.asarray(nc000['temp'][0,:,:,:])
     varr = np.asarray(nc['temp'][0,:,:,:])
     zl = np.asarray(nc['z_l'])
     lon = np.asarray(nc.xh)
     lat = np.asarray(nc.yh)
 
 if ocean == 'hycom':
-    varr003 = np.asarray(nc003['temperature'][0,:,:,:])
+    varr000 = np.asarray(nc000['temperature'][0,:,:,:])
     varr = np.asarray(nc['temperature'][0,:,:,:])
     zl = np.asarray(nc['Z'])
     lonh = np.asarray(nc.Longitude)
@@ -132,10 +132,10 @@ ymax = int(np.round(np.interp(ylim[1],lat,np.arange(len(lat)))))
 xmax = xmax + 1
 latt = lat[ymin:ymax]
 
-var003 = varr003[:,ymin:ymax,:][:,:,xmin:xmax][:,:,0]
+var000 = varr000[:,ymin:ymax,:][:,:,xmin:xmax][:,:,0]
 var = varr[:,ymin:ymax,:][:,:,xmin:xmax][:,:,0]
 
-diff = var - var003
+diff = var - var000
 
 #================================================================
 # Temp
@@ -165,7 +165,7 @@ plt.savefig(pngFile,bbox_inches='tight',dpi=150)
 plt.close()
 
 #================================================================
-# Temp - Temp003
+# Temp - Temp000
 kw = dict(levels=np.arange(-4,4.1,0.2))
 fig,ax = plt.subplots(figsize=(8,4))
 ctr = ax.contourf(latt,-zl,diff,cmap='seismic',**kw,extend='both')
