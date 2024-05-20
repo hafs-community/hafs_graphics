@@ -1,14 +1,13 @@
 #!/bin/sh
 #BATCH --job-name=jobhafsocean
 #SBATCH --account=hwrfv3
-#SBATCH --qos=batch
-##SBATCH --qos=debug
+##SBATCH --qos=batch
+#SBATCH --qos=debug
 #SBATCH --nodes=1
-#SBATCH --tasks-per-node=24
-##SBATCH --tasks-per-node=20
+#SBATCH --tasks-per-node=20
 #SBATCH --cpus-per-task=1
-#SBATCH -t 01:00:00
-##SBATCH -t 00:30:00
+##SBATCH -t 01:00:00
+#SBATCH -t 00:30:00
 #SBATCH --partition=xjet
 ##SBATCH --partition=sjet
 #SBATCH -o jobhafsocean.log.%j
@@ -21,9 +20,12 @@ set -x
 
 date
 
-YMDH=${1:-${YMDH:-2019082900}}
-STORM=${STORM:-NATL}
-STORMID=${STORMID:-00L}
+YMDH=${1:-${YMDH:-2023090706}}
+STORM=${STORM:-LEE}
+STORMID=${STORMID:-13L}
+stormModel=${stormModel:-HFSA}
+TRACKON=${TRACKON:-yes}
+fhhhAll=$(seq -f "f%03g" 0 3 126)
 
 #HOMEgraph=/your/graph/home/dir
 #WORKgraph=/your/graph/work/dir # if not specified, a default location relative to COMhafs will be used
@@ -39,15 +41,8 @@ export COMhafs=${COMhafs:-/hafs/com/${YMDH}/${STORMID}}
 export WORKgraph=${WORKgraph:-${COMhafs}/../../../${YMDH}/${STORMID}/emc_graphics}
 export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 
-stormModel=${stormModel:-HFSA}
-is6Hr=${is6Hr:-False}
-trackOn=${trackOn:-True}
-figTimeLevels=$(seq 0 42)
-#is6Hr=${is6Hr:-True}
-#figTimeLevels=$(seq 0 20)
-
 source ${USHgraph}/graph_pre_job.sh.inc
-export machine=${WHERE_AM_I:-wcoss2} # platforms: wcoss2, hera, orion, jet
+export machine=${WHERE_AM_I:-jet} # platforms: wcoss2, hera, orion, jet
 if [ ${machine} = jet ]; then
   export cartopyDataDir=${cartopyDataDir:-/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy}
 elif [ ${machine} = hera ]; then
@@ -79,25 +74,29 @@ touch $cmdfile
 # For the ocean figures
 #==============================================================================
 
+for fhhh in ${fhhhAll}; do
+
 figScriptAll=( \
-  "plot_sst.py" \
-  "plot_sss.py" \
-  "plot_mld.py" \
-  "plot_ohc.py" \
-  "plot_z20.py" \
-  "plot_z26.py" \
-  "plot_storm_sst.py" \
-  "plot_storm_sss.py" \
-  "plot_storm_mld.py" \
-  "plot_storm_ohc.py" \
-  "plot_storm_z20.py" \
-  "plot_storm_z26.py" \
-  "plot_storm_tempz40m.py" \
-  "plot_storm_tempz70m.py" \
-  "plot_storm_tempz100m.py" \
-  "plot_storm_wvelz40m.py" \
-  "plot_storm_wvelz70m.py" \
-  "plot_storm_wvelz100m.py" \
+  plot_sst.py \
+  plot_sss.py \
+  plot_mld.py \
+  plot_ohc.py \
+  plot_z20.py \
+  plot_z26.py \
+  plot_storm_sst.py \
+  plot_storm_sss.py \
+  plot_storm_mld.py \
+  plot_storm_ohc.py \
+  plot_storm_z20.py \
+  plot_storm_z26.py \
+  plot_storm_tempz40m.py \
+  plot_storm_tempz70m.py \
+  plot_storm_tempz100m.py \
+  plot_storm_wvelz40m.py \
+  plot_storm_wvelz70m.py \
+  plot_storm_wvelz100m.py \
+  plot_storm_forec_track_tran_temp.py \
+  plot_storm_lat_tran_temp.py \
   )
 
 nscripts=${#figScriptAll[*]}
@@ -110,6 +109,9 @@ do
   echo "time ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.log 2>&1" >> $cmdfile
 
 done
+
+done
+
 #==============================================================================
 
 chmod u+x ./$cmdfile

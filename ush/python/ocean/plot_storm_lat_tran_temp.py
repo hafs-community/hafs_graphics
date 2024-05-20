@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""This scrip plots the ocean heat content for the entire ocean domain. """ 
+"""This scrip plots a latitudinal transect of temperature. """
 
 import os
 import sys
@@ -13,12 +13,6 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
-  
-import cartopy
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
-
-from eos80 import dens
 
 #================================================================
 def latlon_str2num(string):
@@ -54,23 +48,15 @@ def get_adeck_track(adeck_file):
     return fhour,lat_adeck,lon_adeck,init_time,valid_time
 
 #================================================================
-# Calculate ocean heat content
-def ohc(temp,salt,zl):
-    cp = 3985 #Heat capacity in J/(kg K)
-    zl_array = np.reshape(np.tile(zl,(temp.shape[1]*temp.shape[2],1)).T,(temp.shape[0],temp.shape[1],temp.shape[2]))
-    no26 = temp < 26
-    temp[no26] = np.nan
-    salt[no26] = np.nan
-    density = dens(salt,temp,zl_array)
-    rho0 = np.nanmean(density,axis=0)
-    zl_array_fac = (zl_array[0:-1,:,:] + zl_array[1:,:,:])/2
-    zero_array = np.zeros((1,temp.shape[1],temp.shape[2]))
-    bott_array = np.ones((1,temp.shape[1],temp.shape[2]))* zl_array_fac[-1,0,0] + (zl[-1] - zl[-2])
-    zl_array_face = np.vstack((zero_array,zl_array_fac,bott_array))
-    dz_array = np.diff(zl_array_face,axis=0)
-    ohc = np.abs(cp * rho0 * np.nansum((temp-26)*dz_array,axis=0)) * 10**(-7) # in kJ/cm^2
-
-    return ohc
+# Conversion from geographic longitude and latitude to HYCOM convention
+def HYCOM_coord_to_geo_coord(lonh,lath):
+    lonh = np.asarray(lonh)
+    if np.ndim(lonh) > 0:
+        long = [ln-360 if ln>=180 else ln for ln in lonh]
+    else:
+        long = [lonh-360 if lonh>=180 else lonh][0]
+    latg = lath
+    return long, latg
 
 #================================================================
 # Parse the yaml config file
@@ -82,10 +68,6 @@ conf['initTime'] = pd.to_datetime(conf['ymdh'], format='%Y%m%d%H', errors='coerc
 conf['fhour'] = int(conf['fhhh'][1:])
 conf['fcstTime'] = pd.to_timedelta(conf['fhour'], unit='h')
 conf['validTime'] = conf['initTime'] + conf['fcstTime']
-
-# Set Cartopy data_dir location
-cartopy.config['data_dir'] = conf['cartopyDataDir']
-print(conf)
 
 #================================================================
 # Get lat and lon from adeck file
@@ -107,103 +89,69 @@ oceanf = glob.glob(os.path.join(conf['COMhafs'],'*f006.nc'))[0].split('/')[-1].s
 ocean = [f for f in oceanf if f == 'hycom' or f == 'mom6'][0]
 
 if ocean == 'mom6':
+    fname000 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f000.nc'
     fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
 
 if ocean == 'hycom':
+    fname000 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+'f000.nc'
     fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+conf['fhhh']+'.nc'
 
+ncfile000 = os.path.join(conf['COMhafs'], fname000)
+nc000 = xr.open_dataset(ncfile000)
 ncfile = os.path.join(conf['COMhafs'], fname)
 nc = xr.open_dataset(ncfile)
 
 if ocean == 'mom6':
-    temp = np.asarray(nc['temp'][0,:,:,:])
-    salt = np.asarray(nc['so'][0,:,:,:])
+    varr000 = np.asarray(nc000['temp'][0,:,:,:])
+    varr = np.asarray(nc['temp'][0,:,:,:])
     zl = np.asarray(nc['z_l'])
     lon = np.asarray(nc.xh)
     lat = np.asarray(nc.yh)
 
 if ocean == 'hycom':
-    var = np.asarray(nc['ocean_heat_content'][0,:,:])
-    lon = np.asarray(nc.Longitude)
-    lat = np.asarray(nc.Latitude)
+    varr000 = np.asarray(nc000['temperature'][0,:,:,:])
+    varr = np.asarray(nc['temperature'][0,:,:,:])
+    zl = np.asarray(nc['Z'])
+    lonh = np.asarray(nc.Longitude)
+    lath = np.asarray(nc.Latitude)
+    lon, lat = HYCOM_coord_to_geo_coord(lonh,lath)
 
 lonmin_raw = np.min(lon)
 lonmax_raw = np.max(lon)
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 
 #================================================================
-# Constrain lon limits between -180 and 180 so it does not conflict with the cartopy projection PlateCarree
-lon[lon>180] = lon[lon>180] - 360
-sort_lon = np.argsort(lon)
-lon = lon[sort_lon]
+#%% Longitudinal transect
+xlim = [np.nanmean(lon_adeck),np.nanmean(lon_adeck)]
+ylim = [np.nanmin(lat_adeck),np.nanmax(lat_adeck)]
+xmin = int(np.round(np.interp(xlim[0],lon,np.arange(len(lon)))))
+xmax = int(np.round(np.interp(xlim[1],lon,np.arange(len(lon)))))
+ymin = int(np.round(np.interp(ylim[0],lat,np.arange(len(lat)))))
+ymax = int(np.round(np.interp(ylim[1],lat,np.arange(len(lat)))))
 
-# define grid boundaries
-lonmin = np.min(lon)
-lonmax = np.max(lon)
-latmin = np.min(lat)
-latmax = np.max(lat)
-print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
+xmax = xmax + 1
+latt = lat[ymin:ymax]
 
-# Shift central longitude so the Southern Hemisphere and North Indin Ocean domains are plotted continuously
-if np.logical_and(lonmax >= 90, lonmax <=180):
-    central_longitude = 90
-else:
-    central_longitude = -90
-print('central longitude: ',central_longitude)
+var000 = varr000[:,ymin:ymax,:][:,:,xmin:xmax][:,:,0]
+var = varr[:,ymin:ymax,:][:,:,xmin:xmax][:,:,0]
 
-# sort var according to the new longitude
-if ocean == 'mom6':
-    temp = temp[:,:,sort_lon]
-    salt = salt[:,:,sort_lon]
-
-if ocean == 'hycom':
-    var = var[:,sort_lon]
+diff = var - var000
 
 #================================================================
-# Calculate ocean heat content
-if ocean == 'mom6':
-    var = ohc(temp,salt,zl)
-
-#================================================================
-var_name= 'ohc'
-units = '($kJ/cm^2$)'
-
-# create figure and axes instances
-fig = plt.figure(figsize=(8,4))
-ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=central_longitude))
-ax.axis('scaled')
-
-cflevels = np.linspace(0, 180, 37)
-cmap = plt.get_cmap('Spectral_r')
-cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='max', transform=ccrs.PlateCarree())
-cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::4])
-cb.ax.tick_params(labelsize=8)
-
-if conf['trackon']=='yes':
-    lon_adeck[np.logical_or(lon_adeck<lonmin,lon_adeck>lonmax)] = np.nan
-    ax.plot(lon_adeck,lat_adeck,'-ok',markersize=2,alpha=0.4,transform=ccrs.PlateCarree(central_longitude=0))
-    nhour = int((int(conf['fhhh'][1:])/3))
-    if nhour <= len(fhour):
-        ax.plot(lon_adeck[nhour],lat_adeck[nhour],'ok',markersize=6,alpha=0.4,markerfacecolor='None',transform=ccrs.PlateCarree(central_longitude=0))
-   
-ax.set_extent([lonmin_raw, lonmax_raw, latmin, latmax], crs=ccrs.PlateCarree())
-
-# Add gridlines and labels
-gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
-gl.top_labels = False
-gl.right_labels = False
-gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, 20))
-gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, 10))
-gl.xlabel_style = {'size': 8, 'color': 'black'}
-gl.ylabel_style = {'size': 8, 'color': 'black'}
-
-# Add borders and coastlines
-ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
-ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
-ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+# Temp
+kw = dict(levels=np.arange(15,31.1,0.5))
+fig,ax = plt.subplots(figsize=(8,4))
+ctr = ax.contourf(latt,-zl,var,cmap='Spectral_r',**kw,extend='both')
+cbar = fig.colorbar(ctr,extendrect=True)
+cbar.set_label('$^oC$',fontsize=14)
+cs = ax.contour(latt,-zl,var,[26],colors='k')
+ax.clabel(cs,cs.levels,inline=True,fmt='%1.1f',fontsize=10)
+ax.set_ylim([-300,0])
+ax.set_ylabel('Depth (m)')
+ax.set_xlabel('Latitude')
 
 model_info = os.environ.get('TITLEgraph','').strip()
-var_info = 'Ocean Heat Content ($kJ/cm^2$)'
+var_info = 'Latitudinal transect Temperature ($^oC$) at longitude = ' + str(np.round(xlim[0],2))
 storm_info = conf['stormName']+conf['stormID']
 title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
 ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
@@ -212,7 +160,33 @@ ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
 footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
 ax.text(1.0,-0.1, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
 
-pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.'+var_name+'.'+conf['fhhh'].lower()+'.png'
+pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm_lat_tran_temp'+'.'+conf['fhhh'].lower()+'.png'
 plt.savefig(pngFile,bbox_inches='tight',dpi=150)
-plt.close("all")
+plt.close()
 
+#================================================================
+# Temp - Temp000
+kw = dict(levels=np.arange(-4,4.1,0.2))
+fig,ax = plt.subplots(figsize=(8,4))
+ctr = ax.contourf(latt,-zl,diff,cmap='seismic',**kw,extend='both')
+cbar = fig.colorbar(ctr,extendrect=True)
+cbar.set_label('$^oC$',fontsize=14)
+cs = ax.contour(latt,-zl,diff,[0],colors='k')
+ax.clabel(cs,cs.levels,inline=True,fmt='%1.1f',fontsize=10)
+ax.set_ylim([-300,0])
+ax.set_ylabel('Depth (m)')
+ax.set_xlabel('Latitude')
+
+model_info = os.environ.get('TITLEgraph','').strip()
+var_info = 'Latitudinal transect Temperature Difference($^oC$) at longitude = ' + str(np.round(xlim[0],2))
+storm_info = conf['stormName']+conf['stormID']
+title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
+ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
+title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
+ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
+footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
+ax.text(1.0,-0.1, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
+
+pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm_lat_tran_temp'+'.change.'+conf['fhhh'].lower()+'.png'
+plt.savefig(pngFile,bbox_inches='tight',dpi=150)
+plt.close()

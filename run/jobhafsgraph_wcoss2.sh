@@ -431,36 +431,36 @@ fi # if [ ${plotWave} = yes ]; then
 
 if [ ${plotOcean} = 'yes' ]; then
 
-is6Hr=${is6Hr:-False}
-trackOn=${trackOn:-True}
-figTimeLevels=$(seq 0 42)
-#is6Hr=${is6Hr:-True}
-#figTimeLevels=$(seq 0 20)
-
 #Generate the cmdfile
 cmdfile="cmdfile_ocean.$STORM$STORMID.$YMDH"
 rm -f $cmdfile
 touch $cmdfile
 
+fhhhAll=$(seq -f "f%03g" 0 3 126)
+
+for fhhh in ${fhhhAll}; do
+
 figScriptAll=( \
-  "plot_sst.py" \
-  "plot_sss.py" \
-  "plot_mld.py" \
-  "plot_ohc.py" \
-  "plot_z20.py" \
-  "plot_z26.py" \
-  "plot_storm_sst.py" \
-  "plot_storm_sss.py" \
-  "plot_storm_mld.py" \
-  "plot_storm_ohc.py" \
-  "plot_storm_z20.py" \
-  "plot_storm_z26.py" \
-  "plot_storm_tempz40m.py" \
-  "plot_storm_tempz70m.py" \
-  "plot_storm_tempz100m.py" \
-  "plot_storm_wvelz40m.py" \
-  "plot_storm_wvelz70m.py" \
-  "plot_storm_wvelz100m.py" \
+  plot_sst.py \
+  plot_sss.py \
+  plot_mld.py \
+  plot_ohc.py \
+  plot_z20.py \
+  plot_z26.py \
+  plot_storm_sst.py \
+  plot_storm_sss.py \
+  plot_storm_mld.py \
+  plot_storm_ohc.py \
+  plot_storm_z20.py \
+  plot_storm_z26.py \
+  plot_storm_tempz40m.py \
+  plot_storm_tempz70m.py \
+  plot_storm_tempz100m.py \
+  plot_storm_wvelz40m.py \
+  plot_storm_wvelz70m.py \
+  plot_storm_wvelz100m.py \
+  plot_storm_forec_track_tran_temp.py \
+  plot_storm_lat_tran_temp.py \
   )
 
 nscripts=${#figScriptAll[*]}
@@ -471,6 +471,8 @@ do
   echo ${figScriptAll[$i]}
 # echo "${APRUNS} ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.log 2>&1 ${BACKGROUND}" >> $cmdfile
   echo "time ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.log 2>&1" >> $cmdfile
+
+done
 
 done
 

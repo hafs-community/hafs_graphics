@@ -1,0 +1,11 @@
+# yaml configure file
+stormModel: HFSA
+stormName: LEE
+stormID: 13L
+stormBasin: AL
+ymdh: '2023090706'
+fhhh: f006
+trackon: 'yes'
+#COMhafs: /scratch1/NCEPDEV/hwrf/scrub/Maria.Aristizabal/hafsv1_merge_mom6_hfsa_mom6/com/2020082512/13L
+COMhafs: /scratch1/NCEPDEV/hwrf/noscrub/Maria.Aristizabal/HFSAv2a_baseline_latest/2023090706/13l
+cartopyDataDir: /scratch1/NCEPDEV/hwrf/noscrub/local/share/cartopy
