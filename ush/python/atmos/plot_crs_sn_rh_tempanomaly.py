@@ -64,6 +64,12 @@ for tind in tmp1:
     break
   elif tind == tmp1[len(tmp1)-1] and df.loc[tind][5] != conf['fhour'] :
     print('No record found at forecast hour')
+    fig, (ax1) = plt.subplots(nrows=1, ncols=1,figsize=(10,5))
+    fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']
+    fig_name = fig_prefix+'.storm.'+'crs_sn_rh_tempanomaly.'+conf['fhhh'].lower()+'.png'
+    ax1.text(0.15,0.5,'No track record found at this time', fontsize=25)
+    ax1.tick_params(bottom=False,left=False,labelbottom=False, labelleft=False)
+    plt.savefig(fig_name, bbox_inches='tight')
     sys.exit()
 
 def latlon_str2num(string): #Adopted from ATCF 
