@@ -74,10 +74,19 @@ def main():
 
     # Read in adeckFile as pandas dataFrame
     print('Read in adeckFile ...')
-    adeck = pd.read_csv(conf['adeckFile'], index_col=False, names=cols, dtype=str, header=None, skipinitialspace=True)
+    if os.path.isfile(conf['adeckFile']):
+        adeck = pd.read_csv(conf['adeckFile'], index_col=False, names=cols, dtype=str, header=None, skipinitialspace=True)
+    else:
+        print('adeckfile does not exist. Exiting without producing ATCF figures')
+        sys.exit()
+
     # Read in bdeckFile as pandas dataFrame
     print('Read in bdeckFile ...')
-    bdeck = pd.read_csv(conf['bdeckFile'], index_col=False, names=cols, dtype=str, header=None, skipinitialspace=True)
+    if os.path.isfile(conf['bdeckFile']):
+        bdeck = pd.read_csv(conf['bdeckFile'], index_col=False, names=cols, dtype=str, header=None, skipinitialspace=True)
+    else:
+        print('bdeckfile does not exist. Producing ATCF figures without the best track data')
+        bdeck = pd.Series(data=None,dtype=float)
 
     print('Combining and processing abdeck into atcf data frame ...')
     atcf = pd.concat([adeck, bdeck])
