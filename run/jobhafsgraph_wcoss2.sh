@@ -2,7 +2,8 @@
 #PBS -N jobhafsgraph
 #PBS -A HAFS-DEV
 #PBS -q dev
-#PBS -l select=4:mpiprocs=60:ompthreads=1:ncpus=60:mem=500G
+##PBS -l select=4:mpiprocs=10:ompthreads=1:ncpus=10:mem=500G
+#PBS -l select=4:mpiprocs=60:ompthreads=1:ncpus=60:mem=800G:prepost=true
 #PBS -l walltime=01:00:00
 #PBS -j oe
 #PBS -o jobhafsgraph.log
@@ -459,18 +460,22 @@ figScriptAll=( \
   plot_storm_wvelz40m.py \
   plot_storm_wvelz70m.py \
   plot_storm_wvelz100m.py \
-  plot_storm_forec_track_tran_temp.py \
-  plot_storm_lat_tran_temp.py \
+  plot_storm_crs_sn_temp.py \
+  plot_storm_crs_trk_temp.py \
+  plot_storm_crs_we_temp.py \
   )
 
 nscripts=${#figScriptAll[*]}
+
+trackOn=yes
 
 for((i=0;i<${nscripts};i++));
 do
 
   echo ${figScriptAll[$i]}
 # echo "${APRUNS} ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.log 2>&1 ${BACKGROUND}" >> $cmdfile
-  echo "time ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.log 2>&1" >> $cmdfile
+#  echo "time ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.log 2>&1" >> $cmdfile
+  echo "time ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} ${fhhh} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.${fhhh}.log 2>&1" >> $cmdfile
 
 done
 
