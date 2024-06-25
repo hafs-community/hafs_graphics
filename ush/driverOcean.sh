@@ -103,6 +103,12 @@ for file in $(/bin/ls -1 *.png); do
   convert -dither FloydSteinberg -colors 256 ${file} ${file}
 done
 
+for file in $(/bin/ls -1 *.change.f*.png); do
+  forig=${file/.change./.}
+  fcomb=${file/.change./.combine.}
+  convert +append ${forig} ${file} ${fcomb}
+done
+
 # Deliver figure to archive_dir
 mkdir -p ${archive_dir}
 cp -up ${work_dir}/${STORMNAME}${STORMID}.${startDate}.${STORMMODEL}.*${figName}*.png ${archive_dir}

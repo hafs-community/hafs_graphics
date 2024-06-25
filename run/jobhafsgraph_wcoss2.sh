@@ -58,7 +58,7 @@ yyyy=`echo ${ymdh} | cut -c1-4`
 ymd=`echo ${ymdh} | cut -c1-8`
 hh=`echo ${ymdh} | cut -c9-10`
 
-if [ ${stormModel} = "HFSA" ] && [ "lec" = "*${basin1c}*" ]; then
+if [ ${stormModel} = "HFSA" ] && [[ "lec" = "*${basin1c}*" ]]; then
   plotWave=${plotWave:-yes}
 else
   plotWave=${plotWave:-no}
@@ -473,8 +473,6 @@ for((i=0;i<${nscripts};i++));
 do
 
   echo ${figScriptAll[$i]}
-# echo "${APRUNS} ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.log 2>&1 ${BACKGROUND}" >> $cmdfile
-#  echo "time ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.log 2>&1" >> $cmdfile
   echo "time ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} ${fhhh} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.${fhhh}.log 2>&1" >> $cmdfile
 
 done

@@ -178,7 +178,7 @@ else:
     footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
     ax.text(1.0,-0.2, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
     
-    pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm_crs_we_temp'+'.'+conf['fhhh'].lower()+'.png'
+    pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm.crs_we_temp'+'.'+conf['fhhh'].lower()+'.png'
     plt.savefig(pngFile,bbox_inches='tight',dpi=150)
     plt.close()
     
@@ -209,6 +209,6 @@ else:
     footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
     ax.text(1.0,-0.2, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
     
-    pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm_crs_we_temp'+'.change.'+conf['fhhh'].lower()+'.png'
+    pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm.crs_we_temp'+'.change.'+conf['fhhh'].lower()+'.png'
     plt.savefig(pngFile,bbox_inches='tight',dpi=150)
     plt.close()
