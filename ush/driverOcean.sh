@@ -111,8 +111,8 @@ done
 
 # Deliver figure to archive_dir
 mkdir -p ${archive_dir}
-cp -up ${work_dir}/${STORMNAME}${STORMID}.${startDate}.${STORMMODEL}.*${figName}*.png ${archive_dir}
-#cp -fp ${work_dir}/${STORMNAME}${STORMID}.${startDate}.${STORMMODEL}.*${figName}*.png ${archive_dir}
+cp -up ${work_dir}/${STORMNAME}${STORMID}.${startDate}.${STORMMODEL}.*.png ${archive_dir}
+#cp -fp ${work_dir}/${STORMNAME}${STORMID}.${startDate}.${STORMMODEL}.*.png ${archive_dir}
 
 set -e
 
