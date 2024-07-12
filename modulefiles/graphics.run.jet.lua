@@ -26,6 +26,9 @@ wgrib2_ver=os.getenv("wgrib2_ver") or "2.0.8"
 load(pathJoin("wgrib2", wgrib2_ver))
 setenv("WGRIB2", "/mnt/lfs4/HFIP/hwrfv3/Jili.Dong/hafs_tools/grib2/wgrib2/wgrib2")
 
+imagemagick_ver=os.getenv("imagemagick_ver") or "7.1.1-11"
+load(pathJoin("imagemagick", imagemagick_ver))
+
 prepend_path("MODULEPATH", "/mnt/lfs4/HFIP/hwrfv3/local/modulefiles")
 load(pathJoin("python", "wcoss2_env"))
 
