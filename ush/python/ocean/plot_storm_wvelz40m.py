@@ -126,6 +126,7 @@ print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 #================================================================
 # Constrain lon limits between -180 and 180 so it does not conflict with the cartopy projection PlateCarree
 lon[lon>180] = lon[lon>180] - 360
+lon[lon<-180] = lon[lon<-180] + 360
 sort_lon = np.argsort(lon)
 lon = lon[sort_lon]
 
