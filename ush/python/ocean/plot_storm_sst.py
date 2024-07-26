@@ -162,32 +162,33 @@ ssu = ssu[::skip,::skip]
 ssv = ssv[::skip,::skip]
 
 nhour = int((int(conf['fhhh'][1:])/3))
-if lat_adeck[nhour] < (latmax+5.0):
-    dR=haversine(lns,lts,lon_adeck[nhour],lat_adeck[nhour])/1000.
-    dumb=dummy.copy()
-    dumb[dR>Rkm]=np.nan
-
-    var = varr*dumb
-
-    dvar = np.asarray(varr - varr000)*dumb
-
-    # create figure and axes instances
-    fig = plt.figure(figsize=(6,6))
-    ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=central_longitude))
-    ax.axis('scaled')
+okfhour = conf['fhhh'][1:] == fhour
+if len(lon_adeck[okfhour])!=0 and len(lat_adeck[okfhour])!=0:
+    if lat_adeck[nhour] < (latmax+5.0):
+        dR=haversine(lns,lts,lon_adeck[nhour],lat_adeck[nhour])/1000.
+        dumb=dummy.copy()
+        dumb[dR>Rkm]=np.nan
     
-    cflevels = np.linspace(19, 32, 27)
-    cmap = plt.get_cmap('turbo')
-    cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
-    ax.contour(lon, lat, var, cflevels, colors='grey',alpha=0.5, linewidths=0.5, transform=ccrs.PlateCarree())
-    cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::4])
-    cb.ax.tick_params(labelsize=8)
+        var = varr*dumb
     
-    if conf['trackon']=='yes':
-        lon_adeck[np.logical_or(lon_adeck<lonmin_new,lon_adeck>lonmax_new)] = np.nan
-        ax.plot(lon_adeck,lat_adeck,'-ok',markersize=2,alpha=0.4,transform=ccrs.PlateCarree(central_longitude=0))
+        dvar = np.asarray(varr - varr000)*dumb
+    
+        # create figure and axes instances
+        fig = plt.figure(figsize=(6,6))
+        ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=central_longitude))
+        ax.axis('scaled')
+        
+        cflevels = np.linspace(19, 32, 27)
+        cmap = plt.get_cmap('turbo')
+        cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
+        ax.contour(lon, lat, var, cflevels, colors='grey',alpha=0.5, linewidths=0.5, transform=ccrs.PlateCarree())
+        cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::4])
+        cb.ax.tick_params(labelsize=8)
+        
+        if conf['trackon']=='yes':
+            lon_adeck[np.logical_or(lon_adeck<lonmin_new,lon_adeck>lonmax_new)] = np.nan
+            ax.plot(lon_adeck,lat_adeck,'-ok',markersize=2,alpha=0.4,transform=ccrs.PlateCarree(central_longitude=0))
 
-        if nhour <= len(fhour):
             ax.plot(lon_adeck[nhour],lat_adeck[nhour],'ok',markersize=10,alpha=0.6,markerfacecolor='None',transform=ccrs.PlateCarree(central_longitude=0))
        
             if np.logical_and(lon_adeck[nhour]-5.5 > lonmin_new,lon_adeck[nhour]+5.5 < lonmax_new):
@@ -197,53 +198,52 @@ if lat_adeck[nhour] < (latmax+5.0):
             else:
                 print('Longitude track limits are out of the ocean domain')
     
-    q = plt.quiver(ln,lt,ssu,ssv,scale=20,transform=ccrs.PlateCarree())
-
-    # Add gridlines and labels
-    gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
-    gl.top_labels = False
-    gl.right_labels = False
-    gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, 2))
-    gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, 2))
-    gl.xlabel_style = {'size': 8, 'color': 'black'}
-    gl.ylabel_style = {'size': 8, 'color': 'black'}
+        q = plt.quiver(ln,lt,ssu,ssv,scale=20,transform=ccrs.PlateCarree())
     
-    # Add borders and coastlines
-    ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
-    ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
-    ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
-
-    model_info = os.environ.get('TITLEgraph','').strip()
-    var_info = 'Sea Surface Temperature ($^oC$)'
-    storm_info = conf['stormName']+conf['stormID']
-    title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
-    ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
-    title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
-    ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
-    footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
-    ax.text(1.0,-0.08, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
-
-    pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm.'+var_name+'.'+conf['fhhh'].lower()+'.png'
-    plt.savefig(pngFile,bbox_inches='tight',dpi=150)
-    plt.close("all")
+        # Add gridlines and labels
+        gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
+        gl.top_labels = False
+        gl.right_labels = False
+        gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, 2))
+        gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, 2))
+        gl.xlabel_style = {'size': 8, 'color': 'black'}
+        gl.ylabel_style = {'size': 8, 'color': 'black'}
+        
+        # Add borders and coastlines
+        ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+        ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+        ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
     
-    # create figure and axes instances
-    fig = plt.figure(figsize=(6,6))
-    ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=central_longitude))
-    ax.axis('scaled')
+        model_info = os.environ.get('TITLEgraph','').strip()
+        var_info = 'Sea Surface Temperature ($^oC$)'
+        storm_info = conf['stormName']+conf['stormID']
+        title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
+        ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
+        title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
+        ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
+        footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
+        ax.text(1.0,-0.08, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
     
-    cflevels = np.linspace(-4, 4, 17)
-    cmap = plt.get_cmap('RdBu_r')
-    cf = ax.contourf(lon, lat, dvar, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
-    lb = ax.contour(lon, lat, dvar, cflevels, colors='grey', alpha=0.5, linewidths=0.5, transform=ccrs.PlateCarree())
-    cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::4])
-    cb.ax.tick_params(labelsize=8)
-    
-    if conf['trackon']=='yes':
-        lon_adeck[np.logical_or(lon_adeck<lonmin_new,lon_adeck>lonmax_new)] = np.nan
-        ax.plot(lon_adeck,lat_adeck,'-ok',markersize=2,alpha=0.4,transform=ccrs.PlateCarree(central_longitude=0))
+        pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm.'+var_name+'.'+conf['fhhh'].lower()+'.png'
+        plt.savefig(pngFile,bbox_inches='tight',dpi=150)
+        plt.close("all")
+        
+        # create figure and axes instances
+        fig = plt.figure(figsize=(6,6))
+        ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=central_longitude))
+        ax.axis('scaled')
+        
+        cflevels = np.linspace(-4, 4, 17)
+        cmap = plt.get_cmap('RdBu_r')
+        cf = ax.contourf(lon, lat, dvar, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
+        lb = ax.contour(lon, lat, dvar, cflevels, colors='grey', alpha=0.5, linewidths=0.5, transform=ccrs.PlateCarree())
+        cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::4])
+        cb.ax.tick_params(labelsize=8)
+        
+        if conf['trackon']=='yes':
+            lon_adeck[np.logical_or(lon_adeck<lonmin_new,lon_adeck>lonmax_new)] = np.nan
+            ax.plot(lon_adeck,lat_adeck,'-ok',markersize=2,alpha=0.4,transform=ccrs.PlateCarree(central_longitude=0))
 
-        if nhour <= len(fhour):
             ax.plot(lon_adeck[nhour],lat_adeck[nhour],'ok',markersize=10,alpha=0.6,markerfacecolor='None',transform=ccrs.PlateCarree(central_longitude=0))
        
             if np.logical_and(lon_adeck[nhour]-5.5 > lonmin_new,lon_adeck[nhour]+5.5 < lonmax_new):
@@ -253,30 +253,33 @@ if lat_adeck[nhour] < (latmax+5.0):
             else:
                 print('Longitude track limits are out of the ocean domain')
     
-    # Add gridlines and labels
-    gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
-    gl.top_labels = False
-    gl.right_labels = False
-    gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, 2))
-    gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, 2))
-    gl.xlabel_style = {'size': 8, 'color': 'black'}
-    gl.ylabel_style = {'size': 8, 'color': 'black'}
+        # Add gridlines and labels
+        gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
+        gl.top_labels = False
+        gl.right_labels = False
+        gl.xlocator = mticker.FixedLocator(np.arange(-180., 180.+1, 2))
+        gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, 2))
+        gl.xlabel_style = {'size': 8, 'color': 'black'}
+        gl.ylabel_style = {'size': 8, 'color': 'black'}
+        
+        # Add borders and coastlines
+        ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+        ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+        ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
     
-    # Add borders and coastlines
-    ax.add_feature(cfeature.BORDERS.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
-    ax.add_feature(cfeature.STATES.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
-    ax.add_feature(cfeature.COASTLINE.with_scale('50m'), linewidth=0.3, facecolor='none', edgecolor='0.1')
+        model_info = os.environ.get('TITLEgraph','').strip()
+        var_info = 'Sea Surface Temperature Change ($^oC$)'
+        storm_info = conf['stormName']+conf['stormID']
+        title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
+        ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
+        title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
+        ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
+        footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
+        ax.text(1.0,-0.08, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
+        
+        pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm.'+var_name+'.change.'+conf['fhhh'].lower()+'.png'
+        plt.savefig(pngFile,bbox_inches='tight',dpi=150)
+        plt.close("all")
 
-    model_info = os.environ.get('TITLEgraph','').strip()
-    var_info = 'Sea Surface Temperature Change ($^oC$)'
-    storm_info = conf['stormName']+conf['stormID']
-    title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
-    ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
-    title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
-    ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
-    footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
-    ax.text(1.0,-0.08, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
-    
-    pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm.'+var_name+'.change.'+conf['fhhh'].lower()+'.png'
-    plt.savefig(pngFile,bbox_inches='tight',dpi=150)
-    plt.close("all")
+else:
+    print('There is not latitude or longitude for the center of the storm at this forecast hour. Exiting plotting script')
