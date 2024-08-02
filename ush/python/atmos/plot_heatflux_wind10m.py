@@ -146,8 +146,20 @@ cmap = mpl.colors.LinearSegmentedColormap.from_list('sub_'+ctmp.name,ctmp(np.lin
 cf = ax.contourf(lon, lat, thf, cflevels, cmap=cmap, extend='both', transform=transform)
 cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True, ticks=cflevels[::4])
 
-wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip],
-              length=wblength, linewidth=0.2, color='black', transform=transform)
+lat_nh = lat[lat[:,0]>=0,:]
+lon_nh = lon[lat[:,0]>=0,:]
+ugrd_nh = ugrd[lat[:,0]>=0,:]
+vgrd_nh = vgrd[lat[:,0]>=0,:]
+
+lat_sh = lat[lat[:,0]<0,:]
+lon_sh = lon[lat[:,0]<0,:]
+ugrd_sh = ugrd[lat[:,0]<0,:]
+vgrd_sh = vgrd[lat[:,0]<0,:]
+
+wb = ax.barbs(lon_nh[::skip,::skip], lat_nh[::skip,::skip], ugrd_nh[::skip,::skip], vgrd_nh[::skip,::skip],
+              length=wblength, linewidth=0.2, color='black', transform=transform,flip_barb=False)
+wb = ax.barbs(lon_sh[::skip,::skip], lat_sh[::skip,::skip], ugrd_sh[::skip,::skip], vgrd_sh[::skip,::skip],
+              length=wblength, linewidth=0.2, color='black', transform=transform,flip_barb=True)
 
 # Add borders and coastlines
 #ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')

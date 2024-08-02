@@ -173,8 +173,20 @@ cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshri
 #cf = ax.contourf(lon, lat, tmp_anomaly, levels=cflevels, cmap=cmap, extend='both', transform=transform)
 #cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True)
 
-wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip],
-              length=wblength, linewidth=0.2, color='black', transform=transform)
+lat_nh = lat[lat[:,0]>=0,:]
+lon_nh = lon[lat[:,0]>=0,:]
+ugrd_nh = ugrd[lat[:,0]>=0,:]
+vgrd_nh = vgrd[lat[:,0]>=0,:]
+
+lat_sh = lat[lat[:,0]<0,:]
+lon_sh = lon[lat[:,0]<0,:]
+ugrd_sh = ugrd[lat[:,0]<0,:]
+vgrd_sh = vgrd[lat[:,0]<0,:]
+
+wb = ax.barbs(lon_nh[::skip,::skip], lat_nh[::skip,::skip], ugrd_nh[::skip,::skip], vgrd_nh[::skip,::skip],
+              length=wblength, linewidth=0.2, color='black', transform=transform,flip_barb=False)
+wb = ax.barbs(lon_sh[::skip,::skip], lat_sh[::skip,::skip], ugrd_sh[::skip,::skip], vgrd_sh[::skip,::skip],
+              length=wblength, linewidth=0.2, color='black', transform=transform,flip_barb=True)
 
 try:
     cs = ax.contour(lon, lat, hgt, levels=cslevels, colors='black', linewidths=0.6, transform=transform)

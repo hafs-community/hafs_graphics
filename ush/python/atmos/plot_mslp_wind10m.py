@@ -164,8 +164,20 @@ cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshri
 cb.ax.set_yticklabels(['10','20','30','TS','40','50','60','HR','70','80','90',
                        'MH','100','110','120','130','140','150','160'])
 
-wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip],
-              length=wblength, linewidth=0.2, color='black', transform=transform)
+lat_nh = lat[lat[:,0]>=0,:]
+lon_nh = lon[lat[:,0]>=0,:]
+ugrd_nh = ugrd[lat[:,0]>=0,:]
+vgrd_nh = vgrd[lat[:,0]>=0,:]
+
+lat_sh = lat[lat[:,0]<0,:]
+lon_sh = lon[lat[:,0]<0,:]
+ugrd_sh = ugrd[lat[:,0]<0,:]
+vgrd_sh = vgrd[lat[:,0]<0,:]
+
+wb = ax.barbs(lon_nh[::skip,::skip], lat_nh[::skip,::skip], ugrd_nh[::skip,::skip], vgrd_nh[::skip,::skip],
+              length=wblength, linewidth=0.2, color='black', transform=transform, flip_barb=False)
+wb = ax.barbs(lon_sh[::skip,::skip], lat_sh[::skip,::skip], ugrd_sh[::skip,::skip], vgrd_sh[::skip,::skip],
+              length=wblength, linewidth=0.2, color='black', transform=transform, flip_barb=True)
 try:
     cslevels = np.arange(840,1040,4)
     cs = ax.contour(lon, lat, slp, levels=cslevels, colors='black', linewidths=0.6, transform=transform)

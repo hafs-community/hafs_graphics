@@ -161,10 +161,29 @@ cf = ax.contourf(lon, lat, mag, cflevels, cmap=cm, norm=norm, extend='max', tran
 cb = plt.colorbar(cf, orientation='vertical', pad=0.01, aspect=50, extend='max', shrink=cbshrink, extendrect=True,
                   ticks=cflevels[::2])
 
-wb1 = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], u200[::skip,::skip], v200[::skip,::skip],
-               length=wblength, linewidth=0.3, color='blue', transform=transform)
-wb2 = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], u850[::skip,::skip], v850[::skip,::skip],
-               length=wblength, linewidth=0.3, color='black', transform=transform)
+lat_nh = lat[lat[:,0]>=0,:] 
+lon_nh = lon[lat[:,0]>=0,:] 
+u200_nh = u200[lat[:,0]>=0,:] 
+v200_nh = v200[lat[:,0]>=0,:] 
+u850_nh = u850[lat[:,0]>=0,:] 
+v850_nh = v850[lat[:,0]>=0,:] 
+
+lat_sh = lat[lat[:,0]<0,:] 
+lon_sh = lon[lat[:,0]<0,:] 
+u200_sh = u200[lat[:,0]<0,:] 
+v200_sh = v200[lat[:,0]<0,:] 
+u850_sh = u850[lat[:,0]<0,:] 
+v850_sh = v850[lat[:,0]<0,:] 
+
+wb1 = ax.barbs(lon_nh[::skip,::skip], lat_nh[::skip,::skip], u200_nh[::skip,::skip], v200_nh[::skip,::skip],
+               length=wblength, linewidth=0.3, color='blue', transform=transform,flip_barb=False)
+wb1 = ax.barbs(lon_sh[::skip,::skip], lat_sh[::skip,::skip], u200_sh[::skip,::skip], v200_sh[::skip,::skip],
+               length=wblength, linewidth=0.3, color='blue', transform=transform,flip_barb=True)
+
+wb2 = ax.barbs(lon_nh[::skip,::skip], lat_nh[::skip,::skip], u850_nh[::skip,::skip], v850_nh[::skip,::skip],
+               length=wblength, linewidth=0.3, color='black', transform=transform,flip_barb=False)
+wb2 = ax.barbs(lon_sh[::skip,::skip], lat_sh[::skip,::skip], u850_sh[::skip,::skip], v850_sh[::skip,::skip],
+               length=wblength, linewidth=0.3, color='black', transform=transform,flip_barb=True)
 
 # Add borders and coastlines
 #ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')
