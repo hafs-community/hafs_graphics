@@ -124,6 +124,9 @@ print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 #================================================================
 #%% temp along storm path
 lon_adeck_interp = np.interp(lat,lat_adeck,lon_adeck,left=np.nan,right=np.nan)
+if len(np.where((np.isfinite(lon_adeck_interp)))[0]) == 0:
+    lon_adeck_interp = np.interp(lat,lat_adeck,lon_adeck)
+
 lat_adeck_interp = np.copy(lat)
 lat_adeck_interp[np.isnan(lon_adeck_interp)] = np.nan
 
