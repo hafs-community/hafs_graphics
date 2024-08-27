@@ -111,6 +111,7 @@ print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 #================================================================
 # Constrain lon limits between -180 and 180 so it does not conflict with the cartopy projection PlateCarree
 lon[lon>180] = lon[lon>180] - 360
+lon[lon<-180] = lon[lon<-180] + 360
 sort_lon = np.argsort(lon)
 lon = lon[sort_lon]
 
@@ -148,11 +149,12 @@ ax.clabel(lb, lb.levels, inline=True,fmt='%1.0f', fontsize=6,colors='grey')
 cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::4])
 cb.ax.tick_params(labelsize=8)
 
+okfhour = conf['fhhh'][1:] == fhour
 if conf['trackon']=='yes':
     lon_adeck[np.logical_or(lon_adeck<lonmin,lon_adeck>lonmax)] = np.nan
     ax.plot(lon_adeck,lat_adeck,'-ok',markersize=2,alpha=0.4,transform=ccrs.PlateCarree(central_longitude=0))
     nhour = int((int(conf['fhhh'][1:])/3))
-    if nhour <= len(fhour):
+    if len(lon_adeck[okfhour])!=0 and len(lat_adeck[okfhour])!=0:
         ax.plot(lon_adeck[nhour],lat_adeck[nhour],'ok',markersize=6,alpha=0.4,markerfacecolor='None',transform=ccrs.PlateCarree(central_longitude=0))
    
 ax.set_extent([lonmin_raw, lonmax_raw, latmin, latmax], crs=ccrs.PlateCarree())

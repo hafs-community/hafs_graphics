@@ -170,6 +170,7 @@ cflevels = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,99]
 cfcolors = ['#996515','#a3742c','#ad8444','#b8935b','#c2a373','#ccb28a','#d6c1a1','#e0d1b9','#ebe0d0','#f5f0e8', # Brown https://colorswall.com/palette/26287
             '#ffffff','#d1e6cf','#bbdab7','#a4ce9f','#8dc287','#76b56e','#5fa956','#499d3e','#329026','#1b840e','#008000'] # Green https://colorswall.com/palette/1386
 newlons, levs = np.meshgrid(lon[idx[0], 200:800], grblevs)
+newlats, levs = np.meshgrid(lat[idx[0], 200:800], grblevs)
 
 cs2 = ax2.contourf(newlons, levs, ( rhtmp[:, idx[0], 200:800] ),colors=cfcolors, levels=cflevels, extend='max')
 cb2 = plt.colorbar(cs2, ax=ax2, orientation='vertical', pad=0.02, aspect=50, extendfrac='auto', shrink=cbshrink, extendrect=True, ticks=cflevels)
@@ -199,7 +200,19 @@ ax2.set_xticklabels(lonlab)
 #####################
 
 zerowind=np.zeros(newlons.shape)
-wb2 = ax2.barbs(newlons[::2,::20], levs[::2,::20], ugrdtmp[::2,idx[0],200:800:20], zerowind[::2,::20],length=wblength, linewidth=0.25, color='black') 
+
+newlons_nh = newlons[newlats[:,0]>=0,:]
+levs_nh = levs[newlats[:,0]>=0,:]
+ugrdtmp_nh = ugrdtmp[newlats[:,0]>=0,:]
+zerowind_nh = zerowind[newlats[:,0]>=0,:]
+
+newlons_sh = newlons[newlats[:,0]<0,:]
+levs_sh = levs[newlats[:,0]<0,:]
+ugrdtmp_sh = ugrdtmp[newlats[:,0]<0,:]
+zerowind_sh = zerowind[newlats[:,0]<0,:]
+
+wb2 = ax2.barbs(newlons_nh[::2,::20], levs_nh[::2,::20], ugrdtmp_nh[::2,idx[0],200:800:20], zerowind_nh[::2,::20],length=wblength, linewidth=0.25, color='black',flip_barb=False) 
+wb2 = ax2.barbs(newlons_sh[::2,::20], levs_sh[::2,::20], ugrdtmp_sh[::2,idx[0],200:800:20], zerowind_sh[::2,::20],length=wblength, linewidth=0.25, color='black',flip_barb=True) 
 
 if np.max(tmp_anomaly[:,100:700, idx[1]]) > 4:
   cflevels = np.arange(4,17,2)

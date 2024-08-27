@@ -121,19 +121,26 @@ mpl.rcParams['xtick.labelsize'] = 8
 mpl.rcParams['ytick.labelsize'] = 8
 mpl.rcParams['legend.fontsize'] = 8
 
+nhour = int((int(conf['fhhh'][1:])/3))
+okfhour = conf['fhhh'][1:] == fhour
 if conf['stormDomain'] == 'storm':
-    mpl.rcParams['figure.figsize'] = [6, 6]
-    fig_name = fig_prefix+'.storm.'+'wave_tp.'+conf['fhhh'].lower()+'.png'
-    cbshrink = 0.9
-    #lon_adeckk = np.hstack([lon_adeck[lon_adeck<0]+lon_offset,lon_adeck[lon_adeck>0]-lon_offset])
-    lonmin = np.min(lon_adeckk[int(conf['fhour']/3)]) - 5    
-    lonmax = np.max(lon_adeckk[int(conf['fhour']/3)]) + 5
-    latmin = np.min(lat_adeck[int(conf['fhour']/3)]) - 5
-    latmax = np.max(lat_adeck[int(conf['fhour']/3)]) + 5
-    lonint = 2.0
-    latint = 2.0
-    skip = 20
-    wblength = 4.5
+    if len(lon_adeck[okfhour])!=0 and len(lat_adeck[okfhour])!=0:
+        mpl.rcParams['figure.figsize'] = [6, 6]
+        fig_name = fig_prefix+'.storm.'+'wave_tp.'+conf['fhhh'].lower()+'.png'
+        cbshrink = 0.9
+        #lon_adeckk = np.hstack([lon_adeck[lon_adeck<0]+lon_offset,lon_adeck[lon_adeck>0]-lon_offset])
+        lonmin = np.min(lon_adeckk[int(conf['fhour']/3)]) - 5    
+        lonmax = np.max(lon_adeckk[int(conf['fhour']/3)]) + 5
+        latmin = np.min(lat_adeck[int(conf['fhour']/3)]) - 5
+        latmax = np.max(lat_adeck[int(conf['fhour']/3)]) + 5
+        lonint = 2.0
+        latint = 2.0
+        skip = 20
+        wblength = 4.5
+    else:
+        print('There is not latitude or longitude for the center of the storm at this forecast hour. Exiting plotting script')
+        sys.exit()
+
 else:
     mpl.rcParams['figure.figsize'] = [8, 5.4]
     fig_name = fig_prefix+'.'+'wave_tp.'+conf['fhhh'].lower()+'.png'
