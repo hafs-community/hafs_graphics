@@ -3,6 +3,7 @@
 """This script is to plot out HAFS atmospheric East-West cross section from 1000-100mb at model's storm center (ATCF)."""
 
 import os
+import sys
 
 import yaml
 import numpy as np
@@ -92,7 +93,6 @@ for ind, lv in enumerate(grblevs):
   levstr= str(lv)+' mb'
   print('Extracting data at '+levstr)
   refd = grb.select(shortName='REFD', level=levstr)[0].data
-#  refd.data[refd.mask] = np.nan
   refd = np.asarray(refd)
   if ind == 0:
     refdtmp=np.zeros((len(grblevs),refd.shape[0],refd.shape[1]))

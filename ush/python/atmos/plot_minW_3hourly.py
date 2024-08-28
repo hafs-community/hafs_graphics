@@ -182,16 +182,11 @@ for ind, frame in enumerate(range(1,len(varlen)+1,2)):
   conf['validTime'] = conf['initTime'] + conf['fcstTime']
 
   if frame > 1:
-    wind = grbswath.select(shortName='DZDT',statisticalProcess = 'Minimum')[frame].data()
-    wind.data[wind.mask] = np.nan
-    wind0= grbswath.select(shortName='DZDT',statisticalProcess = 'Minimum')[frame-2].data()
-    wind0.data[wind0.mask] = np.nan
+    wind = grbswath.select(shortName='DZDT',statisticalProcess = 'Minimum')[frame].data
+    wind0= grbswath.select(shortName='DZDT',statisticalProcess = 'Minimum')[frame-2].data
     wind=wind-wind0
   elif frame == 1:
-    wind = grbswath.select(shortName='DZDT',statisticalProcess = 'Minimum')[frame].data()
-    wind.data[wind.mask] = np.nan
-
-  wind.data[wind.mask] = np.nan
+    wind = grbswath.select(shortName='DZDT',statisticalProcess = 'Minimum')[frame].data
   
   #===================================================================================================
   print('Obtaining the mask along the forecast track, around 500 km from the storm center')

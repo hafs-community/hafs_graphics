@@ -3,6 +3,7 @@
 """This script is to plot out HAFS atmospheric East-West cross section from 1000-100mb at model's storm center (ATCF)."""
 
 import os
+import sys
 
 import yaml
 import numpy as np

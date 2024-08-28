@@ -2,6 +2,7 @@
 
 """ This script is to plot out HAFS atmospheric azimuthally averaged fields figures."""
 import os
+import sys
 
 import yaml
 import numpy as np
@@ -130,14 +131,10 @@ def main():
     for k in range(zsize):
         levstr=str(levs[k])+' mb'
         ugrd = grb.select(shortName='UGRD', level=levstr)[0].data
-        ugrd.data[ugrd.mask] = np.nan
-        ugrd= np.asarray(ugrd)
         for i in range(ysize):
             for j in range(xsize):
                 uwind[i,j,k]=ugrd[i,j]
         vgrd = grb.select(shortName='VGRD', level=levstr)[0].data
-        vgrd.data[vgrd.mask] = np.nan
-        vgrd = np.asarray(vgrd)
         for i in range(ysize):
             for j in range(xsize):
                 vwind[i,j,k]=vgrd[i,j]

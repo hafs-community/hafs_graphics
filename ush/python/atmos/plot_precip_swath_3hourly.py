@@ -3,6 +3,7 @@
 """This script plots out the HAFS total rainfall swath for a 126 hours forecast, based on the 3-hours accumulated precipitation from the grid01 files."""
 
 import os
+import sys
 
 import yaml
 import numpy as np
