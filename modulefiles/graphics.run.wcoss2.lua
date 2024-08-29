@@ -26,6 +26,10 @@ load(pathJoin("imagemagick", imagemagick_ver))
 python_ver=os.getenv("python_ver") or "3.8.6"
 load(pathJoin("python", python_ver))
 
+prepend_path("MODULEPATH", "/lfs/h1/mdl/nbm/save/apps/modulefiles")
+python_modules_ver=os.getenv("python_modules_ver") or "3.8.6"
+load(pathJoin("python-modules", python_modules_ver))
+
 proj_ver=os.getenv("proj_ver") or "7.1.0"
 load(pathJoin("proj", proj_ver))
 
@@ -35,13 +39,6 @@ load(pathJoin("geos", geos_ver))
 cmake_ver=os.getenv("cmake_ver") or "3.20.2"
 load(pathJoin("cmake", cmake_ver))
 
-prepend_path("MODULEPATH", "/lfs/h1/mdl/nbm/save/apps/modulefiles")
-
-python_modules_ver=os.getenv("python_modules_ver") or "3.8.6"
-load(pathJoin("python_modules", python_modules_ver))
-
-grib2io_ver=os.getenv("grib2io_ver") or "1.1.0"
-load(pathJoin("grib2io", grib2io_ver))
 
 setenv("HPC_OPT", "/apps/ops/para/libs")
 prepend_path("MODULEPATH", "/apps/ops/para/libs/modulefiles/compiler/intel/19.1.3.304")
