@@ -32,7 +32,7 @@ fntmp=${figScript%.*}
 figName=${fntmp#plot_}
 
 COMhafs=${COMhafs:-/hafs/com/${startDate}/${STORMID}}
-HOMEgraph=${HOMEgraph:-/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics}
+HOMEgraph=${HOMEgraph:-/mnt/lfs5/HFIP/hwrfv3/${USER}/hafs_graphics}
 WORKgraph=${WORKgraph:-${COMhafs}/../../../${startDate}/${STORMID}/emc_graphics}
 COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 cartopyDataDir=${cartopyDataDir:-/work/noaa/hwrf/local/share/cartopy}

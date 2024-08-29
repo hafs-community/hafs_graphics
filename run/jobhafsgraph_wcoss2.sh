@@ -83,9 +83,9 @@ atcfFile=${COMhafs}/${stormid}.${ymdh}.${stormModel,,}.trak.atcfunix
 source ${USHgraph}/graph_pre_job.sh.inc
 export machine=${WHERE_AM_I:-wcoss2} # platforms: wcoss2, hera, orion, jet
 if [ ${machine} = jet ]; then
-  export ADECKgraph=${ADECKgraph:-/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/aid}
-  export BDECKgraph=${BDECKgraph:-/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/btk}
-  export cartopyDataDir=${cartopyDataDir:-/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy}
+  export ADECKgraph=${ADECKgraph:-/mnt/lfs5/HFIP/hwrf-data/hwrf-input/abdeck/aid}
+  export BDECKgraph=${BDECKgraph:-/mnt/lfs5/HFIP/hwrf-data/hwrf-input/abdeck/btk}
+  export cartopyDataDir=${cartopyDataDir:-/mnt/lfs5/HFIP/hwrfv3/local/share/cartopy}
 elif [ ${machine} = hera ]; then
   export ADECKgraph=${ADECKgraph:-/scratch1/NCEPDEV/hwrf/noscrub/input/abdeck/aid}
   export BDECKgraph=${BDECKgraph:-/scratch1/NCEPDEV/hwrf/noscrub/input/abdeck/btk}

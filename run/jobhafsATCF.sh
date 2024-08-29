@@ -36,7 +36,7 @@ yyyy=`echo ${ymdh} | cut -c1-4`
 
 atcfFile=${6:-${COMhafs}/${stormid}.${ymdh}.hafs.trak.atcfunix}
 
-export HOMEgraph=${HOMEgraph:-/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics}
+export HOMEgraph=${HOMEgraph:-/mnt/lfs5/HFIP/hwrfv3/${USER}/hafs_graphics}
 export USHgraph=${USHgraph:-${HOMEgraph}/ush}
 export WORKgraph=${WORKgraph:-${COMhafs}/../../../${ymdh}/${STORMID}/emc_graphics}
 export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
@@ -45,9 +45,9 @@ source ${USHgraph}/graph_pre_job.sh.inc
 export machine=${WHERE_AM_I:-wcoss_cray} # platforms: wcoss_cray, wcoss_dell_p3, hera, orion, jet
 
 if [ ${machine} = jet ]; then
-  export ADECKgraph=${ADECKgraph:-/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/aid}
-  export BDECKgraph=${BDECKgraph:-/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/btk}
-  export cartopyDataDir=${cartopyDataDir:-/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy}
+  export ADECKgraph=${ADECKgraph:-/mnt/lfs5/HFIP/hwrf-data/hwrf-input/abdeck/aid}
+  export BDECKgraph=${BDECKgraph:-/mnt/lfs5/HFIP/hwrf-data/hwrf-input/abdeck/btk}
+  export cartopyDataDir=${cartopyDataDir:-/mnt/lfs5/HFIP/hwrfv3/local/share/cartopy}
 elif [ ${machine} = hera ]; then
   export ADECKgraph=${ADECKgraph:-/scratch1/NCEPDEV/hwrf/noscrub/input/abdeck/aid}
   export BDECKgraph=${BDECKgraph:-/scratch1/NCEPDEV/hwrf/noscrub/input/abdeck/btk}

@@ -46,7 +46,7 @@ export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 
 export machine=${WHERE_AM_I:-hera} # platforms: wcoss2, hera, orion, jet
 if [ ${machine} = jet ]; then
-  export cartopyDataDir=${cartopyDataDir:-/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy}
+  export cartopyDataDir=${cartopyDataDir:-/mnt/lfs5/HFIP/hwrfv3/local/share/cartopy}
 elif [ ${machine} = hera ]; then
   export cartopyDataDir=${cartopyDataDir:-/scratch1/NCEPDEV/hwrf/noscrub/local/share/cartopy}
 elif [ ${machine} = orion ]; then

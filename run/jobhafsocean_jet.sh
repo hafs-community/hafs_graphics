@@ -32,7 +32,7 @@ fhhhAll=$(seq -f "f%03g" 0 3 126)
 #COMgraph=/your/graph/com/dir   # if not specified, a default location relative to COMhafs will be used
 #COMhafs=/your/hafs/com/dir
 
-export HOMEgraph=${HOMEgraph:-/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics}
+export HOMEgraph=${HOMEgraph:-/mnt/lfs5/HFIP/hwrfv3/${USER}/hafs_graphics}
 export USHgraph=${USHgraph:-${HOMEgraph}/ush}
 export DRIVERDOMAIN=${USHgraph}/driverDomain.sh
 export DRIVEROCEAN=${USHgraph}/driverOcean.sh
@@ -44,7 +44,7 @@ export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 source ${USHgraph}/graph_pre_job.sh.inc
 export machine=${WHERE_AM_I:-jet} # platforms: wcoss2, hera, orion, jet
 if [ ${machine} = jet ]; then
-  export cartopyDataDir=${cartopyDataDir:-/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy}
+  export cartopyDataDir=${cartopyDataDir:-/mnt/lfs5/HFIP/hwrfv3/local/share/cartopy}
 elif [ ${machine} = hera ]; then
   export cartopyDataDir=${cartopyDataDir:-/scratch1/NCEPDEV/hwrf/noscrub/local/share/cartopy}
 elif [ ${machine} = orion ]; then
