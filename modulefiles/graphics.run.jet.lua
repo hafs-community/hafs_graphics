@@ -33,6 +33,8 @@ load(pathJoin("imagemagick", imagemagick_ver))
 
 unload("py-numpy")
 unload("py-pandas")
+unload("py-scipy")
+unload("py-netcdf4")
 prepend_path("MODULEPATH", "/mnt/lfs5/HFIP/hwrfv3/local/modulefiles")
 load(pathJoin("python", "wcoss2_env"))
 
