@@ -10,8 +10,11 @@ load(pathJoin("stack-intel", stack_intel_ver))
 ncl_ver=os.getenv("ncl") or "6.6.2"
 load(pathJoin("ncl", ncl_ver))
 
-stack_impi_ver=os.getenv("stack_impi_ver") or "2021.5.1"
-load(pathJoin("stack-intel-oneapi-mpi", stack_impi_ver))
+stack_mpi_ver=os.getenv("stack_mpi_ver") or "2021.5.1"
+load(pathJoin("stack-intel-oneapi-mpi", stack_mpi_ver))
+
+impi_ver=os.getenv("impi_ver") or "2024.2.1"
+load(pathJoin("impi", impi_ver))
 
 hdf5_ver=os.getenv("hdf5_ver") or "1.14.0"
 load(pathJoin("hdf5", hdf5_ver))
