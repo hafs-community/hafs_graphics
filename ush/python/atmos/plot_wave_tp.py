@@ -3,6 +3,7 @@
 """This script is to plot out WW3 mean period of combined wind waves and swell."""
 
 import os
+import sys
 
 import yaml
 import numpy as np
