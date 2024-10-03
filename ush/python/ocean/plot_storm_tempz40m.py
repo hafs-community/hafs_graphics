@@ -10,6 +10,7 @@ import yaml
 import xarray as xr
 import numpy as np
 import pandas as pd
+from scipy.interpolate import RegularGridInterpolator
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
@@ -108,6 +109,8 @@ if ocean == 'mom6':
     zl = np.asarray(nc['z_l'])
     lon = np.asarray(nc.xh)
     lat = np.asarray(nc.yh)
+    lonq = np.asarray(nc.xq)
+    latq = np.asarray(nc.yq)
 
 if ocean == 'hycom':
     varr000 = np.asarray(nc000['temperature'][0,:,:,:])
@@ -153,8 +156,6 @@ varr = varr[ok40,:,:]
 # sort var according to the new longitude
 varr000 = varr000[:,sort_lon]
 varr = varr[:,sort_lon]
-ssu = ssu[:,sort_lon]
-ssv = ssv[:,sort_lon]
 
 #================================================================
 var_name= 'tempz40m'
@@ -167,8 +168,6 @@ dummy = np.ones(lns.shape)
 skip=6
 ln = lns[::skip,::skip]
 lt = lts[::skip,::skip]
-ssu = ssu[::skip,::skip]
-ssv = ssv[::skip,::skip]
 
 nhour = int((int(conf['fhhh'][1:])/3))
 okfhour = conf['fhhh'][1:] == fhour
@@ -207,7 +206,37 @@ if len(lon_adeck[okfhour])!=0 and len(lat_adeck[okfhour])!=0:
             else:
                 print('Longitude track limits are out of the ocean domain')
 
-        q = plt.quiver(ln,lt,ssu,ssv,scale=50,transform=ccrs.PlateCarree())
+        if ocean == "hycom":
+            ssu = ssu[:,sort_lon]
+            ssv = ssv[:,sort_lon]
+            ssu = ssu[::skip,::skip]
+            ssv = ssv[::skip,::skip]
+
+            q = plt.quiver(ln,lt,ssu,ssv,scale=20,transform=ccrs.PlateCarree())
+
+        if ocean == "mom6":
+            lonq[lonq>180] = lonq[lonq>180] - 360
+            lonq[lonq<-180] = lonq[lonq<-180] + 360
+            sort_lonq = np.argsort(lonq)
+            lonq = lonq[sort_lonq]
+
+            ssu = ssu[:,sort_lonq]
+            ssv = ssv[:,sort_lon]
+
+            lnh = lon[::skip]
+            lth = lat[::skip]
+            lnq = lonq[::skip]
+            ltq = latq[::skip]
+            ssu = ssu[::skip,::skip]
+            ssv = ssv[::skip,::skip]
+
+            lnnq,ltth = np.meshgrid(lnq,lth)
+            lnnh,lttq = np.meshgrid(lnh,ltq)
+
+            interpolator = RegularGridInterpolator((lth,lnq),ssu,bounds_error=False, fill_value=None)
+            ssu_interp = interpolator((lttq,lnnh))
+
+            q = plt.quiver(lnnh,lttq,ssu_interp,ssv,scale=20,transform=ccrs.PlateCarree())
         
         # Add gridlines and labels
         gl = ax.gridlines(draw_labels=True, linewidth=0.3, color='0.1', alpha=0.6, linestyle=(0, (5, 10)))
