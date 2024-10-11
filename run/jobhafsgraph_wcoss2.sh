@@ -2,7 +2,8 @@
 #PBS -N jobhafsgraph
 #PBS -A HAFS-DEV
 #PBS -q dev
-#PBS -l select=4:mpiprocs=60:ompthreads=1:ncpus=60:mem=500G
+##PBS -l select=4:mpiprocs=10:ompthreads=1:ncpus=10:mem=500G
+#PBS -l select=4:mpiprocs=60:ompthreads=1:ncpus=60:mem=800G:prepost=true
 #PBS -l walltime=01:00:00
 #PBS -j oe
 #PBS -o jobhafsgraph.log
@@ -57,7 +58,7 @@ yyyy=`echo ${ymdh} | cut -c1-4`
 ymd=`echo ${ymdh} | cut -c1-8`
 hh=`echo ${ymdh} | cut -c9-10`
 
-if [ ${stormModel} = "HFSA" ] && [ "lec" = "*${basin1c}*" ]; then
+if [ ${stormModel} = "HFSA" ] && [[ "lec" = "*${basin1c}*" ]]; then
   plotWave=${plotWave:-yes}
 else
   plotWave=${plotWave:-no}
@@ -82,9 +83,9 @@ atcfFile=${COMhafs}/${stormid}.${ymdh}.${stormModel,,}.trak.atcfunix
 source ${USHgraph}/graph_pre_job.sh.inc
 export machine=${WHERE_AM_I:-wcoss2} # platforms: wcoss2, hera, orion, jet
 if [ ${machine} = jet ]; then
-  export ADECKgraph=${ADECKgraph:-/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/aid}
-  export BDECKgraph=${BDECKgraph:-/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/btk}
-  export cartopyDataDir=${cartopyDataDir:-/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy}
+  export ADECKgraph=${ADECKgraph:-/mnt/lfs5/HFIP/hwrf-data/hwrf-input/abdeck/aid}
+  export BDECKgraph=${BDECKgraph:-/mnt/lfs5/HFIP/hwrf-data/hwrf-input/abdeck/btk}
+  export cartopyDataDir=${cartopyDataDir:-/mnt/lfs5/HFIP/hwrfv3/local/share/cartopy}
 elif [ ${machine} = hera ]; then
   export ADECKgraph=${ADECKgraph:-/scratch1/NCEPDEV/hwrf/noscrub/input/abdeck/aid}
   export BDECKgraph=${BDECKgraph:-/scratch1/NCEPDEV/hwrf/noscrub/input/abdeck/btk}
@@ -459,18 +460,20 @@ figScriptAll=( \
   plot_storm_wvelz40m.py \
   plot_storm_wvelz70m.py \
   plot_storm_wvelz100m.py \
-  plot_storm_forec_track_tran_temp.py \
-  plot_storm_lat_tran_temp.py \
+  plot_storm_crs_sn_temp.py \
+  plot_storm_crs_trk_temp.py \
+  plot_storm_crs_we_temp.py \
   )
 
 nscripts=${#figScriptAll[*]}
+
+trackOn=yes
 
 for((i=0;i<${nscripts};i++));
 do
 
   echo ${figScriptAll[$i]}
-# echo "${APRUNS} ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.log 2>&1 ${BACKGROUND}" >> $cmdfile
-  echo "time ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.log 2>&1" >> $cmdfile
+  echo "time ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} ${fhhh} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.${fhhh}.log 2>&1" >> $cmdfile
 
 done
 

@@ -124,6 +124,9 @@ print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 #================================================================
 #%% temp along storm path
 lon_adeck_interp = np.interp(lat,lat_adeck,lon_adeck,left=np.nan,right=np.nan)
+if len(np.where((np.isfinite(lon_adeck_interp)))[0]) == 0:
+    lon_adeck_interp = np.interp(lat,lat_adeck,lon_adeck)
+
 lat_adeck_interp = np.copy(lat)
 lat_adeck_interp[np.isnan(lon_adeck_interp)] = np.nan
 
@@ -151,15 +154,18 @@ diff = var - var000
 #================================================================
 # Temp
 okfhour = conf['fhhh'][1:] == fhour
-lat_eye = lat_adeck[okfhour][0]
+if len(lat_adeck[okfhour])!=0:
+    lat_eye = lat_adeck[okfhour][0]
+else:
+    lat_eye = np.nan
 
 kw = dict(levels=np.arange(15,31.1,0.5))
 fig,ax = plt.subplots(figsize=(8,4))
 ctr = ax.contourf(lat[oklat],-zl,var,cmap='Spectral_r',**kw,extend='both')
 cbar = fig.colorbar(ctr,extendrect=True)
-cbar.set_label('$^oC$',fontsize=14)
+#cbar.set_label('$^oC$',fontsize=14)
 cs = ax.contour(lat[oklat],-zl,var,[26],colors='k')
-ax.plot(lat[oklat],-mldd,'.-',color='green')
+ax.plot(lat[oklat],-mldd,'-',color='green')
 ax.plot(np.tile(lat_eye,len(zl)),-zl,'-k')
 ax.clabel(cs,cs.levels,inline=True,fmt='%1.1f',fontsize=10)
 ax.set_ylim([-300,0])
@@ -167,46 +173,45 @@ ax.set_ylabel('Depth (m)')
 ax.set_xlabel('Latitude')
 
 model_info = os.environ.get('TITLEgraph','').strip()
-var_info = 'Along Forecast Track Transect Temperature ($^oC$)'
+var_info = 'Temperature ($^oC$) X-section along track'
 storm_info = conf['stormName']+conf['stormID']
 title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
 ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
 title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
 ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
 footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
-ax.text(1.0,-0.1, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
+ax.text(1.0,-0.2, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
 
-pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm_forec_track_tran_temp'+'.'+conf['fhhh'].lower()+'.png'
+pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm.crs_trk_temp'+'.'+conf['fhhh'].lower()+'.png'
 plt.savefig(pngFile,bbox_inches='tight',dpi=150)
 #plt.close()
 
 #================================================================
-# Temp - Temp003
+# Temp - Temp000
 kw = dict(levels=np.arange(-4,4.1,0.2))
 fig,ax = plt.subplots(figsize=(8,4))
 ctr = ax.contourf(lat[oklat],-zl,diff,cmap='seismic',**kw,extend='both')
 cbar = fig.colorbar(ctr,extendrect=True)
-cbar.set_label('$^oC$',fontsize=14)
-cs = ax.contour(lat[oklat],-zl,diff,[0],colors='k',alpha=0.3)
-ax.plot(lat[oklat],-mldd,'.-',color='green')
+#cbar.set_label('$^oC$',fontsize=14)
+cs = ax.contour(lat[oklat],-zl,diff,[0],colors='grey',alpha=0.3)
+ax.plot(lat[oklat],-mldd,'-',color='green')
 ax.plot(np.tile(lat_eye,len(zl)),-zl,'-k')
 ax.clabel(cs,cs.levels,inline=True,fmt='%1.1f',fontsize=10)
 ax.set_ylim([-300,0])
 ax.set_ylabel('Depth (m)')
-#ax.set_xlabel('Latitude')
-ax.set_xlabel('Latitude \n dT min = ' + str(np.round(np.nanmin(diff),2)),fontsize=14)
+ax.set_xlabel('Latitude')
 
 model_info = os.environ.get('TITLEgraph','').strip()
-var_info = 'Along Forecast Track Transect Temperature Difference ($^oC$)'
+var_info = 'Temperature Difference ($^oC$) X-section along track. Min dT = ' + str(np.round(np.nanmin(diff),2))
 storm_info = conf['stormName']+conf['stormID']
 title_left = """{0}\n{1}\n{2}""".format(model_info,var_info,storm_info)
 ax.set_title(title_left, loc='left', y=0.99,fontsize=8)
 title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
 ax.set_title(title_right, loc='right', y=0.99,fontsize=8)
 footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
-ax.text(1.0,-0.1, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
+ax.text(1.0,-0.2, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
 
-pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm_forec_track_tran_temp'+'.change.'+conf['fhhh'].lower()+'.png'
+pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm.crs_trk_temp'+'.change.'+conf['fhhh'].lower()+'.png'
 plt.savefig(pngFile,bbox_inches='tight',dpi=150)
 #plt.close()
 

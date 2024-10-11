@@ -32,7 +32,7 @@ fhhhAll=$(seq -f "f%03g" 0 3 126)
 #COMgraph=/your/graph/com/dir   # if not specified, a default location relative to COMhafs will be used
 #COMhafs=/your/hafs/com/dir
 
-export HOMEgraph=${HOMEgraph:-/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics}
+export HOMEgraph=${HOMEgraph:-/mnt/lfs5/HFIP/hwrfv3/${USER}/hafs_graphics}
 export USHgraph=${USHgraph:-${HOMEgraph}/ush}
 export DRIVERDOMAIN=${USHgraph}/driverDomain.sh
 export DRIVEROCEAN=${USHgraph}/driverOcean.sh
@@ -44,7 +44,7 @@ export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 source ${USHgraph}/graph_pre_job.sh.inc
 export machine=${WHERE_AM_I:-jet} # platforms: wcoss2, hera, orion, jet
 if [ ${machine} = jet ]; then
-  export cartopyDataDir=${cartopyDataDir:-/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy}
+  export cartopyDataDir=${cartopyDataDir:-/mnt/lfs5/HFIP/hwrfv3/local/share/cartopy}
 elif [ ${machine} = hera ]; then
   export cartopyDataDir=${cartopyDataDir:-/scratch1/NCEPDEV/hwrf/noscrub/local/share/cartopy}
 elif [ ${machine} = orion ]; then
@@ -95,8 +95,9 @@ figScriptAll=( \
   plot_storm_wvelz40m.py \
   plot_storm_wvelz70m.py \
   plot_storm_wvelz100m.py \
-  plot_storm_forec_track_tran_temp.py \
-  plot_storm_lat_tran_temp.py \
+  plot_storm_crs_sn_temp.py \
+  plot_storm_crs_trk_temp.py \
+  plot_storm_crs_we_temp.py \
   )
 
 nscripts=${#figScriptAll[*]}
@@ -106,7 +107,7 @@ do
 
   echo ${figScriptAll[$i]}
 # echo "${APRUNS} ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.log 2>&1 ${BACKGROUND}" >> $cmdfile
-  echo "time ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $trackOn ${figScriptAll[$i]} > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.log 2>&1" >> $cmdfile
+   echo "time ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $TRACKON ${figScriptAll[$i]} $fhhh > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.${fhhh}.log 2>&1" >> $cmdfile
 
 done
 

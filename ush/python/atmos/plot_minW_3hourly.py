@@ -4,33 +4,21 @@
 
 import os
 import sys
-import logging
-import math
-import datetime
-import glob
 
 import yaml
 import numpy as np
 import pandas as pd
-from scipy.ndimage import gaussian_filter
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import pyproj
 import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
 #===================================================================================================
 def latlon_str2num(string):
@@ -182,16 +170,11 @@ for ind, frame in enumerate(range(1,len(varlen)+1,2)):
   conf['validTime'] = conf['initTime'] + conf['fcstTime']
 
   if frame > 1:
-    wind = grbswath.select(shortName='DZDT',statisticalProcess = 'Minimum')[frame].data()
-    wind.data[wind.mask] = np.nan
-    wind0= grbswath.select(shortName='DZDT',statisticalProcess = 'Minimum')[frame-2].data()
-    wind0.data[wind0.mask] = np.nan
+    wind = grbswath.select(shortName='DZDT',statisticalProcess = 'Minimum')[frame].data
+    wind0= grbswath.select(shortName='DZDT',statisticalProcess = 'Minimum')[frame-2].data
     wind=wind-wind0
   elif frame == 1:
-    wind = grbswath.select(shortName='DZDT',statisticalProcess = 'Minimum')[frame].data()
-    wind.data[wind.mask] = np.nan
-
-  wind.data[wind.mask] = np.nan
+    wind = grbswath.select(shortName='DZDT',statisticalProcess = 'Minimum')[frame].data
   
   #===================================================================================================
   print('Obtaining the mask along the forecast track, around 500 km from the storm center')

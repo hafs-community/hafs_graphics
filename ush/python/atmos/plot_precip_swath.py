@@ -3,11 +3,6 @@
 """This script plots out the HAFS total rainfall swath for a 126 hours forecast, based on the 3-hours accumulated precipitation from the grid01 files."""
 
 import os
-import sys
-import logging
-import math
-import datetime
-import glob
 
 import yaml
 import numpy as np
@@ -15,22 +10,15 @@ import pandas as pd
 from scipy.ndimage import gaussian_filter
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import pyproj
 import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
 #===================================================================================================
 def latlon_str2num(string):
@@ -152,8 +140,8 @@ print(f'grib2file: {grib2file}')
 grb = grib2io.open(grib2file,mode='r')
 
 print('Extracting lat, lon')
-lat = np.asarray(grb.select(shortName='NLAT')[0].data())
-lon = np.asarray(grb.select(shortName='ELON')[0].data())
+lat = grb.select(shortName='NLAT')[0].data
+lon = grb.select(shortName='ELON')[0].data
 
 # The lon range in grib2 is typically between 0 and 360
 # Cartopy's PlateCarree projection typically uses the lon range of -180 to 180
@@ -169,9 +157,8 @@ print('new lonlat limit to -180 to 180 convention: ', np.min(lon), np.max(lon), 
 
 print('Extracting APCP')
 accumulation_time = grb.select(shortName='APCP')[-1].timeRangeOfStatisticalProcess
-apcp = grb.select(shortName='APCP')[-1].data()
-apcp.data[apcp.mask] = np.nan
-apcp_raw = np.asarray(apcp)*0.0393701  # convert kg/m^2 to in 
+apcp = grb.select(shortName='APCP')[-1].data
+apcp_raw = apcp*0.0393701  # convert kg/m^2 to in 
 #apcp = np.reshape(np.ravel(apcp)[sort_lon],(lon.shape[0],lon.shape[1]))
 apcp = apcp_raw[:,sort_lon]
 #apcp = gaussian_filter(apcp, 2)
@@ -196,7 +183,7 @@ for i,r in enumerate(freq):
 
 apcp_masked = np.nanmean(apcp_masked0,axis=0)
 
-#===================================================================================================
+#==================================================================================================
 print('Plotting APCP ')
 fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']
 
@@ -212,7 +199,7 @@ mpl.rcParams['legend.fontsize'] = 8
 mpl.rcParams['figure.figsize'] = [6, 6]
 
 # second coordinate transformation to plot
-lon = np.asarray(grb.select(shortName='ELON')[0].data())
+lon = grb.select(shortName='ELON')[0].data
 lonn = lon
 if abs(np.max(lonn) - 360.) < 10.:
     lonn[lonn>180] = lonn[lonn>180] - 360.
@@ -230,18 +217,31 @@ fig = plt.figure()
 ax = plt.axes(projection=myproj)
 ax.axis('equal')
 
-cflevels = [0,0.5,               # white
-            1,2,3,            # green
-            4,8,           # yellow
-            16,               # orange
-            24,             # red
-            32,40]           # magenta
+#cflevels = [0,0.5,               # white
+#            1,2,3,            # green
+#            4,8,           # yellow
+#            16,               # orange
+#            24,             # red
+#            32,40]           # magenta
 
-cfcolors = ['white','whitesmoke',
-            'lawngreen','mediumseagreen', 'green',         # green
-            'yellow','gold',                      # yellow
-            'orange',           # red
-            'red','magenta']  # purple
+#cfcolors = ['white','whitesmoke',
+#            'lawngreen','mediumseagreen', 'green',         # green
+#            'yellow','gold',                      # yellow
+#            'orange',           # red
+#            'red','magenta']  # purple
+
+cflevels = [0, 0.25, 0.5, 0.75,
+            1, 1.25, 1.5, 1.75,
+            2,  2.5,   3,    4,
+            5,    7,  10,   15,
+            20,   40]
+
+cfcolors = ['white','whitesmoke','blue','dodgerblue',
+            'skyblue',  'cyan', 'lawngreen','mediumseagreen',
+            'green', 'yellow',    'gold', 'orange',
+            'red',  'darkred','magenta','darkviolet',
+            'plum']  # purple
+
 
 cm = matplotlib.colors.ListedColormap(cfcolors)
 norm = matplotlib.colors.BoundaryNorm(cflevels, cm.N)  
@@ -250,17 +250,17 @@ try:
     #cf = ax.contourf(lonn, lat, apcp_raw, cflevels, cmap=cm, norm=norm,transform=transform)
     cf = ax.contourf(lonn[:,sort_lon], lat, apcp_masked, cflevels, cmap=cm, norm=norm,transform=transform)
     cbshrink = 1.0
-    cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,ticks=[0,0.5,1,2,3,4,8,16,24,32])
-    cb.ax.set_yticklabels(['0','0.5','1','2','3','4','8','16','24','32'])
+    cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,ticks=[0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.5,3,4,5,7,10,15,20,40])
+    cb.ax.set_yticklabels(['0','0.25','0.5','0.75','1','1.25','1.5','1.75','2','2.5','3','4','5','7','10','15','20','40'])
+    #cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,ticks=[0,0.5,1,2,3,4,8,16,24,32])
+    #cb.ax.set_yticklabels(['0','0.5','1','2','3','4','8','16','24','32'])
 except:
     print('ax.contourf failed, continue anyway')
 
-try:
-    cs = ax.contour(lonn[:,sort_lon], lat, apcp_masked, [1,2,3,4,8,16,24,32], colors='grey', linewidths=0.7, transform=transform)
-    #lblevels = cflevels
-    #lb = plt.clabel(cs, [0,0.5,1,2,3,4,8,16,24,32], inline_spacing=1, fmt='%d', fontsize=6)
-except:
-    print('ax.contour failed, continue anyway')
+#try:
+#    cs = ax.contour(lonn[:,sort_lon], lat, apcp_masked, [1,2,3,4,8,16,24,32], colors='grey', linewidths=0.7, transform=transform)
+#except:
+#    print('ax.contour failed, continue anyway')
 
 # solution 1 to plot the track correctly when crosses the 180 line 
 lon_adeckk = np.empty((len(lon_adeck)))

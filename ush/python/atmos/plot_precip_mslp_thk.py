@@ -3,10 +3,6 @@
 """This script plots out HAFS the 3-hours accumulated precipitation, the mean sea level pressure and the 1000-500 geopotential thickness."""
 
 import os
-import sys
-import logging
-import math
-import datetime
 
 import yaml
 import numpy as np
@@ -14,22 +10,15 @@ import pandas as pd
 from scipy.ndimage import gaussian_filter
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import pyproj
 import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
 # Parse the yaml config file
 print('Parse the config file: plot_atmos.yml:')
@@ -60,13 +49,13 @@ if conf['stormDomain'] == 'storm':
     grb_apcp = grib2io.open(grib2file,mode='r') # extract apcp from domain grid01
 
     print('Extracting lat, lon for accumulated precipitation')
-    lat_apcp = np.asarray(grb_apcp.select(shortName='NLAT')[0].data())
-    lon_apcp = np.asarray(grb_apcp.select(shortName='ELON')[0].data())
+    lat_apcp = grb_apcp.select(shortName='NLAT')[0].data
+    lon_apcp = grb_apcp.select(shortName='ELON')[0].data
     #[nlat, nlon] = np.shape(lon)
 
 print('Extracting lat, lon')
-lat = np.asarray(grb.select(shortName='NLAT')[0].data())
-lon = np.asarray(grb.select(shortName='ELON')[0].data())
+lat = grb.select(shortName='NLAT')[0].data
+lon = grb.select(shortName='ELON')[0].data
 # The lon range in grib2 is typically between 0 and 360
 # Cartopy's PlateCarree projection typically uses the lon range of -180 to 180
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
@@ -84,27 +73,23 @@ if conf['stormDomain'] == 'storm':
 
 print('Extracting MSLET')
 #slp = grb.select(shortName='PRMSL',level='mean sea level')[0].data()
-slp = grb.select(shortName='MSLET')[0].data()
-slp.data[slp.mask] = np.nan
-slp = np.asarray(slp) * 0.01 # convert Pa to hPa
+slp = grb.select(shortName='MSLET')[0].data
+slp = slp * 0.01 # convert Pa to hPa
 slp = gaussian_filter(slp, 2)
 
 print('Extracting accumulate precipitation at surface')
 #levstr='surface'
 #apcp = grb_apcp.select(shortName='APCP', level=levstr)[0].data()*0.0393701  # convert kg/m^2 to in
-apcp = grb_apcp.select(shortName='APCP')[0].data()*0.0393701  # convert kg/m^2 to in
-apcp.data[apcp.mask] = np.nan
+apcp = grb_apcp.select(shortName='APCP')[0].data*0.0393701  # convert kg/m^2 to in
 #apcp = gaussian_filter(apcp, 2)
 
 print('Extracting height of the 1000 mb geopotential ')
 levstr='1000 mb'
-hgt1000 = grb.select(shortName='HGT', level=levstr)[0].data()
-hgt1000.data[hgt1000.mask] = np.nan
+hgt1000 = grb.select(shortName='HGT', level=levstr)[0].data
 
 print('Extracting height of the 500 mb geopotential ')
 levstr='500 mb'
-hgt500 = grb.select(shortName='HGT', level=levstr)[0].data()
-hgt500.data[hgt500.mask] = np.nan
+hgt500 = grb.select(shortName='HGT', level=levstr)[0].data
 
 print('Calculating the 1000-500 geopotential thickness ')
 thk1000_500 = (hgt500 - hgt1000)/10

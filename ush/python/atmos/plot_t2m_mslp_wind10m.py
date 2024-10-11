@@ -3,10 +3,6 @@
 """This script is to plot out HAFS atmospheric surface temperature, MSLP and 10-m wind."""
 
 import os
-import sys
-import logging
-import math
-import datetime
 
 import yaml
 import numpy as np
@@ -14,22 +10,15 @@ import pandas as pd
 from scipy.ndimage import gaussian_filter
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import pyproj
 import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
 # Parse the yaml config file
 print('Parse the config file: plot_atmos.yml:')
@@ -51,8 +40,8 @@ print(f'grib2file: {grib2file}')
 grb = grib2io.open(grib2file,mode='r')
 
 print('Extracting lat, lon')
-lat = np.asarray(grb.select(shortName='NLAT')[0].data())
-lon = np.asarray(grb.select(shortName='ELON')[0].data())
+lat = grb.select(shortName='NLAT')[0].data
+lon = grb.select(shortName='ELON')[0].data
 # The lon range in grib2 is typically between 0 and 360
 # Cartopy's PlateCarree projection typically uses the lon range of -180 to 180
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
@@ -67,27 +56,23 @@ print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 
 print('Extracting Temperature at 2 m above ground')
 levstr='2 m above ground'
-tmp = grb.select(shortName='TMP', level=levstr)[0].data()
-tmp.data[tmp.mask] = np.nan
-tmp = np.asarray(tmp) - 273.15 # convert K to degC
+tmp = grb.select(shortName='TMP', level=levstr)[0].data
+tmp = tmp - 273.15 # convert K to degC
 tmp = gaussian_filter(tmp, 2)
 
 print('Extracting MSLET')
 #slp = grb.select(shortName='PRMSL',level='mean sea level')[0].data()
-slp = grb.select(shortName='MSLET')[0].data()
-slp.data[slp.mask] = np.nan
-slp = np.asarray(slp) * 0.01 # convert Pa to hPa
+slp = grb.select(shortName='MSLET')[0].data
+slp = slp * 0.01 # convert Pa to hPa
 slp = gaussian_filter(slp, 5)
 
 print('Extracting UGRD, VGRD at 10 m above ground')
 levstr='10 m above ground'
-ugrd = grb.select(shortName='UGRD', level=levstr)[0].data()
-ugrd.data[ugrd.mask] = np.nan
-ugrd = np.asarray(ugrd) * 1.94384 # convert m/s to kt
+ugrd = grb.select(shortName='UGRD', level=levstr)[0].data
+ugrd = ugrd * 1.94384 # convert m/s to kt
 
-vgrd = grb.select(shortName='VGRD', level=levstr)[0].data()
-vgrd.data[vgrd.mask] = np.nan
-vgrd = np.asarray(vgrd) * 1.94384 # convert m/s to kt
+vgrd = grb.select(shortName='VGRD', level=levstr)[0].data
+vgrd = vgrd * 1.94384 # convert m/s to kt
 
 # Calculate wind speed
 wspd = (ugrd**2+vgrd**2)**.5
@@ -145,8 +130,21 @@ cmap = mpl.colors.LinearSegmentedColormap.from_list('sub_'+ctmp.name,ctmp(np.lin
 cf = ax.contourf(lon, lat, tmp, levels=cflevels, cmap=cmap, extend='both', transform=transform)
 cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True, ticks=cflevels[::10])
 
-wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip],
-              length=wblength, linewidth=0.2, color='black', transform=transform)
+lat_nh = lat[lat[:,0]>=0,:]
+lon_nh = lon[lat[:,0]>=0,:]
+ugrd_nh = ugrd[lat[:,0]>=0,:]
+vgrd_nh = vgrd[lat[:,0]>=0,:]
+
+lat_sh = lat[lat[:,0]<0,:]
+lon_sh = lon[lat[:,0]<0,:]
+ugrd_sh = ugrd[lat[:,0]<0,:]
+vgrd_sh = vgrd[lat[:,0]<0,:]
+
+wb = ax.barbs(lon_nh[::skip,::skip], lat_nh[::skip,::skip], ugrd_nh[::skip,::skip], vgrd_nh[::skip,::skip],
+              length=wblength, linewidth=0.2, color='black', transform=transform,flip_barb=False)
+wb = ax.barbs(lon_sh[::skip,::skip], lat_sh[::skip,::skip], ugrd_sh[::skip,::skip], vgrd_sh[::skip,::skip],
+              length=wblength, linewidth=0.2, color='black', transform=transform,flip_barb=True)
+
 try:
     cslevels = np.arange(840,1040,4)
     cs = ax.contour(lon, lat, slp, levels=cslevels, colors='black', linewidths=0.6, transform=transform)

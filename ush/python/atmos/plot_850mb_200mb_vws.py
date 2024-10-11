@@ -3,33 +3,21 @@
 """This script is to plot out HAFS atmospheric 200-850-hPa Vertical wind shear."""
 
 import os
-import sys
-import logging
-import math
-import datetime
 
 import yaml
 import numpy as np
 import pandas as pd
-from scipy.ndimage import gaussian_filter
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import pyproj
 import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
 # Parse the yaml config file
 print('Parse the config file: plot_atmos.yml:')
@@ -51,8 +39,8 @@ print(f'grib2file: {grib2file}')
 grb = grib2io.open(grib2file,mode='r')
 
 print('Extracting lat, lon')
-lat = np.asarray(grb.select(shortName='NLAT')[0].data())
-lon = np.asarray(grb.select(shortName='ELON')[0].data())
+lat = grb.select(shortName='NLAT')[0].data
+lon = grb.select(shortName='ELON')[0].data
 # The lon range in grib2 is typically between 0 and 360
 # Cartopy's PlateCarree projection typically uses the lon range of -180 to 180
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
@@ -68,23 +56,19 @@ print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 #==========================================================
 print('Extracting UGRD, VGRD at 200 hPa')
 levstr='200 mb'
-u200 = grb.select(shortName='UGRD', level=levstr)[0].data()
-u200.data[u200.mask] = np.nan
+u200 = grb.select(shortName='UGRD', level=levstr)[0].data
 u200 = np.asarray(u200) * 1.94384 # convert m/s to kt
 
-v200 = grb.select(shortName='VGRD', level=levstr)[0].data()
-v200.data[v200.mask] = np.nan
+v200 = grb.select(shortName='VGRD', level=levstr)[0].data
 v200 = np.asarray(v200) * 1.94384 # convert m/s to kt
 
 #==========================================================
 print('Extracting UGRD, VGRD at 850 hPa')
 levstr='850 mb'
-u850 = grb.select(shortName='UGRD', level=levstr)[0].data()
-u850.data[u850.mask] = np.nan
+u850 = grb.select(shortName='UGRD', level=levstr)[0].data
 u850 = np.asarray(u850) * 1.94384 # convert m/s to kt
 
-v850 = grb.select(shortName='VGRD', level=levstr)[0].data()
-v850.data[v850.mask] = np.nan
+v850 = grb.select(shortName='VGRD', level=levstr)[0].data
 v850 = np.asarray(v850) * 1.94384 # convert m/s to kt
 
 # Calculate VWS
@@ -161,10 +145,29 @@ cf = ax.contourf(lon, lat, mag, cflevels, cmap=cm, norm=norm, extend='max', tran
 cb = plt.colorbar(cf, orientation='vertical', pad=0.01, aspect=50, extend='max', shrink=cbshrink, extendrect=True,
                   ticks=cflevels[::2])
 
-wb1 = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], u200[::skip,::skip], v200[::skip,::skip],
-               length=wblength, linewidth=0.3, color='blue', transform=transform)
-wb2 = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], u850[::skip,::skip], v850[::skip,::skip],
-               length=wblength, linewidth=0.3, color='black', transform=transform)
+lat_nh = lat[lat[:,0]>=0,:] 
+lon_nh = lon[lat[:,0]>=0,:] 
+u200_nh = u200[lat[:,0]>=0,:] 
+v200_nh = v200[lat[:,0]>=0,:] 
+u850_nh = u850[lat[:,0]>=0,:] 
+v850_nh = v850[lat[:,0]>=0,:] 
+
+lat_sh = lat[lat[:,0]<0,:] 
+lon_sh = lon[lat[:,0]<0,:] 
+u200_sh = u200[lat[:,0]<0,:] 
+v200_sh = v200[lat[:,0]<0,:] 
+u850_sh = u850[lat[:,0]<0,:] 
+v850_sh = v850[lat[:,0]<0,:] 
+
+wb1 = ax.barbs(lon_nh[::skip,::skip], lat_nh[::skip,::skip], u200_nh[::skip,::skip], v200_nh[::skip,::skip],
+               length=wblength, linewidth=0.3, color='blue', transform=transform,flip_barb=False)
+wb1 = ax.barbs(lon_sh[::skip,::skip], lat_sh[::skip,::skip], u200_sh[::skip,::skip], v200_sh[::skip,::skip],
+               length=wblength, linewidth=0.3, color='blue', transform=transform,flip_barb=True)
+
+wb2 = ax.barbs(lon_nh[::skip,::skip], lat_nh[::skip,::skip], u850_nh[::skip,::skip], v850_nh[::skip,::skip],
+               length=wblength, linewidth=0.3, color='black', transform=transform,flip_barb=False)
+wb2 = ax.barbs(lon_sh[::skip,::skip], lat_sh[::skip,::skip], u850_sh[::skip,::skip], v850_sh[::skip,::skip],
+               length=wblength, linewidth=0.3, color='black', transform=transform,flip_barb=True)
 
 # Add borders and coastlines
 #ax.add_feature(cfeature.LAND.with_scale('50m'), facecolor='whitesmoke')

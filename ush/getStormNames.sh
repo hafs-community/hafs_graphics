@@ -52,8 +52,8 @@ do
 
     if [ -d /lfs/h2/emc/hur/noscrub/input/abdeck/btk ]; then
         bdeck_dir="/lfs/h2/emc/hur/noscrub/input/abdeck/btk"
-    elif [ -d /mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/btk ]; then
-        bdeck_dir="/mnt/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/btk"
+    elif [ -d /mnt/lfs5/HFIP/hwrf-data/hwrf-input/abdeck/btk ]; then
+        bdeck_dir="/mnt/lfs5/HFIP/hwrf-data/hwrf-input/abdeck/btk"
     elif [ -d /scratch1/NCEPDEV/hwrf/noscrub/input/abdeck/btk ]; then
         bdeck_dir="/scratch1/NCEPDEV/hwrf/noscrub/input/abdeck/btk"
     elif [ -d /work/noaa/hwrf/noscrub/input/abdeck/btk ]; then

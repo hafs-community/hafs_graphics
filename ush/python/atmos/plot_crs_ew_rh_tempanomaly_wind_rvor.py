@@ -3,36 +3,22 @@
 """This script is to plot out HAFS atmospheric East-West cross section from 1000-100mb at model's storm center (ATCF)."""
 
 import os
-import sys
-import logging
-import math
-import datetime
 
 import yaml
 import numpy as np
 import pandas as pd
-from scipy.ndimage import gaussian_filter
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import pyproj
 import cartopy
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
-import metpy.calc as mpcalc
 import metpy
+import metpy.calc as mpcalc
 
 # Parse the yaml config file
 print('Parse the config file: plot_atmos.yml:')
@@ -90,55 +76,47 @@ def find_nearest(pointx, pointy, gridx, gridy):
 
 print('Extracting lat, lon')
 
-lat = np.asarray(grb.select(shortName='NLAT')[0].data())
-lon = np.asarray(grb.select(shortName='ELON')[0].data())
+lat = grb.select(shortName='NLAT')[0].data
+lon = grb.select(shortName='ELON')[0].data
 
 [nlat, nlon] = np.shape(lon)
 
 grblevs=np.arange(100,1001,25)
 
-fcor=metpy.calc.coriolis_parameter(np.deg2rad(lat))
+fcor = np.asarray(metpy.calc.coriolis_parameter(np.deg2rad(lat)))
 
 print('extract levs='+str(grblevs))
 for ind, lv in enumerate(grblevs):
   levstr= str(lv)+' mb'
   print('Extracting data at '+levstr)
-  rh = grb.select(shortName='RH', level=levstr)[0].data()
-  rh.data[rh.mask] = np.nan
-  rh[rh<0.] = np.nan
-  rh = np.asarray(rh)
+  rh = grb.select(shortName='RH', level=levstr)[0].data
   if ind == 0:
     rhtmp=np.zeros((len(grblevs),rh.shape[0],rh.shape[1]))
     rhtmp[ind,:,:]=rh
   rhtmp[ind,:,:]=rh
 
-  ugrd = grb.select(shortName='UGRD', level=levstr)[0].data()
-  ugrd.data[ugrd.mask] = np.nan
-  ugrd = np.asarray(ugrd)*1.94384
+  ugrd = grb.select(shortName='UGRD', level=levstr)[0].data
+  ugrd = ugrd*1.94384
   if ind == 0:
     ugrdtmp=np.zeros((len(grblevs),ugrd.shape[0],ugrd.shape[1]))
     ugrdtmp[ind,:,:]=ugrd
   ugrdtmp[ind,:,:]=ugrd
   
-  vgrd = grb.select(shortName='VGRD', level=levstr)[0].data()
-  vgrd.data[vgrd.mask] = np.nan
-  vgrd = np.asarray(vgrd)*1.94384
+  vgrd = grb.select(shortName='VGRD', level=levstr)[0].data
+  vgrd = vgrd*1.94384
   if ind == 0:
     vgrdtmp=np.zeros((len(grblevs),vgrd.shape[0],vgrd.shape[1]))
     vgrdtmp[ind,:,:]=vgrd
   vgrdtmp[ind,:,:]=vgrd
 
 ###Get relative vorticity from absolute vorticity
-  absvor = grb.select(shortName='ABSV', level=levstr)[0].data()
-  absvor.data[absvor.mask] = np.nan
+  absvor = grb.select(shortName='ABSV', level=levstr)[0].data
   if ind == 0:
     vorttmp=np.zeros((len(grblevs),absvor.shape[0],absvor.shape[1]))
     vorttmp[ind,:,:]=absvor-fcor
   vorttmp[ind,:,:]=absvor-fcor
 
-  tmp = grb.select(shortName='TMP', level=levstr)[0].data()
-  tmp.data[tmp.mask] = np.nan
-  tmp[tmp<0.] = np.nan
+  tmp = grb.select(shortName='TMP', level=levstr)[0].data
   if ind == 0:
     tmp_anomaly=np.zeros((len(grblevs),tmp.shape[0],tmp.shape[1]))
   tmp_mean = np.nanmean(tmp)
@@ -192,6 +170,7 @@ cflevels = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,99]
 cfcolors = ['#996515','#a3742c','#ad8444','#b8935b','#c2a373','#ccb28a','#d6c1a1','#e0d1b9','#ebe0d0','#f5f0e8', # Brown https://colorswall.com/palette/26287
             '#ffffff','#d1e6cf','#bbdab7','#a4ce9f','#8dc287','#76b56e','#5fa956','#499d3e','#329026','#1b840e','#008000'] # Green https://colorswall.com/palette/1386
 newlons, levs = np.meshgrid(lon[idx[0], 200:800], grblevs)
+newlats, levs = np.meshgrid(lat[idx[0], 200:800], grblevs)
 
 cs2 = ax2.contourf(newlons, levs, ( rhtmp[:, idx[0], 200:800] ),colors=cfcolors, levels=cflevels, extend='max')
 cb2 = plt.colorbar(cs2, ax=ax2, orientation='vertical', pad=0.02, aspect=50, extendfrac='auto', shrink=cbshrink, extendrect=True, ticks=cflevels)
@@ -221,7 +200,19 @@ ax2.set_xticklabels(lonlab)
 #####################
 
 zerowind=np.zeros(newlons.shape)
-wb2 = ax2.barbs(newlons[::2,::20], levs[::2,::20], ugrdtmp[::2,idx[0],200:800:20], zerowind[::2,::20],length=wblength, linewidth=0.25, color='black') 
+
+newlons_nh = newlons[newlats[:,0]>=0,:]
+levs_nh = levs[newlats[:,0]>=0,:]
+ugrdtmp_nh = ugrdtmp[newlats[:,0]>=0,:]
+zerowind_nh = zerowind[newlats[:,0]>=0,:]
+
+newlons_sh = newlons[newlats[:,0]<0,:]
+levs_sh = levs[newlats[:,0]<0,:]
+ugrdtmp_sh = ugrdtmp[newlats[:,0]<0,:]
+zerowind_sh = zerowind[newlats[:,0]<0,:]
+
+wb2 = ax2.barbs(newlons_nh[::2,::20], levs_nh[::2,::20], ugrdtmp_nh[::2,idx[0],200:800:20], zerowind_nh[::2,::20],length=wblength, linewidth=0.25, color='black',flip_barb=False) 
+wb2 = ax2.barbs(newlons_sh[::2,::20], levs_sh[::2,::20], ugrdtmp_sh[::2,idx[0],200:800:20], zerowind_sh[::2,::20],length=wblength, linewidth=0.25, color='black',flip_barb=True) 
 
 if np.max(tmp_anomaly[:,100:700, idx[1]]) > 4:
   cflevels = np.arange(4,17,2)

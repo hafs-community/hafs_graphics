@@ -3,10 +3,6 @@
 """This script is to plot out HAFS atmospheric RH, geopotential height and wind"""
 
 import os
-import sys
-import logging
-import math
-import datetime
 
 import yaml
 import numpy as np
@@ -14,22 +10,15 @@ import pandas as pd
 from scipy.ndimage import gaussian_filter
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import pyproj
 import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
 # Parse the yaml config file
 print('Parse the config file: plot_atmos.yml:')
@@ -51,8 +40,8 @@ print(f'grib2file: {grib2file}')
 grb = grib2io.open(grib2file,mode='r')
 
 print('Extracting lat, lon')
-lat = np.asarray(grb.select(shortName='NLAT')[0].data())
-lon = np.asarray(grb.select(shortName='ELON')[0].data())
+lat = grb.select(shortName='NLAT')[0].data
+lon = grb.select(shortName='ELON')[0].data
 # The lon range in grib2 is typically between 0 and 360
 # Cartopy's PlateCarree projection typically uses the lon range of -180 to 180
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
@@ -67,23 +56,17 @@ print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 
 levstr=str(conf['standardLayer'])+' mb'
 print('Extracting HGT, RH, UGRD, VGRD, at '+levstr)
-hgt = grb.select(shortName='HGT', level=levstr)[0].data()
-hgt.data[hgt.mask] = np.nan
-hgt = np.asarray(hgt) * 0.1 # convert meter to decameter
-hgt = gaussian_filter(hgt, 5)
+hgt = grb.select(shortName='HGT', level=levstr)[0].data
+hgt = hgt * 0.1 # convert meter to decameter
+#hgt = gaussian_filter(hgt, 5)
 
-rh = grb.select(shortName='RH', level=levstr)[0].data()
-rh.data[rh.mask] = np.nan
-rh[rh<0.] = np.nan
-rh = np.asarray(rh)
+rh = grb.select(shortName='RH', level=levstr)[0].data
 
-ugrd = grb.select(shortName='UGRD', level=levstr)[0].data()
-ugrd.data[ugrd.mask] = np.nan
-ugrd = np.asarray(ugrd) * 1.94384 # convert m/s to kt
+ugrd = grb.select(shortName='UGRD', level=levstr)[0].data
+ugrd = ugrd * 1.94384 # convert m/s to kt
 
-vgrd = grb.select(shortName='VGRD', level=levstr)[0].data()
-vgrd.data[vgrd.mask] = np.nan
-vgrd = np.asarray(vgrd) * 1.94384 # convert m/s to kt
+vgrd = grb.select(shortName='VGRD', level=levstr)[0].data
+vgrd = vgrd * 1.94384 # convert m/s to kt
 
 #===================================================================================================
 print('Plotting HGT, RH, UGRD, VGRD, at '+levstr)
@@ -153,12 +136,24 @@ cfcolors = ['#996515','#a3742c','#ad8444','#b8935b','#c2a373','#ccb28a','#d6c1a1
 cf = ax.contourf(lon, lat, rh, levels=cflevels, colors=cfcolors, extend='max', transform=transform)
 cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, extend='max', extendfrac='auto', shrink=cbshrink, extendrect=True, ticks=cflevels)
 
-wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip],
-              length=wblength, linewidth=0.2, color='black', transform=transform)
+lat_nh = lat[lat[:,0]>=0,:]
+lon_nh = lon[lat[:,0]>=0,:]
+ugrd_nh = ugrd[lat[:,0]>=0,:]
+vgrd_nh = vgrd[lat[:,0]>=0,:]
+
+lat_sh = lat[lat[:,0]<0,:]
+lon_sh = lon[lat[:,0]<0,:]
+ugrd_sh = ugrd[lat[:,0]<0,:]
+vgrd_sh = vgrd[lat[:,0]<0,:]
+
+wb = ax.barbs(lon_nh[::skip,::skip], lat_nh[::skip,::skip], ugrd_nh[::skip,::skip], vgrd_nh[::skip,::skip],
+              length=wblength, linewidth=0.2, color='black', transform=transform,flip_barb=False)
+wb = ax.barbs(lon_sh[::skip,::skip], lat_sh[::skip,::skip], ugrd_sh[::skip,::skip], vgrd_sh[::skip,::skip],
+              length=wblength, linewidth=0.2, color='black', transform=transform,flip_barb=True)
 
 try:
     cs = ax.contour(lon, lat, hgt, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
-    lb = plt.clabel(cs, levels=cslevels, inline_spacing=1, fmt='%d', fontsize=8)
+    #lb = plt.clabel(cs, levels=cslevels, inline_spacing=1, fmt='%d', fontsize=8)
 except:
     print('ax.contour failed, continue anyway')
 

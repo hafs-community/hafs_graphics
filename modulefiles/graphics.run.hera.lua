@@ -30,7 +30,7 @@ wgrib2_ver=os.getenv("wgrib2_ver") or "2.0.8"
 load(pathJoin("wgrib2", wgrib2_ver))
 
 imagemagick_ver=os.getenv("imagemagick_ver") or "7.1.1-11"
-load(pathJoin("imagemagick", imagemagick_ver)) 
+load(pathJoin("imagemagick", imagemagick_ver))
 
 prepend_path("MODULEPATH", "/scratch1/NCEPDEV/hwrf/noscrub/local/modulefiles")
 load(pathJoin("python","wcoss2_env"))

@@ -46,7 +46,7 @@ export COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 
 export machine=${WHERE_AM_I:-hera} # platforms: wcoss2, hera, orion, jet
 if [ ${machine} = jet ]; then
-  export cartopyDataDir=${cartopyDataDir:-/mnt/lfs4/HFIP/hwrfv3/local/share/cartopy}
+  export cartopyDataDir=${cartopyDataDir:-/mnt/lfs5/HFIP/hwrfv3/local/share/cartopy}
 elif [ ${machine} = hera ]; then
   export cartopyDataDir=${cartopyDataDir:-/scratch1/NCEPDEV/hwrf/noscrub/local/share/cartopy}
 elif [ ${machine} = orion ]; then
@@ -73,7 +73,7 @@ mkdir -p ${WORKgraph}
 cd ${WORKgraph}
 
 #Generate the cmdfile
-cmdfile="cmdfile.$STORM$STORMID.$YMDH"
+cmdfile="cmdfile_ocean.$STORM$STORMID.$YMDH"
 rm -f $cmdfile
 touch $cmdfile
 
@@ -102,8 +102,9 @@ figScriptAll=( \
   plot_storm_wvelz40m.py \
   plot_storm_wvelz70m.py \
   plot_storm_wvelz100m.py \
-  plot_storm_forec_track_tran_temp.py \
-  plot_storm_lat_tran_temp.py \
+  plot_storm_crs_sn_temp.py \
+  plot_storm_crs_trk_temp.py \
+  plot_storm_crs_we_temp.py \
   )
 
 nscripts=${#figScriptAll[*]}
@@ -112,6 +113,7 @@ for((i=0;i<${nscripts};i++)); do
   echo ${figScriptAll[$i]}
 # echo "${APRUNS} ${DRIVERSH} $stormModel $STORM $STORMID $YMDH $stormDomain ${figScriptAll[$i]} ${levAll[$i]} $fhhh > ${WORKgraph}/$STORM$STORMID.$YMDH.${stormDomain}.${figScriptAll[$i]%.*}.${fhhh}.log 2>&1 ${BACKGROUND}" >> $cmdfile
   echo "time ${DRIVEROCEAN} $stormModel $STORM $STORMID $YMDH $TRACKON ${figScriptAll[$i]} $fhhh > ${WORKgraph}/$STORM$STORMID.$YMDH.${figScriptAll[$i]%.*}.${fhhh}.log 2>&1" >> $cmdfile
+
 done
 
 done

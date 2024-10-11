@@ -95,15 +95,26 @@ eparse plot_ocean.yml.tmp > plot_ocean.yml
 
 ./${figScript}
 
+set +e
+
 # Use convert to reduce colors and thus file size
 #for file in $(/bin/ls -1 *.png); do convert ${file} PNG8:${file} done
 for file in $(/bin/ls -1 *.png); do
   convert -dither FloydSteinberg -colors 256 ${file} ${file}
 done
 
+for file in $(/bin/ls -1 *.change.f*.png); do
+  forig=${file/.change./.}
+  fcomb=${file/.change./.combine.}
+  convert +append ${forig} ${file} ${fcomb}
+done
+
 # Deliver figure to archive_dir
 mkdir -p ${archive_dir}
-cp -up ${work_dir}/${STORMNAME}${STORMID}.${startDate}.${STORMMODEL}.*${figName}*.png ${archive_dir}
+cp -up ${work_dir}/${STORMNAME}${STORMID}.${startDate}.${STORMMODEL}.*.png ${archive_dir}
+#cp -fp ${work_dir}/${STORMNAME}${STORMID}.${startDate}.${STORMMODEL}.*.png ${archive_dir}
+
+set -e
 
 date
 

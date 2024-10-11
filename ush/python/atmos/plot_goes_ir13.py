@@ -3,10 +3,6 @@
 """This script is to plot out HAFS simulated GOES-R infrared band-13 brightness temperature."""
 
 import os
-import sys
-import logging
-import math
-import datetime
 
 import yaml
 import numpy as np
@@ -14,22 +10,15 @@ import pandas as pd
 from scipy.ndimage import gaussian_filter
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import pyproj
 import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
 # Parse the yaml config file
 print('Parse the config file: plot_atmos.yml:')
@@ -85,9 +74,8 @@ print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 #[nlat, nlon] = np.shape(lon)
 
 print('Extracting SBTAGR13')
-ir13 = grb.select(shortName='SBTAGR13')[0].data()
-ir13.data[ir13.mask] = np.nan
-ir13 = np.asarray(ir13)-273.15 # convert K to deg C
+ir13 = grb.select(shortName='SBTAGR13')[0].data
+ir13 = ir13-273.15 # convert K to deg C
 ir13 = gaussian_filter(ir13, 2)
 
 #===================================================================================================

@@ -25,8 +25,13 @@ load(pathJoin("netcdf-fortran", netcdf_fortran_ver))
 wgrib2_ver=os.getenv("wgrib2_ver") or "2.0.8"
 load(pathJoin("wgrib2", wgrib2_ver))
 
-imagemagick_ver=os.getenv("imagemagick_ver") or "7.0.8-7"
-load(pathJoin("imagemagick", imagemagick_ver))
+imagemagick_ver=os.getenv("imagemagick_ver") or "7.1.1-29"
+load(pathJoin("imagemagick", magemagick_ver))
+
+unload("py-numpy")
+unload("py-pandas")
+unload("py-scipy")
+unload("py-netcdf4")
 
 prepend_path("MODULEPATH", "/work/noaa/hwrf/noscrub/local/modulefiles")
 load(pathJoin("python", "wcoss2_env"))

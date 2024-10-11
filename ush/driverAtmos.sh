@@ -32,7 +32,7 @@ fntmp=${figScript%.*}
 figName=${fntmp#plot_}
 
 COMhafs=${COMhafs:-/hafs/com/${startDate}/${STORMID}}
-HOMEgraph=${HOMEgraph:-/mnt/lfs4/HFIP/hwrfv3/${USER}/hafs_graphics}
+HOMEgraph=${HOMEgraph:-/mnt/lfs5/HFIP/hwrfv3/${USER}/hafs_graphics}
 WORKgraph=${WORKgraph:-${COMhafs}/../../../${startDate}/${STORMID}/emc_graphics}
 COMgraph=${COMgraph:-${COMhafs}/emc_graphics}
 cartopyDataDir=${cartopyDataDir:-/work/noaa/hwrf/local/share/cartopy}
@@ -85,6 +85,8 @@ eparse plot_atmos.yml.tmp > plot_atmos.yml
 
 ./${figScript}
 
+set +e
+
 # Use convert to reduce colors and thus file size
 #for file in $(/bin/ls -1 *.png); do convert ${file} PNG8:${file} done
 for file in $(/bin/ls -1 *.png); do
@@ -94,6 +96,8 @@ done
 # Deliver figure to archive_dir
 mkdir -p ${archive_dir}
 cp -up ${work_dir}/${STORMNAME}${STORMID}.${startDate}.${STORMMODEL}.*${figName}*.png ${archive_dir}
+
+set -e
 
 date
 

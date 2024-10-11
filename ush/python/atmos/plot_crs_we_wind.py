@@ -4,32 +4,18 @@
 
 import os
 import sys
-import logging
-import math
-import datetime
 
 import yaml
 import numpy as np
 import pandas as pd
-from scipy.ndimage import gaussian_filter
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
-import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import pyproj
 import cartopy
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LongitudeLocator, LongitudeFormatter)
 
 # Parse the yaml config file
 print('Parse the config file: plot_atmos.yml:')
@@ -64,6 +50,12 @@ for tind in tmp1:
     break
   elif tind == tmp1[len(tmp1)-1] and df.loc[tind][5] != conf['fhour'] :
     print('No record found at forecast hour')
+    fig, (ax1) = plt.subplots(nrows=1, ncols=1,figsize=(10,5))
+    fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']
+    fig_name = fig_prefix+'.storm.'+'crs_we_wind.'+conf['fhhh'].lower()+'.png'
+    ax1.text(0.15,0.5,'No track record found at this time', fontsize=25)
+    ax1.tick_params(bottom=False,left=False,labelbottom=False, labelleft=False)
+    plt.savefig(fig_name, bbox_inches='tight')
     sys.exit()
 
 def latlon_str2num(string): #Adopted from ATCF 
@@ -90,8 +82,8 @@ def find_nearest(pointx, pointy, gridx, gridy):
 
 print('Extracting lat, lon')
 
-lat = np.asarray(grb.select(shortName='NLAT')[0].data())
-lon = np.asarray(grb.select(shortName='ELON')[0].data())
+lat = grb.select(shortName='NLAT')[0].data
+lon = grb.select(shortName='ELON')[0].data
 [nlat, nlon] = np.shape(lon)
 
 grblevs=np.arange(100,1001,25)
@@ -100,17 +92,15 @@ print('extract levs='+str(grblevs))
 for ind, lv in enumerate(grblevs):
   levstr= str(lv)+' mb'
   print('Extracting data at '+levstr)
-  ugrd = grb.select(shortName='UGRD', level=levstr)[0].data()
-  ugrd.data[ugrd.mask] = np.nan
-  ugrd = np.asarray(ugrd)*1.94384
+  ugrd = grb.select(shortName='UGRD', level=levstr)[0].data
+  ugrd = ugrd*1.94384
   if ind == 0:
     ugrdtmp=np.zeros((len(grblevs),ugrd.shape[0],ugrd.shape[1]))
     ugrdtmp[ind,:,:]=ugrd
   ugrdtmp[ind,:,:]=ugrd
   
-  vgrd = grb.select(shortName='VGRD', level=levstr)[0].data()
-  vgrd.data[vgrd.mask] = np.nan
-  vgrd = np.asarray(vgrd)*1.94384
+  vgrd = grb.select(shortName='VGRD', level=levstr)[0].data
+  vgrd = vgrd*1.94384
   if ind == 0:
     vgrdtmp=np.zeros((len(grblevs),vgrd.shape[0],vgrd.shape[1]))
     vgrdtmp[ind,:,:]=vgrd
