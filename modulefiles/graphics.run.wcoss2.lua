@@ -2,9 +2,6 @@ help([[
 loads HAFS application level modulefile on Cactus and Dogwood
 ]])
 
-envvar_ver=os.getenv("envvar_ver") or "1.0"
-load(pathJoin("envvar", envvar_ver))
-
 PrgEnv_intel_ver=os.getenv("PrgEnv_intel_ver") or "8.1.0"
 load(pathJoin("PrgEnv-intel", PrgEnv_intel_ver))
 
@@ -26,24 +23,6 @@ load(pathJoin("imagemagick", imagemagick_ver))
 python_ver=os.getenv("python_ver") or "3.8.6"
 load(pathJoin("python", python_ver))
 
-prepend_path("MODULEPATH", "/lfs/h1/mdl/nbm/save/apps/modulefiles")
-python_modules_ver=os.getenv("python_modules_ver") or "3.8.6"
-load(pathJoin("python-modules", python_modules_ver))
-
-proj_ver=os.getenv("proj_ver") or "7.1.0"
-load(pathJoin("proj", proj_ver))
-
-geos_ver=os.getenv("geos_ver") or "3.8.1"
-load(pathJoin("geos", geos_ver))
-
-cmake_ver=os.getenv("cmake_ver") or "3.20.2"
-load(pathJoin("cmake", cmake_ver))
-
-
-setenv("HPC_OPT", "/apps/ops/para/libs")
-prepend_path("MODULEPATH", "/apps/ops/para/libs/modulefiles/compiler/intel/19.1.3.304")
-prepend_path("MODULEPATH", "/apps/ops/para/libs/modulefiles/mpi/intel/19.1.3.304/cray-mpich/8.1.7")
-
 jasper_ver=os.getenv("jasper_ver") or "2.0.25"
 load(pathJoin("jasper", jasper_ver))
 
@@ -55,13 +34,13 @@ load(pathJoin("libpng", libpng_ver))
 
 libjpeg_ver=os.getenv("libjpeg_ver") or "9c"
 load(pathJoin("libjpeg", libjpeg_ver))
-setenv("JPEG_LIBRARIES", "/apps/spack/libjpeg/9c/intel/19.1.3.304/jkr3isi257ktoouprwaxcn4twtye747z/lib")
+load("libjpeg-turbo/2.1.0")
 
-hdf5_ver=os.getenv("hdf5_ver") or "1.10.6"
-load(pathJoin("hdf5", hdf5_ver))
+hdf5_ver=os.getenv("hdf5_ver")
+load(pathJoin("hdf5-C", hdf5_ver))
 
-netcdf_ver=os.getenv("netcdf_ver") or "4.7.4"
-load(pathJoin("netcdf", netcdf_ver))
+netcdf_ver=os.getenv("netcdf_ver")
+load(pathJoin("netcdf-C", netcdf_ver))
 
 prod_util_ver=os.getenv("prod_util_ver") or "2.0.13"
 load(pathJoin("prod_util", prod_util_ver))
@@ -87,9 +66,14 @@ load(pathJoin("udunits", udunits_ver))
 nco_ver=os.getenv("nco_ver") or "4.7.9"
 load(pathJoin("nco", nco_ver))
 
-prepend_path("MODULEPATH", "/apps/ops/test/nco/modulefiles")
+prepend_path("MODULEPATH", "/lfs/h1/mdl/nbm/save/apps/modulefiles")
+python_modules_ver=os.getenv("python_modules_ver") or "3.8.6"
+load(pathJoin("python-modules", python_modules_ver))
 
-rocoto_ver=os.getenv("rocoto_ver") or "1.3.4"
-load(pathJoin("core", "rocoto", rocoto_ver))
+proj_ver=os.getenv("proj_ver") or "7.1.0"
+load(pathJoin("proj", proj_ver))
+
+geos_ver=os.getenv("geos_ver") or "3.8.1"
+load(pathJoin("geos", geos_ver))
 
 whatis("Description: HAFS Graphics environment")
