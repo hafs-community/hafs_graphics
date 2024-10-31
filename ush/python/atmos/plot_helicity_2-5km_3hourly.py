@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
 import matplotlib as mpl

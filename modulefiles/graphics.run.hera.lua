@@ -2,6 +2,7 @@ help([[
 loads HAFS application level modulefile on Hera
 ]])
 
+purge()
 prepend_path("MODULEPATH", "/scratch1/NCEPDEV/nems/role.epic/spack-stack/spack-stack-1.6.0/envs/unified-env-rocky8/install/modulefiles/Core")
 
 stack_intel_ver=os.getenv("stack_intel_ver") or "2021.5.0"
@@ -29,7 +30,7 @@ wgrib2_ver=os.getenv("wgrib2_ver") or "2.0.8"
 load(pathJoin("wgrib2", wgrib2_ver))
 
 imagemagick_ver=os.getenv("imagemagick_ver") or "7.1.1-11"
-load(pathJoin("imagemagick", magemagick_ver))
+load(pathJoin("imagemagick", imagemagick_ver))
 
 prepend_path("MODULEPATH", "/scratch1/NCEPDEV/hwrf/noscrub/local/modulefiles")
 load(pathJoin("python","wcoss2_env"))

@@ -4,33 +4,21 @@
 
 import os
 import sys
-import logging
-import math
-import datetime
-import glob
 
 import yaml
 import numpy as np
 import pandas as pd
-from scipy.ndimage import gaussian_filter
 
 import grib2io
-from netCDF4 import Dataset
 
 import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
 import matplotlib.ticker as mticker
-from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import pyproj
 import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from cartopy.mpl.ticker import (LongitudeLocator, LongitudeFormatter, LatitudeLocator, LatitudeFormatter)
 
 #===================================================================================================
 def latlon_str2num(string):

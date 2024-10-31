@@ -3,6 +3,7 @@
 """This script is to plot out WW3 significant wave height."""
 
 import os
+import sys
 
 import yaml
 import numpy as np
