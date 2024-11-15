@@ -34,7 +34,7 @@ conf['validTime'] = conf['initTime'] + conf['fcstTime']
 cartopy.config['data_dir'] = conf['cartopyDataDir']
 print(conf)
 
-fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+conf['stormDomain']+'.atm.'+conf['fhhh']+'.grb2'
+fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].upper()+'.'+conf['stormDomain']+'.atm.'+conf['fhhh']+'.grb2'
 grib2file = os.path.join(conf['COMhafs'], fname)
 print(f'grib2file: {grib2file}')
 grb = grib2io.open(grib2file,mode='r')

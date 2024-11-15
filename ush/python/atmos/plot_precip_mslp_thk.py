@@ -34,7 +34,7 @@ conf['validTime'] = conf['initTime'] + conf['fcstTime']
 cartopy.config['data_dir'] = conf['cartopyDataDir']
 print(conf)
 
-fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+conf['stormDomain']+'.atm.'+conf['fhhh']+'.grb2'
+fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].upper()+'.'+conf['stormDomain']+'.atm.'+conf['fhhh']+'.grb2'
 grib2file = os.path.join(conf['COMhafs'], fname)
 print(f'grib2file: {grib2file}')
 grb = grib2io.open(grib2file,mode='r')
@@ -43,7 +43,7 @@ if conf['stormDomain'] == 'parent':
     grb_apcp = grb # extract apcp from domain grid01
 
 if conf['stormDomain'] == 'storm':
-    fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+'parent'+'.atm.'+conf['fhhh']+'.grb2'
+    fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].upper()+'.'+'parent'+'.atm.'+conf['fhhh']+'.grb2'
     grib2file = os.path.join(conf['COMhafs'], fname)
     print(f'grib2file for accumulated precipitation: {grib2file}')
     grb_apcp = grib2io.open(grib2file,mode='r') # extract apcp from domain grid01

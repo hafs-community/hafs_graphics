@@ -57,7 +57,7 @@ def main():
     fhour= int(conf['fhhh'][1:])
     
     # Read ATCF track file to find the TC center at certain forecast hour
-    atcftrack = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.trak.atcfunix'
+    atcftrack = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].upper()+'.trak.atcfunix'
     trackfile = os.path.join(conf['COMhafs'], atcftrack)
     track=open(trackfile,'r')
     print('ATCF track file',atcftrack)
@@ -105,7 +105,7 @@ def main():
     lonp= np.asarray(lonp)
     
     # Read variables from GRIB2 file
-    fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+conf['stormDomain']+'.atm.'+conf['fhhh']+'.grb2'
+    fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].upper()+'.'+conf['stormDomain']+'.atm.'+conf['fhhh']+'.grb2'
     grib2file = os.path.join(conf['COMhafs'], fname)
     print(f'grib2file: {grib2file}')
     grb = grib2io.open(grib2file,mode='r')

@@ -73,7 +73,7 @@ conf['validTime'] = conf['initTime'] + conf['fcstTime']
 # Get lat and lon from adeck file
 
 if conf['trackon']=='yes':
-    adeck_name = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.trak.atcfunix'
+    adeck_name = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].upper()+'.trak.atcfunix'
     adeck_file = os.path.join(conf['COMhafs'],adeck_name)
 
     fhour,lat_adeck,lon_adeck,init_time,valid_time = get_adeck_track(adeck_file)
@@ -89,12 +89,12 @@ oceanf = glob.glob(os.path.join(conf['COMhafs'],'*f006.nc'))[0].split('/')[-1].s
 ocean = [f for f in oceanf if f == 'hycom' or f == 'mom6'][0]
 
 if ocean == 'mom6':
-    fname000 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+'f000.nc'
-    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.mom6.'+conf['fhhh']+'.nc'
+    fname000 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].upper()+'.mom6.'+'f000.nc'
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].upper()+'.mom6.'+conf['fhhh']+'.nc'
 
 if ocean == 'hycom':
-    fname000 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+'f000.nc'
-    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.hycom.3z.'+conf['fhhh']+'.nc'
+    fname000 =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].upper()+'.hycom.3z.'+'f000.nc'
+    fname =  conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].upper()+'.hycom.3z.'+conf['fhhh']+'.nc'
 
 ncfile000 = os.path.join(conf['COMhafs'], fname000)
 nc000 = xr.open_dataset(ncfile000)

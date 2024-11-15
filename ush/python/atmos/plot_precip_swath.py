@@ -121,7 +121,7 @@ conf['validTime'] = conf['initTime'] + conf['fcstTime']
 
 #===================================================================================================
 # Get lat and lon from adeck file
-adeck_name = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.trak.atcfunix'
+adeck_name = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].upper()+'.trak.atcfunix'
 adeck_file = os.path.join(conf['COMhafs'],adeck_name)
 
 fhour,lat_adeck,lon_adeck,init_time,valid_time = get_adeck_track(adeck_file)
@@ -134,7 +134,7 @@ print('lat_adeck = ',lat_adeck)
 cartopy.config['data_dir'] = conf['cartopyDataDir']
 print(conf)
 
-fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+'parent'+'.atm.'+conf['fhhh']+'.grb2'
+fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].upper()+'.'+'parent'+'.atm.'+conf['fhhh']+'.grb2'
 grib2file = os.path.join(conf['COMhafs'], fname)
 print(f'grib2file: {grib2file}')
 grb = grib2io.open(grib2file,mode='r')
