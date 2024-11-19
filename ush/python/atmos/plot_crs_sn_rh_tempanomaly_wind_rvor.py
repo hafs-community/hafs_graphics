@@ -192,18 +192,7 @@ ax2.set_xticklabels(latlab)
 
 zerowind=np.zeros(newlats.shape)
 
-newlats_nh = newlats[newlats[:,0]>=0,:]
-levs_nh = levs[newlats[:,0]>=0,:]
-vgrdtmp_nh = vgrdtmp[newlats[:,0]>=0,:]
-zerowind_nh = zerowind[newlats[:,0]>=0,:]
-
-newlats_sh = newlats[newlats[:,0]<0,:]
-levs_sh = levs[newlats[:,0]<0,:]
-vgrdtmp_sh = vgrdtmp[newlats[:,0]<0,:]
-zerowind_sh = zerowind[newlats[:,0]<0,:]
-
-wb2 = ax2.barbs(newlats_nh[::2,::20], levs_nh[::2,::20], vgrdtmp_nh[::2, 100:700:20 , idx[1]],  zerowind_nh[::2, ::20],length=wblength, linewidth=0.25, color='black',flip_barb=False) 
-wb2 = ax2.barbs(newlats_sh[::2,::20], levs_sh[::2,::20], vgrdtmp_sh[::2, 100:700:20 , idx[1]],  zerowind_sh[::2, ::20],length=wblength, linewidth=0.25, color='black',flip_barb=True) 
+wb2 = ax2.barbs(newlats[::2,::20], levs[::2,::20], vgrdtmp[::2, 100:700:20 , idx[1]],  zerowind[::2, ::20],length=wblength, linewidth=0.25, color='black',flip_barb=newlats[::2,::20]<0) 
 
 if np.max(tmp_anomaly[:,100:700, idx[1]]) > 4:
   cflevels = np.arange(4,17,2)
