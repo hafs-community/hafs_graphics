@@ -201,18 +201,7 @@ ax2.set_xticklabels(lonlab)
 
 zerowind=np.zeros(newlons.shape)
 
-newlons_nh = newlons[newlats[:,0]>=0,:]
-levs_nh = levs[newlats[:,0]>=0,:]
-ugrdtmp_nh = ugrdtmp[newlats[:,0]>=0,:]
-zerowind_nh = zerowind[newlats[:,0]>=0,:]
-
-newlons_sh = newlons[newlats[:,0]<0,:]
-levs_sh = levs[newlats[:,0]<0,:]
-ugrdtmp_sh = ugrdtmp[newlats[:,0]<0,:]
-zerowind_sh = zerowind[newlats[:,0]<0,:]
-
-wb2 = ax2.barbs(newlons_nh[::2,::20], levs_nh[::2,::20], ugrdtmp_nh[::2,idx[0],200:800:20], zerowind_nh[::2,::20],length=wblength, linewidth=0.25, color='black',flip_barb=False) 
-wb2 = ax2.barbs(newlons_sh[::2,::20], levs_sh[::2,::20], ugrdtmp_sh[::2,idx[0],200:800:20], zerowind_sh[::2,::20],length=wblength, linewidth=0.25, color='black',flip_barb=True) 
+wb2 = ax2.barbs(newlons[::2,::20], levs[::2,::20], ugrdtmp[::2,idx[0],200:800:20], zerowind[::2,::20],length=wblength, linewidth=0.25, color='black',flip_barb=newlats[::2,::20]<0) 
 
 if np.max(tmp_anomaly[:,100:700, idx[1]]) > 4:
   cflevels = np.arange(4,17,2)

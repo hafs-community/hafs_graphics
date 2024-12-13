@@ -196,18 +196,7 @@ ax1.set_xticklabels(lonlab)
 
 cb0 = plt.colorbar(cs0, ax=ax1, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,ticks=[10,20,30,34,40,50,60,64,70,80,90,96,100,110,120,130,140,150,160])
 
-newlons_nh = newlons[newlats[:,0]>=0,:]
-levs_nh = levs[newlats[:,0]>=0,:]
-ugrdtmp_nh = ugrdtmp[newlats[:,0]>=0,:]
-vgrdtmp_nh = vgrdtmp[newlats[:,0]>=0,:]
-
-newlons_sh = newlons[newlats[:,0]<0,:]
-levs_sh = levs[newlats[:,0]<0,:]
-ugrdtmp_sh = ugrdtmp[newlats[:,0]<0,:]
-vgrdtmp_sh = vgrdtmp[newlats[:,0]<0,:]
-
-wb0 = ax1.barbs(newlons_nh[::2,::20], levs_nh[::2,::20], ugrdtmp_nh[::2,idx[0],200:800:20], vgrdtmp_nh[::2,idx[0],200:800:20],length=wblength, linewidth=0.25, color='black',flip_barb=False)
-wb0 = ax1.barbs(newlons_sh[::2,::20], levs_sh[::2,::20], ugrdtmp_sh[::2,idx[0],200:800:20], vgrdtmp_sh[::2,idx[0],200:800:20],length=wblength, linewidth=0.25, color='black',flip_barb=True)
+wb0 = ax1.barbs(newlons[::2,::20], levs[::2,::20], ugrdtmp[::2,idx[0],200:800:20], vgrdtmp[::2,idx[0],200:800:20],length=wblength, linewidth=0.25, color='black',flip_barb=newlats[::2,::20])
 
 ax1.set_yscale('log')
 ax1.set_ylim(1000,100)
