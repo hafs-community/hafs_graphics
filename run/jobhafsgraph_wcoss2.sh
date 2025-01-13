@@ -14,6 +14,7 @@ date
 
 cd $PBS_O_WORKDIR
 
+export USE_CFP=${USE_CFP:YES}
 export TOTAL_TASKS=${TOTAL_TASKS:-${SLURM_NTASKS:-240}}
 export NCTSK=${NCTSK:-60}
 export NCNODE=${NCNODE:-4}
@@ -354,7 +355,7 @@ for((i=0;i<${nscripts};i++)); do
 done
 
 chmod u+x ./$cmdfile
-if [ ${machine} = "wcoss2" ]; then
+if [ $USE_CFP = "YES" ] ; then
   ncmd=$(cat ./$cmdfile | wc -l)
   ncmd_max=$((ncmd < TOTAL_TASKS ? ncmd : TOTAL_TASKS))
   $APRUNCFP -n $ncmd_max cfp ./$cmdfile
@@ -415,7 +416,7 @@ done
 done
 
 chmod u+x ./$cmdfile
-if [ ${machine} = "wcoss2" ]; then
+if [ $USE_CFP = "YES" ] ; then
   ncmd=$(cat ./$cmdfile | wc -l)
   ncmd_max=$((ncmd < TOTAL_TASKS ? ncmd : TOTAL_TASKS))
   $APRUNCFP -n $ncmd_max cfp ./$cmdfile
@@ -480,7 +481,7 @@ done
 done
 
 chmod u+x ./$cmdfile
-if [ ${machine} = "wcoss2" ]; then
+if [ $USE_CFP = "YES" ] ; then
   ncmd=$(cat ./$cmdfile | wc -l)
   ncmd_max=$((ncmd < TOTAL_TASKS ? ncmd : TOTAL_TASKS))
   $APRUNCFP -n $ncmd_max cfp ./$cmdfile
