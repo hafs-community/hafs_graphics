@@ -180,8 +180,8 @@ if len(lon_adeck[okfhour])!=0 and len(lat_adeck[okfhour])!=0:
         ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=central_longitude))
         ax.axis('scaled')
         
-        cflevels = np.arange(-2,2.1,0.1)
-        cmap = plt.get_cmap('bwr')
+        cflevels = np.arange(-1,1.1,0.1)
+        cmap = plt.get_cmap('nipy_spectral')
         cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
         ax.contour(lon, lat, var, cflevels, colors='grey',alpha=0.5, linewidths=0.5, transform=ccrs.PlateCarree())
         cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=20, shrink=0.6, extendrect=True, ticks=cflevels[::4])
@@ -258,7 +258,7 @@ if len(lon_adeck[okfhour])!=0 and len(lat_adeck[okfhour])!=0:
     
         pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.storm.'+var_name+'.'+conf['fhhh'].lower()+'.png'
         plt.savefig(pngFile,bbox_inches='tight',dpi=150)
-        #plt.close("all")
+        plt.close("all")
         
 else:
     print('There is not latitude or longitude for the center of the storm at this forecast hour. Exiting plotting script')

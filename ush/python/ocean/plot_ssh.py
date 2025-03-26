@@ -145,8 +145,8 @@ fig = plt.figure(figsize=(8,4))
 ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=central_longitude))
 ax.axis('scaled')
 
-cflevels = np.arange(-2,2.1,0.1)
-cmap = plt.get_cmap('bwr')
+cflevels = np.arange(-1,1.1,0.1)
+cmap = plt.get_cmap('nipy_spectral')
 cf = ax.contourf(lon, lat, var, levels=cflevels, cmap=cmap, extend='both', transform=ccrs.PlateCarree())
 lb = ax.contour(lon, lat, var, levels=[0], colors='grey', alpha=0.7,transform=ccrs.PlateCarree(),linewidths=0.5)
 ax.clabel(lb, lb.levels, inline=True,fmt='%1.0f', fontsize=6,colors='grey')
@@ -189,5 +189,5 @@ ax.text(1.0,-0.1, footer, fontsize=8, va="top", ha="right", transform=ax.transAx
 
 pngFile = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']+'.ocean.'+var_name+'.'+conf['fhhh'].lower()+'.png'
 plt.savefig(pngFile,bbox_inches='tight',dpi=150)
-#plt.close("all")
+plt.close("all")
 
