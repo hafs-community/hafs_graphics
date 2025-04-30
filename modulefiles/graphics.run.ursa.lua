@@ -44,12 +44,12 @@ load(pathJoin("libjpeg", libjpeg_ver))
 imagemagick_ver=os.getenv("imagemagick_ver") or "7.1.1-29"
 load(pathJoin("imagemagick", imagemagick_ver))
 
-prepend_path("PATH", "/tds_scratch2/SYSADMIN/pilot-users/Biju.Thomas/noscrub/shared/miniconda3/envs/WCOSS2_env/bin")
+prepend_path("PATH", "/scratch3/NCEPDEV/hwrf/noscrub/local/miniconda3/envs/WCOSS2_env/bin")
 
-prepend_path("PYTHONPATH", "/tds_scratch2/SYSADMIN/pilot-users/Biju.Thomas/noscrub/shared/miniconda3/envs/WCOSS2_env")
+prepend_path("PYTHONPATH", "/scratch3/NCEPDEV/hwrf/noscrub/local/miniconda3/envs/WCOSS2_env")
 
-setenv("MPISERIAL", "/tds_scratch2/SYSADMIN/pilot-users/Biju.Thomas/noscrub/local/bin/mpiserial")
+setenv("MPISERIAL", "/scratch3/NCEPDEV/hwrf/noscrub/local/bin/mpiserial")
 
-setenv("cartopyDataDir", "/tds_scratch2/SYSADMIN/pilot-users/Biju.Thomas/noscrub/shared/cartopy")
+setenv("cartopyDataDir", "/scratch3/NCEPDEV/hwrf/noscrub/local/cartopy")
 
 whatis("Description: HAFS Graphics environment")
