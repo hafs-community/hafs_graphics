@@ -2,28 +2,16 @@ help([[
 loads HAFS application level modulefile on Orion
 ]])
 
-ncl_ver=os.getenv("ncl") or "6.6.2"
-load(pathJoin("ncl", ncl_ver))
+prepend_path("MODULEPATH", "/apps/contrib/spack-stack/spack-stack-1.9.2/envs/ue-oneapi-2024.1.0/install/modulefiles/Core")
+prepend_path("MODULEPATH", "/apps/contrib/spack-stack/spack-stack-1.9.2/envs/ue-oneapi-2024.1.0/install/modulefiles/intel-oneapi-mpi/2021.13-li242lf/gcc/12.2.0")
 
-prepend_path("MODULEPATH", "/work/noaa/epic/role-epic/spack-stack/orion/spack-stack-1.6.0/envs/unified-env-rocky9/install/modulefiles/Core")
+stack_oneapi_ver=os.getenv("stack_oneapi_ver") or "2024.2.1"
+load(pathJoin("stack-oneapi", stack_oneapi_ver))
 
-stack_intel_ver=os.getenv("stack_intel_ver") or "2021.9.0" 
-load(pathJoin("stack-intel", stack_intel_ver))
-
-stack_impi_ver=os.getenv("stack_impi_ver") or "2021.9.0" 
+stack_impi_ver=os.getenv("stack_impi_ver") or "2021.13"
 load(pathJoin("stack-intel-oneapi-mpi", stack_impi_ver))
 
-hdf5_ver=os.getenv("hdf5_ver") or "1.14.0"
-load(pathJoin("hdf5", hdf5_ver)) 
-
-netcdf_c_ver=os.getenv("netcdf_c_ver") or "4.9.2"
-load(pathJoin("netcdf-c", netcdf_c_ver))
-
-netcdf_fortran_ver=os.getenv("netcdf_fortran_ver") or "4.6.1"
-load(pathJoin("netcdf-fortran", netcdf_fortran_ver))
-
-wgrib2_ver=os.getenv("wgrib2_ver") or "2.0.8"
-load(pathJoin("wgrib2", wgrib2_ver))
+load("graphics_common")
 
 imagemagick_ver=os.getenv("imagemagick_ver") or "7.1.1-29"
 load(pathJoin("imagemagick", magemagick_ver))
