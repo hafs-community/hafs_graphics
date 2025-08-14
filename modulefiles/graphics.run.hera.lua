@@ -3,16 +3,16 @@ loads HAFS application level modulefile on Hera
 ]])
 
 purge()
-prepend_path("MODULEPATH", "/scratch1/NCEPDEV/nems/role.epic/spack-stack/spack-stack-1.6.0/envs/unified-env-rocky8/install/modulefiles/Core")
+prepend_path("MODULEPATH", "/contrib/spack-stack/spack-stack-1.6.0/envs/unified-env-rocky8/install/modulefiles/Core")
 
 stack_intel_ver=os.getenv("stack_intel_ver") or "2021.5.0"
 load(pathJoin("stack-intel", stack_intel_ver))
 
-ncl_ver=os.getenv("ncl") or "6.6.2"
-load(pathJoin("ncl", ncl_ver))
-
 stack_impi_ver=os.getenv("stack_impi_ver") or "2021.5.1"
 load(pathJoin("stack-intel-oneapi-mpi", stack_impi_ver))
+
+ncl_ver=os.getenv("ncl") or "6.6.2"
+load(pathJoin("ncl", ncl_ver))
 
 hdf5_ver=os.getenv("hdf5_ver") or "1.14.0"
 load(pathJoin("hdf5", hdf5_ver))
@@ -32,11 +32,12 @@ load(pathJoin("wgrib2", wgrib2_ver))
 imagemagick_ver=os.getenv("imagemagick_ver") or "7.1.1-11"
 load(pathJoin("imagemagick", imagemagick_ver))
 
-prepend_path("MODULEPATH", "/scratch1/NCEPDEV/hwrf/noscrub/local/modulefiles")
-load(pathJoin("python","wcoss2_env"))
+prepend_path("PATH", "/scratch3/NCEPDEV/hwrf/noscrub/local/miniconda3/envs/WCOSS2_env/bin")
 
-setenv("MPISERIAL", "/scratch1/NCEPDEV/hwrf/noscrub/local/bin/mpiserial")
+prepend_path("PYTHONPATH", "/scratch3/NCEPDEV/hwrf/noscrub/local/miniconda3/envs/WCOSS2_env")
 
-setenv("cartopyDataDir", "/scratch1/NCEPDEV/hwrf/noscrub/local/share/cartopy")
+setenv("MPISERIAL", "/scratch3/NCEPDEV/hwrf/noscrub/local/bin/mpiserial")
+
+setenv("cartopyDataDir", "/scratch3/NCEPDEV/hwrf/noscrub/local/cartopy")
 
 whatis("Description: HAFS Graphics environment")
