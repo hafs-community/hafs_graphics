@@ -3,31 +3,14 @@ loads HAFS application level modulefile on Hera
 ]])
 
 purge()
-prepend_path("MODULEPATH", "/contrib/spack-stack/spack-stack-1.6.0/envs/unified-env-rocky8/install/modulefiles/Core")
 
-stack_intel_ver=os.getenv("stack_intel_ver") or "2021.5.0"
-load(pathJoin("stack-intel", stack_intel_ver))
+prepend_path("MODULEPATH", "/contrib/spack-stack/spack-stack-1.9.2/envs/ue-oneapi-2024.2.1/install/modulefiles/Core")
+prepend_path("MODULEPATH", "/contrib/spack-stack/spack-stack-1.9.2/envs/ue-oneapi-2024.2.1/install/modulefiles/intel-oneapi-mpi/2021.13-sbi3u54/gcc/13.3.0")
 
-stack_impi_ver=os.getenv("stack_impi_ver") or "2021.5.1"
-load(pathJoin("stack-intel-oneapi-mpi", stack_impi_ver))
+stack_oneapi_ver=os.getenv("stack_oneapi_ver") or "2024.2.1"
+load(pathJoin("stack-oneapi", stack_oneapi_ver))
 
-ncl_ver=os.getenv("ncl") or "6.6.2"
-load(pathJoin("ncl", ncl_ver))
-
-hdf5_ver=os.getenv("hdf5_ver") or "1.14.0"
-load(pathJoin("hdf5", hdf5_ver))
-
-netcdf_c_ver=os.getenv("netcdf_c_ver") or "4.9.2"
-load(pathJoin("netcdf-c", netcdf_c_ver))
-
-netcdf_fortran_ver=os.getenv("netcdf_fortran_ver") or "4.6.1"
-load(pathJoin("netcdf-fortran", netcdf_fortran_ver))
-
-prod_util_ver=os.getenv("prod_util_ver") or "2.1.1"
-load(pathJoin("prod_util", prod_util_ver))
-
-wgrib2_ver=os.getenv("wgrib2_ver") or "2.0.8"
-load(pathJoin("wgrib2", wgrib2_ver))
+load("graphics_common")
 
 imagemagick_ver=os.getenv("imagemagick_ver") or "7.1.1-11"
 load(pathJoin("imagemagick", imagemagick_ver))
