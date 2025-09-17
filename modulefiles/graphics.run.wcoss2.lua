@@ -37,10 +37,10 @@ load(pathJoin("libjpeg", libjpeg_ver))
 load("libjpeg-turbo/2.1.0")
 
 hdf5_ver=os.getenv("hdf5_ver")
-load(pathJoin("hdf5-C", hdf5_ver))
+load(pathJoin("hdf5-D", hdf5_ver))
 
 netcdf_ver=os.getenv("netcdf_ver")
-load(pathJoin("netcdf-C", netcdf_ver))
+load(pathJoin("netcdf-D", netcdf_ver))
 
 prod_util_ver=os.getenv("prod_util_ver") or "2.0.13"
 load(pathJoin("prod_util", prod_util_ver))
