@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""This script plots out HAFS the 3-hours accumulated precipitation, the mean sea level pressure and the 1000-500 geopotential thickness."""
+"""This script plots out ARAFS the 3-hours accumulated precipitation, the mean sea level pressure and the 1000-500 geopotential thickness."""
 
 import os
 
@@ -34,24 +34,13 @@ conf['validTime'] = conf['initTime'] + conf['fcstTime']
 cartopy.config['data_dir'] = conf['cartopyDataDir']
 print(conf)
 
-fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+conf['stormDomain']+'.atm.'+conf['fhhh']+'.grb2'
+#fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+conf['stormDomain']+'.atm.'+conf['fhhh']+'.grb2'
+fname = conf['stormModel'].lower()+'.'+conf['ymdh']+'.'+conf['fhhh']+'.grb2'
 grib2file = os.path.join(conf['COMhafs'], fname)
 print(f'grib2file: {grib2file}')
 grb = grib2io.open(grib2file,mode='r')
 
-if conf['stormDomain'] == 'parent':
-    grb_apcp = grb # extract apcp from domain grid01
-
-if conf['stormDomain'] == 'storm':
-    fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+'parent'+'.atm.'+conf['fhhh']+'.grb2'
-    grib2file = os.path.join(conf['COMhafs'], fname)
-    print(f'grib2file for accumulated precipitation: {grib2file}')
-    grb_apcp = grib2io.open(grib2file,mode='r') # extract apcp from domain grid01
-
-    print('Extracting lat, lon for accumulated precipitation')
-    lat_apcp = grb_apcp.select(shortName='NLAT')[0].data
-    lon_apcp = grb_apcp.select(shortName='ELON')[0].data
-    #[nlat, nlon] = np.shape(lon)
+grb_apcp = grb # extract apcp from domain grid01
 
 print('Extracting lat, lon')
 lat = grb.select(shortName='NLAT')[0].data
@@ -67,9 +56,6 @@ else:
 lon = lon - lon_offset
 print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 [nlat, nlon] = np.shape(lon)
-
-if conf['stormDomain'] == 'storm':
-    lon_apcp = lon_apcp - lon_offset
 
 print('Extracting MSLET')
 #slp = grb.select(shortName='PRMSL',level='mean sea level')[0].data()
@@ -108,31 +94,17 @@ mpl.rcParams['xtick.labelsize'] = 8
 mpl.rcParams['ytick.labelsize'] = 8
 mpl.rcParams['legend.fontsize'] = 8
 
-if conf['stormDomain'] == 'storm':
-    mpl.rcParams['figure.figsize'] = [6, 6]
-    fig_name = fig_prefix+'.storm.'+'precip_mslp_thk.'+conf['fhhh'].lower()+'.png'
-    cbshrink = 1.0
-    lonmin = lon[int(nlat/2), int(nlon/2)]-3
-    lonmax = lon[int(nlat/2), int(nlon/2)]+3
-    lonint = 2.0
-    latmin = lat[int(nlat/2), int(nlon/2)]-3
-    latmax = lat[int(nlat/2), int(nlon/2)]+3
-    latint = 2.0
-    skip = 20
-    wblength = 4.5
-else:
-    mpl.rcParams['figure.figsize'] = [8, 5.4]
-    fig_name = fig_prefix+'.'+'precip_mslp_thk.'+conf['fhhh'].lower()+'.png'
-    cbshrink = 1.0
-    lonmin = np.min(lon)
-    lonmax = np.max(lon)
-    lonint = 10.0
-    latmin = np.min(lat)
-    latmax = np.max(lat)
-    latint = 10.0
-    skip = round(nlon/360)*10
-    wblength = 4
-   #skip = 40
+mpl.rcParams['figure.figsize'] = [8, 5.4]
+fig_name = fig_prefix+'.'+'precip_mslp_thk.'+conf['fhhh'].lower()+'.png'
+cbshrink = 1.0
+lonmin = np.min(lon)
+lonmax = np.max(lon)
+lonint = 10.0
+latmin = np.min(lat)
+latmax = np.max(lat)
+latint = 10.0
+skip = round(nlon/360)*10
+wblength = 4
 
 myproj = ccrs.PlateCarree(lon_offset)
 transform = ccrs.PlateCarree(lon_offset)
@@ -142,17 +114,17 @@ fig = plt.figure()
 ax = plt.axes(projection=myproj)
 ax.axis('equal')
 
-try:
-    cslevels = np.arange(900,1050,4)
-    cs = ax.contour(lon, lat, slp, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
-    lblevels = np.arange(900,1050,8)
-    lb = plt.clabel(cs, levels=lblevels, inline_spacing=1, fmt='%d', fontsize=6)
-    cslevels = np.arange(540,600,4)
-    cs = ax.contour(lon, lat, thk1000_500, levels=cslevels, colors='red', linewidths=0.6, transform=transform)
-    lblevels = np.arange(540,600,8)
-    lb = plt.clabel(cs, levels=lblevels, inline_spacing=1, fmt='%d', fontsize=6)
-except:
-    print('ax.contour failed, continue anyway')
+#try:
+#    cslevels = np.arange(900,1050,10)
+#    cs = ax.contour(lon, lat, slp, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
+#    lblevels = np.arange(900,1050,8)
+#    lb = plt.clabel(cs, levels=lblevels, inline_spacing=1, fmt='%d', fontsize=6)
+    #cslevels = np.arange(540,600,4)
+    #cs = ax.contour(lon, lat, thk1000_500, levels=cslevels, colors='red', linewidths=0.6, transform=transform)
+    #lblevels = np.arange(540,600,8)
+    #lb = plt.clabel(cs, levels=lblevels, inline_spacing=1, fmt='%d', fontsize=6)
+#except:
+#    print('ax.contour failed, continue anyway')
 
 cflevels = [0,                   # white
             0.01,0.1,0.25,       # blue
@@ -172,10 +144,7 @@ cm = matplotlib.colors.ListedColormap(cfcolors)
 norm = matplotlib.colors.BoundaryNorm(cflevels, cm.N)
 
 try:
-    if conf['stormDomain'] == 'parent':
-        cf = ax.contourf(lon, lat, apcp, cflevels, cmap=cm, norm=norm, transform=transform)
-    elif conf['stormDomain'] == 'storm':
-        cf = ax.contourf(lon_apcp, lat_apcp, apcp, cflevels, cmap=cm, norm=norm, transform=transform)
+    cf = ax.contourf(lon, lat, apcp, cflevels, cmap=cm, norm=norm, transform=transform)
     cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True,
                       ticks=[0.01,0.1,0.25,0.5,0.75,1,1.5,2,2.5,3,4,5,6,8,10])
     cb.ax.set_yticklabels(['0.01','0.1','0.25','0.5','0.75','1','1.5','2.0','2.5','3.0','4.0','5.0','6.0','8.0','10.0'])
@@ -209,9 +178,9 @@ title_left = """{0}
 ax.set_title(title_left, loc='left', y=0.99)
 title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
 ax.set_title(title_right, loc='right', y=0.99)
-footer = os.environ.get('FOOTERgraph','Experimental HAFS Product').strip()
+footer = os.environ.get('FOOTERgraph','Experimental ARAFS Product').strip()
 ax.text(1.0,-0.04, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
 
 #plt.show()
 plt.savefig(fig_name, bbox_inches='tight')
-#plt.close(fig)
+plt.close(fig)

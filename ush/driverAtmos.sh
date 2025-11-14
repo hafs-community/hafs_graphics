@@ -3,8 +3,8 @@
 set -xe
 
 if [ $# -lt 8 ]; then
-  echo "sample usage: ./driverAtmos.sh stormModel stormName stormID startDate stormDomain figScript standardLayer fhhh"
-  echo "./driverDomain.sh HAFS IDA 09L 2019082800 grid01 plot_reflectivity.py 1003 f036"
+  echo "sample usage: ./driverAtmos.sh stormModel stormName stormID startDate figScript standardLayer fhhh"
+  echo "./driverDomain.sh HAFS IDA 09L 2019082800 plot_reflectivity.py 1003 f036"
 fi
 
 # eparse function
@@ -23,10 +23,9 @@ stormname=`echo ${stormname} | tr '[A-Z]' '[a-z]' `
 STORMMODEL=`echo ${stormModel} | tr '[a-z]' '[A-Z]' `
 
 startDate=${4:-2019082900}
-stormDomain=${5:-grid01}
-figScript=${6:-"plot_reflectivity.py"}
-standardLayer=${7:-1003}
-fhhh=${8:-f036}
+figScript=${5:-"plot_reflectivity.py"}
+standardLayer=${6:-1003}
+fhhh=${7:-f036}
 
 fntmp=${figScript%.*}
 figName=${fntmp#plot_}
@@ -66,7 +65,7 @@ else
 fi
 BASIN2C=`echo ${basin2c} | tr '[a-z]' '[A-Z]'`
 
-work_dir="${WORKgraph}/${STORMNAME}${STORMID}/${startDate}.${stormDomain}.${figName}_${standardLayer}_${fhhh}"
+work_dir="${WORKgraph}/${STORMNAME}${STORMID}/${startDate}.${figName}_${standardLayer}_${fhhh}"
 
 rm -rf ${work_dir}
 mkdir -p ${work_dir}
@@ -77,8 +76,8 @@ cp -up ${HOMEgraph}/ush/python/atmos/${figScript} ${work_dir}
 
 # Generate the yaml config file
 stormModel=${stormModel}; stormName=${STORMNAME}; stormID=${STORMID}
-stormBasin=${BASIN2C}; stormDomain=${stormDomain}
-ymdh=${startDate}; fhhh=${fhhh}
+stormBasin=${BASIN2C};
+ymdh=${startDate}; fhhh=${fhhh};
 standardLayer=${standardLayer}; cartopyDataDir=${cartopyDataDir}
 
 eparse plot_atmos.yml.tmp > plot_atmos.yml
