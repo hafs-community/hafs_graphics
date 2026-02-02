@@ -24,7 +24,7 @@ import cartopy.feature as cfeature
 print('Parse the config file: plot_atmos.yml:')
 with open('plot_atmos.yml', 'rt') as f:
     conf = yaml.safe_load(f)
-conf['stormNumber'] = conf['stormID'][0:2]
+#conf['stormNumber'] = conf['stormID'][0:2]
 conf['initTime'] = pd.to_datetime(conf['ymdh'], format='%Y%m%d%H', errors='coerce')
 conf['fhour'] = int(conf['fhhh'][1:])
 conf['fcstTime'] = pd.to_timedelta(conf['fhour'], unit='h')
@@ -34,17 +34,16 @@ conf['validTime'] = conf['initTime'] + conf['fcstTime']
 cartopy.config['data_dir'] = conf['cartopyDataDir']
 print(conf)
 
-#fname = conf['stormID'].lower()+'.'+conf['ymdh']+'.'+conf['stormModel'].lower()+'.'+conf['stormDomain']+'.atm.'+conf['fhhh']+'.grb2'
-fname = conf['stormModel'].lower()+'.'+conf['ymdh']+'.'+conf['fhhh']+'.grb2'
-grib2file = os.path.join(conf['COMhafs'], fname)
+grib2dir = conf['grib2dir']
+grib2file = grib2dir + 'pgb' + conf['fhhh'] + '.' + conf['ymdh']
 print(f'grib2file: {grib2file}')
 grb = grib2io.open(grib2file,mode='r')
 
 print('Extracting lat, lon')
-lat = grb.select(shortName='NLAT')[0].data
-lon = grb.select(shortName='ELON')[0].data
-# The lon range in grib2 is typically between 0 and 360
-# Cartopy's PlateCarree projection typically uses the lon range of -180 to 180
+record = grb.select(shortName='TMP')[0]
+lat, lon = record.latlons()
+
+'''
 print('raw lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
 if abs(np.max(lon) - 360.) < 10.:
     lon[lon>180] = lon[lon>180] - 360.
@@ -53,19 +52,21 @@ else:
     lon_offset = 180.
 lon = lon - lon_offset
 print('new lonlat limit: ', np.min(lon), np.max(lon), np.min(lat), np.max(lat))
+'''
+lon_offset = 0.
 [nlat, nlon] = np.shape(lon)
 
 print('Extracting Temperature at 2 m above ground')
 levstr='2 m above ground'
 tmp = grb.select(shortName='TMP', level=levstr)[0].data
 tmp = tmp - 273.15 # convert K to degC
-tmp = gaussian_filter(tmp, 2)
+#tmp = gaussian_filter(tmp, 2)
 
 print('Extracting MSLET')
 #slp = grb.select(shortName='PRMSL',level='mean sea level')[0].data()
 slp = grb.select(shortName='MSLET')[0].data
 slp = slp * 0.01 # convert Pa to hPa
-slp = gaussian_filter(slp, 5)
+#slp = gaussian_filter(slp, 5)
 
 print('Extracting UGRD, VGRD at 10 m above ground')
 levstr='10 m above ground'
@@ -80,7 +81,8 @@ wspd = (ugrd**2+vgrd**2)**.5
 
 #===================================================================================================
 print('Plotting 2 m temperature, MSLET and 10 m wind')
-fig_prefix = conf['stormName'].upper()+conf['stormID'].upper()+'.'+conf['ymdh']+'.'+conf['stormModel']
+#fig_prefix = 'GFSv16'
+fig_prefix = conf['model']
 
 # Set default figure parameters
 mpl.rcParams['figure.figsize'] = [8, 8]
@@ -92,13 +94,17 @@ mpl.rcParams['ytick.labelsize'] = 8
 mpl.rcParams['legend.fontsize'] = 8
 
 mpl.rcParams['figure.figsize'] = [8, 5.4]
-fig_name = fig_prefix+'.'+'t2m_mslp_wind10m.'+conf['fhhh'].lower()+'.png'
-cbshrink = 1.0
-lonmin = np.min(lon)
-lonmax = np.max(lon)
+fig_name = fig_prefix+'.'+'t2m_mslp_wind10m.'+conf['ymdh']+'.'+conf['fhhh'].lower()+'.png'
+cbshrink = 0.7
+#lonmin = np.min(lon)
+#lonmax = np.max(lon)
+lonmin = conf['lonmin']
+lonmax = conf['lonmax']
 lonint = 10.0
-latmin = np.min(lat)
-latmax = np.max(lat)
+#latmin = np.min(lat)
+#latmax = np.max(lat)
+latmin = conf['latmin']
+latmax = conf['latmax']
 latint = 10.0
 skip = round(nlon/360)*10
 wblength = 4
@@ -109,20 +115,27 @@ transform = ccrs.PlateCarree(lon_offset)
 # create figure and axes instances
 fig = plt.figure()
 ax = plt.axes(projection=myproj)
-ax.axis('equal')
+ax.axis('scaled')
 
-cflevels = np.linspace(-20, 40, 121)
+print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
+ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
+
+#cflevels = np.linspace(-20, 40, 121)
+cflevels = np.linspace(-20, 40, 61)
 ctmp = plt.get_cmap('nipy_spectral')
 cmap = mpl.colors.LinearSegmentedColormap.from_list('sub_'+ctmp.name,ctmp(np.linspace(0.04, 0.98, 201)))
-cf = ax.contourf(lon, lat, tmp, levels=cflevels, cmap=cmap, extend='both', transform=transform)
-cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True, ticks=cflevels[::10])
+#cf = ax.contourf(lon, lat, tmp, levels=cflevels, cmap=cmap, extend='both', transform=transform)
+cf = ax.contourf(lon, lat, tmp, levels=cflevels, cmap=cmap, extend='both')
+#cb = plt.colorbar(cf, orientation='vertical', pad=0.02, aspect=50, shrink=cbshrink, extendrect=True, ticks=cflevels[::10])
+cb = plt.colorbar(cf, orientation='vertical', pad=0.02, shrink=cbshrink, extendrect=True, ticks=cflevels[::10])
 
-wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip], length=wblength, linewidth=0.2, color='black', transform=transform,flip_barb=lat[::skip,::skip]<0)
+#wb = ax.barbs(lon[::skip,::skip], lat[::skip,::skip], ugrd[::skip,::skip], vgrd[::skip,::skip], length=wblength, linewidth=0.2, color='black', transform=transform,flip_barb=lat[::skip,::skip]<0)
 
 try:
-    cslevels = np.arange(840,1040,4)
-    cs = ax.contour(lon, lat, slp, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
-    lblevels = np.arange(840,1040,8)
+    cslevels = np.arange(840,1040,1)
+    #cs = ax.contour(lon, lat, slp, levels=cslevels, colors='black', linewidths=0.6, transform=transform)
+    cs = ax.contour(lon, lat, slp, levels=cslevels, colors='black', linewidths=0.6)
+    lblevels = np.arange(840,1040,2)
     lb = plt.clabel(cs, levels=lblevels, inline_spacing=1, fmt='%d', fontsize=8)
 except:
     print('ax.contour failed, continue anyway')
@@ -142,21 +155,23 @@ gl.ylocator = mticker.FixedLocator(np.arange(-90., 90.+1, latint))
 gl.xlabel_style = {'size': 8, 'color': 'black'}
 gl.ylabel_style = {'size': 8, 'color': 'black'}
 
-print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
-ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
+#print('lonlat limits: ', [lonmin, lonmax, latmin, latmax])
+#ax.set_extent([lonmin, lonmax, latmin, latmax], crs=transform)
 
-model_info = os.environ.get('TITLEgraph','').strip()
-var_info = '2 m Temperature (${^o}$C, shaded), MSLP (hPa), 10 m Wind (kt)'
-storm_info = conf['stormName']+conf['stormID']
-title_left = """{0}
-{1}
+model_info = conf['model']
+#var_info = '2 m Temperature (${^o}$C, shaded), MSLP (hPa), 10 m Wind (kt)'
+var_info = '2 m Temperature (${^o}$C, shaded), MSLP (hPa)'
+#storm_info = conf['stormName']+conf['stormID']
+storm_info = " "
+title_center = """{0} {1}
 {2}""".format(model_info,var_info,storm_info)
+ax.set_title(title_center, loc='center', y=0.99)
+title_left = conf['initTime'].strftime('Initialized: %Y%m%d%HZ ')
 ax.set_title(title_left, loc='left', y=0.99)
-title_right = conf['initTime'].strftime('Init: %Y%m%d%HZ ')+conf['fhhh'].upper()+conf['validTime'].strftime(' Valid: %Y%m%d%HZ')
+title_right = conf['validTime'].strftime(' Valid: %Y%m%d%HZ') + '(' +  conf['fhhh'] + ')'
 ax.set_title(title_right, loc='right', y=0.99)
-footer = os.environ.get('FOOTERgraph','Experimental ARAFS Product').strip()
-ax.text(1.0,-0.04, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
+#footer = os.environ.get('FOOTERgraph','GFS').strip()
+#ax.text(1.0,-0.04, footer, fontsize=8, va="top", ha="right", transform=ax.transAxes)
 
-#plt.show()
 plt.savefig(fig_name, bbox_inches='tight')
 plt.close(fig)
